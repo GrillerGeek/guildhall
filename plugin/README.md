@@ -6,15 +6,17 @@ A TDD-ordered coding agent harness for Claude Code, tuned for Opus 4.7.
 
 ## The guild
 
-| Agent | Role | Model |
-|---|---|---|
-| `orchestrator` | The guildmaster. Plans, dispatches adventurers, verifies handoffs. | Opus |
-| `prototype-builder` | The scout — runs ahead for fast spikes, no tests, disposable code. | Sonnet |
-| `test-author` | Writes red tests from IDD Spec Expectations, independent of implementation. | Sonnet |
-| `feature-implementer` | Writes green code to pass the tests. No scope creep. | Sonnet |
-| `refactorer` | Narrow scoped refactors. Preserves behavior. | Sonnet |
-| `debug-investigator` | Root-cause finder. Does NOT write fixes. | Sonnet |
-| `ui-test-author` *(optional)* | Drives a real browser with Playwright for E2E tests. | Sonnet |
+| Adventurer | Agent | Role | Model |
+|---|---|---|---|
+| **Mordain the Keeper** | `orchestrator` | Guildmaster. Plans, dispatches, verifies handoffs. | Opus |
+| **Pip Quickfoot** | `prototype-builder` | Scout. Fast spikes, no tests, disposable code. | Sonnet |
+| **Seraphine Dawnveil** | `test-author` | Oracle. Red tests from the Spec; never reads implementation. | Sonnet |
+| **Bruga Ironseam** | `feature-implementer` | Smith. Green code from the blueprint. No scope creep. | Sonnet |
+| **Tink Whiffletree** | `refactorer` | Enchanter. Narrow scoped refactors; preserves behavior. | Sonnet |
+| **Kael the Tracker** | `debug-investigator` | Ranger. Finds root cause; does NOT fix. | Sonnet |
+| **Vera Nightwhistle** *(optional)* | `ui-test-author` | Playwright. Drives Playwright E2E tests against the running app. | Sonnet |
+
+Full character sheets in [`CHARACTERS.md`](CHARACTERS.md).
 
 ## Issuing a quest
 
