@@ -1,0 +1,10 @@
+{
+  "name": "guildhall",
+  "version": "0.1.0",
+  "description": "The Guildhall — a gathering place for adventurers. A TDD-ordered coding agent harness for Claude Code, tuned for Opus 4.7. An orchestrator (plan + dispatch on Opus) and six workers on Sonnet: prototype-builder, test-author, feature-implementer, refactorer, debug-investigator, plus an optional Playwright ui-test-author. Integrates with IDD-framework specs.",
+  "author": { "name": "GrillerGeek" },
+  "homepage": "https://github.com/GrillerGeek/guildhall",
+  "repository": "https://github.com/GrillerGeek/guildhall.git",
+  "license": "MIT",
+  "keywords": ["claude-code", "agents", "tdd", "opus-4.7", "idd-framework", "harness"]
+}
