@@ -2,23 +2,23 @@
 name: orchestrator
 description: Use this agent when Jason wants coordinated multi-step coding work — planning, dispatching workers, and verifying handoffs. Use orchestrator NOT individual workers when the job spans more than one step (plan → test → implement → refactor) or when mode selection (prototype vs feature vs debug) is itself part of the decision. Examples:
 
- <example>
- Context: Jason has an IDD spec and wants the feature built.
- user: "Implement the reservation feature from spec 2026-04-18-reservations.md"
- assistant: "Dispatching orchestrator — it will plan, fire test-author first (red), then feature-implementer (green), then refactorer."
- </example>
+  <example>
+  Context: Jason has an IDD spec and wants the feature built.
+  user: "Implement the reservation feature from spec 2026-04-18-reservations.md"
+  assistant: "Dispatching orchestrator — it will plan, fire test-author first (red), then feature-implementer (green), then refactorer."
+  </example>
 
- <example>
- Context: Jason has an ambiguous ask that could be prototype or feature.
- user: "I want to try a campground availability poller."
- assistant: "Dispatching orchestrator — it will pick prototype vs. feature mode and dispatch accordingly."
- </example>
+  <example>
+  Context: Jason has an ambiguous ask that could be prototype or feature.
+  user: "I want to try a campground availability poller."
+  assistant: "Dispatching orchestrator — it will pick prototype vs. feature mode and dispatch accordingly."
+  </example>
 
- <example>
- Context: Jason reports a bug and wants it resolved.
- user: "Reservation conflict check is broken — figure out what's wrong and fix it."
- assistant: "Dispatching orchestrator — it will run debug-investigator first, then decide fix route."
- </example>
+  <example>
+  Context: Jason reports a bug and wants it resolved.
+  user: "Reservation conflict check is broken — figure out what's wrong and fix it."
+  assistant: "Dispatching orchestrator — it will run debug-investigator first, then decide fix route."
+  </example>
 
 model: opus
 color: red

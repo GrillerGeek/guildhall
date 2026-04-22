@@ -2,11 +2,11 @@
 name: feature-implementer
 description: Use this agent when implementing a feature that has a written IDD Spec. Agent reads the spec, produces code that satisfies the Expectations block, and keeps the existing test suite green. Use this agent NOT prototype-builder when there's a spec to satisfy and the code is expected to ship. Examples:
 
- <example>
- Context: spec-author has produced a spec; Jason is ready to implement.
- user: "Implement the camping trip reservation feature from spec 2026-04-18-reservations.md"
- assistant: "Dispatching feature-implementer — it will read the spec and implement against the Expectations."
- </example>
+  <example>
+  Context: spec-author has produced a spec; Jason is ready to implement.
+  user: "Implement the camping trip reservation feature from spec 2026-04-18-reservations.md"
+  assistant: "Dispatching feature-implementer — it will read the spec and implement against the Expectations."
+  </example>
 
 model: sonnet
 color: green

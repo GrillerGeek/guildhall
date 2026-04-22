@@ -2,17 +2,17 @@
 name: prototype-builder
 description: Use this agent when Jason wants to spike a prototype FAST to validate an idea or see it running. Prioritizes speed and disposability over correctness. Use this agent NOT feature-implementer when there is no IDD Spec, no tests will be written, and the code will likely be rewritten before shipping. Examples:
 
- <example>
- Context: Jason wants to test if a third-party API does what he needs.
- user: "Throw together a quick script that hits the Recreation.gov API for campground XYZ and prints availability."
- assistant: "Dispatching prototype-builder — quick, no tests."
- </example>
+  <example>
+  Context: Jason wants to test if a third-party API does what he needs.
+  user: "Throw together a quick script that hits the Recreation.gov API for campground XYZ and prints availability."
+  assistant: "Dispatching prototype-builder — quick, no tests."
+  </example>
 
- <example>
- Context: Jason wants a visual prototype of a UI idea.
- user: "Build me a rough Next.js page that looks like a camping trip dashboard. Dummy data fine."
- assistant: "Dispatching prototype-builder — stubbed data, no backend."
- </example>
+  <example>
+  Context: Jason wants a visual prototype of a UI idea.
+  user: "Build me a rough Next.js page that looks like a camping trip dashboard. Dummy data fine."
+  assistant: "Dispatching prototype-builder — stubbed data, no backend."
+  </example>
 
 model: sonnet
 color: blue

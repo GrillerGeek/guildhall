@@ -2,11 +2,11 @@
 name: test-author
 description: Use this agent to write tests that cover the Expectations block of an IDD Spec. Agent works INDEPENDENTLY of feature-implementer — it does not read the implementation. Its job is to produce tests that would fail against a blank implementation and pass against a correct one. Examples:
 
- <example>
- Context: A spec has been authored and Jason wants tests before implementation starts.
- user: "Write tests for the reservation feature from spec 2026-04-18-reservations.md"
- assistant: "Dispatching test-author — it will read only the spec, not the implementation."
- </example>
+  <example>
+  Context: A spec has been authored and Jason wants tests before implementation starts.
+  user: "Write tests for the reservation feature from spec 2026-04-18-reservations.md"
+  assistant: "Dispatching test-author — it will read only the spec, not the implementation."
+  </example>
 
 model: sonnet
 color: purple

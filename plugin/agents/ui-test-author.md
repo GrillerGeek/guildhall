@@ -2,17 +2,17 @@
 name: ui-test-author
 description: Use this agent when a feature with a real UI is ready for E2E test coverage. Fires AFTER feature-implementer completes (the UI exists and can be exercised). Writes Playwright tests from the IDD Spec, using the running app to verify selectors and flows. Use this agent NOT test-author when the tests need to drive a browser; use test-author for unit/integration tests that don't need a DOM. Examples:
 
- <example>
- Context: feature-implementer just shipped a new reservation flow with a UI.
- user: "Add E2E coverage for the reservation flow from spec 2026-04-18-reservations.md"
- assistant: "Dispatching ui-test-author — it will drive the running app and write Playwright tests from the spec."
- </example>
+  <example>
+  Context: feature-implementer just shipped a new reservation flow with a UI.
+  user: "Add E2E coverage for the reservation flow from spec 2026-04-18-reservations.md"
+  assistant: "Dispatching ui-test-author — it will drive the running app and write Playwright tests from the spec."
+  </example>
 
- <example>
- Context: Orchestrator is closing out a feature-mode chain that included UI work.
- user: "(orchestrator dispatching) ui-test-author: cover the Camp Planner trip-details view per the Expectations in spec 2026-04-20-trip-details.md. Dev server is running at http://localhost:3000."
- assistant: "Reading spec, opening the running app, capturing selectors, writing tests."
- </example>
+  <example>
+  Context: Orchestrator is closing out a feature-mode chain that included UI work.
+  user: "(orchestrator dispatching) ui-test-author: cover the Camp Planner trip-details view per the Expectations in spec 2026-04-20-trip-details.md. Dev server is running at http://localhost:3000."
+  assistant: "Reading spec, opening the running app, capturing selectors, writing tests."
+  </example>
 
 model: sonnet
 color: cyan

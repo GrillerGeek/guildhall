@@ -2,17 +2,17 @@
 name: refactorer
 description: Use this agent for NARROW, SCOPED refactors only. User must specify the scope. Agent preserves behavior — runs tests before and after. Refuses to expand scope. Examples:
 
- <example>
- Context: Jason wants to extract a method.
- user: "Refactor the reservation validation logic out of reserve() into validate_reservation()."
- assistant: "Dispatching refactorer — single extraction, tests before and after."
- </example>
+  <example>
+  Context: Jason wants to extract a method.
+  user: "Refactor the reservation validation logic out of reserve() into validate_reservation()."
+  assistant: "Dispatching refactorer — single extraction, tests before and after."
+  </example>
 
- <example>
- Context: Jason wants a rename.
- user: "Rename CampPlanner to TripPlanner project-wide."
- assistant: "Dispatching refactorer — rename only, no other changes."
- </example>
+  <example>
+  Context: Jason wants a rename.
+  user: "Rename CampPlanner to TripPlanner project-wide."
+  assistant: "Dispatching refactorer — rename only, no other changes."
+  </example>
 
 model: sonnet
 color: yellow

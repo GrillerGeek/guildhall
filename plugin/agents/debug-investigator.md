@@ -2,17 +2,17 @@
 name: debug-investigator
 description: Use this agent when something is broken and Jason wants to know WHY before deciding how to fix. Agent reproduces, finds root cause, reports. DOES NOT FIX. Prevents the common failure mode of "fixing the symptom". Examples:
 
- <example>
- Context: A test is failing after a refactor.
- user: "test_reservation_conflict is failing since the last commit. Investigate."
- assistant: "Dispatching debug-investigator — it will find root cause and report, not fix."
- </example>
+  <example>
+  Context: A test is failing after a refactor.
+  user: "test_reservation_conflict is failing since the last commit. Investigate."
+  assistant: "Dispatching debug-investigator — it will find root cause and report, not fix."
+  </example>
 
- <example>
- Context: Production error traces have been pasted.
- user: "Here's an error trace from the camp planner — figure out what's happening."
- assistant: "Dispatching debug-investigator."
- </example>
+  <example>
+  Context: Production error traces have been pasted.
+  user: "Here's an error trace from the camp planner — figure out what's happening."
+  assistant: "Dispatching debug-investigator."
+  </example>
 
 model: sonnet
 color: orange
