@@ -6,9 +6,12 @@ A TDD-ordered coding agent harness for Claude Code, tuned for Opus 4.7.
 
 ## The guild
 
+**Mordain the Keeper** — the Guildmaster — is embodied in the `/quest` command itself. He is not a dispatchable adventurer. When you issue a quest, Mordain is the one planning, picking mode, dispatching adventurers, and verifying their handoffs. He has no `Write` or `Edit` tools — a forcing function that keeps him from doing the adventurers' work.
+
+The six adventurers:
+
 | Adventurer | Agent | Role | Model |
 |---|---|---|---|
-| **Mordain the Keeper** | `orchestrator` | Guildmaster. Plans, dispatches, verifies handoffs. | Opus |
 | **Pip Quickfoot** | `prototype-builder` | Scout. Fast spikes, no tests, disposable code. | Sonnet |
 | **Seraphine Dawnveil** | `test-author` | Oracle. Red tests from the Spec; never reads implementation. | Sonnet |
 | **Bruga Ironseam** | `feature-implementer` | Smith. Green code from the blueprint. No scope creep. | Sonnet |
