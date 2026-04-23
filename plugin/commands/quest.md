@@ -49,7 +49,22 @@ Every quest fits one of three modes. Pick explicitly before dispatching anything
 
 If the mode is ambiguous from the quest text, ask ONE clarifying question using `AskUserQuestion`. Do not guess.
 
-### Step 2 — Plan
+### Step 2 — Model-routing self-check
+
+Before producing the plan, dispatch the `model-echo` diagnostic to verify that subagent model frontmatter is being honored. This is a one-shot diagnostic, not a blocking gate.
+
+1. Dispatch: `Agent(subagent_type: "model-echo", description: "Verify model routing", prompt: "Report the model you are running on.")`.
+2. Read the response. Because `model-echo` declares `model: sonnet` in its own frontmatter, an honest reply will contain `sonnet` or a Sonnet model ID such as `claude-sonnet-4-6`.
+3. If the response contains `opus` (case-insensitive), emit the following warning to the user and then continue to Step 3:
+
+   > ⚠️ Model-routing self-check: `model-echo` declares `model: sonnet` in its frontmatter, but reported running on Opus. This quest will continue, but the cost posture documented in the README is compromised. Likely causes: `ANTHROPIC_MODEL=claude-opus-4-7` set in your environment, an Opus-only plan, or the plugin's model frontmatter not being honored by this Claude Code version.
+
+4. If the response is `model: unknown`, note that in your report but do NOT emit the warning — the agent could not introspect; lack of evidence is not evidence of a problem. Continue to Step 3.
+5. Cache the result in memory for the duration of this quest. Do NOT re-run the self-check for subsequent dispatches within the same quest.
+
+This step never blocks the quest. The user is trusted to Ctrl-C if the cost posture matters to them and the banner has fired.
+
+### Step 3 — Plan
 
 Before dispatching, produce an implementation plan. This is the design-thinking layer; there is no dedicated architect agent — you do that work here, on Opus.
 
@@ -62,13 +77,13 @@ Before dispatching, produce an implementation plan. This is the design-thinking 
 
 Write the plan to `TodoWrite` as a checklist. This is both your own scratchpad and the user's visibility into what you're about to do.
 
-### Step 3 — Dispatch, one adventurer at a time
+### Step 4 — Dispatch, one adventurer at a time
 
 Dispatch via `Agent(subagent_type: <name>, description: <short>, prompt: <full handoff context>)`. Wait for the adventurer to complete before dispatching the next one. The adventurers are sequential by design — parallel dispatch breaks the TDD order and the independence guardrails.
 
 **Exception:** Kael (`debug-investigator`) and Pip (`prototype-builder`) are standalone — nothing chains from them. After they complete, report back to the user and let them direct the next move.
 
-### Step 4 — Verify at each handoff
+### Step 5 — Verify at each handoff
 
 Between adventurers, verify the handoff is clean. This is the gate that prevents drift. You verify by running commands (`Bash`), not by asking adventurers to self-report. Adventurers are optimistic; test output is honest.
 
@@ -78,7 +93,7 @@ Between adventurers, verify the handoff is clean. This is the gate that prevents
 - **Before dispatching `refactorer` (Tink) at all:** the refactor step is not automatic. Before you dispatch, inspect the green code (`Grep` for structure, `Read` the hottest files) and judge whether there is genuine refactor work — spec-mandated docstring/type-hint coverage missing, duplicated logic, unclear naming, structure that violates project conventions. If you find no meaningful improvement, **skip Tink and say so in the report.** Dispatching him ceremonially wastes tokens. If you do dispatch, give him a narrow scoped instruction based on what you found, not a vague "clean it up."
 - **After `debug-investigator` (Kael):** read the root-cause report. Decide whether the fix is a feature-cycle (route through test-author + feature-implementer with a fresh spec) or a scoped refactor (route through refactorer). If it's a design decision, stop and ask the user.
 
-### Step 5 — Report
+### Step 6 — Report
 
 When the chain completes (or you stop mid-chain), report to the user:
 - What mode you picked and why
