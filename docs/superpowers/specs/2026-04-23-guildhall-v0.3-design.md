@@ -313,7 +313,7 @@ None. `/quest` surface is unchanged. `docs/guildhall/plans/` is additive.
 
 ## Risks and mitigations
 
-- **Risk:** the self-check at v0.2.4 reveals alias frontmatter is broken too, not just full IDs. **Mitigation:** pause the staircase, open an upstream Claude Code issue, fall back to explicit `--model` in session as a workaround until fixed.
+- **Risk:** the self-check at v0.2.4 reveals alias frontmatter is broken too, not just full IDs. **Mitigation:** pause the staircase, open an upstream Claude Code issue, fall back to explicit `--model` in session as a workaround until fixed. **Update (2026-04-23):** dogfood run confirmed the bug and v0.2.5 documented the pause; staircase subsequently resumed at v0.2.6 on the reframe that roster value and prompt clarity are independent of model-tier routing — the cost posture activates latently when upstream ships a fix.
 - **Risk:** Opus 4.7's "fewer subagents by default" behavior causes Mordain to under-dispatch the new reviewers. **Mitigation:** each adventurer's trigger condition is explicit in the `/quest` command text, and the plan.md template names the full dispatch sequence before Mordain starts dispatching.
 - **Risk:** prompt maintenance burden grows with 11 agents. **Mitigation:** the handoff template is centralized in `quest.md`; each agent's contract block is short and diff-reviewable; `plugin-validator` catches frontmatter drift.
 - **Risk:** the plan.md format ossifies and becomes a straitjacket. **Mitigation:** template is advisory, not validated by any agent. Treat the first 3 quests as calibration and revise the template in v0.3.1 if friction is high.
