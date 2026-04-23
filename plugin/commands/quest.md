@@ -53,7 +53,7 @@ If the mode is ambiguous from the quest text, ask ONE clarifying question using 
 
 Before producing the plan, dispatch the `model-echo` diagnostic to verify that the explicit-model-parameter workaround is functioning. This is a one-shot diagnostic, not a blocking gate.
 
-1. Read `plugin/agents/model-echo.md` frontmatter and confirm `model: sonnet`.
+1. Locate the `model-echo` agent file with `Glob("**/agents/model-echo.md")` (the plugin may be installed at an arbitrary path — do NOT hardcode `plugin/agents/`). Read the match's frontmatter and confirm `model: sonnet`.
 2. Dispatch with the model passed explicitly: `Agent(subagent_type: "model-echo", model: "sonnet", description: "Verify model routing", prompt: "Report the model you are running on.")`. The explicit `model` parameter is REQUIRED — Claude Code's subagent dispatch does not honor the agent file's frontmatter `model:` directly; only the explicit parameter works (see Step 4 for the full rationale).
 3. Read the response. An honest reply will contain `sonnet` or a Sonnet model ID such as `claude-sonnet-4-6`.
 4. If the response contains `opus` (case-insensitive), emit the following warning to the user and then continue to Step 3:
@@ -75,15 +75,28 @@ Before dispatching, produce an implementation plan. This is the design-thinking 
 4. **Identify files to touch.** List them. Be specific.
 5. **Sequence the adventurers.** For feature mode: test-author → feature-implementer → refactorer → (ui-test-author if UI). For prototype mode: prototype-builder only. For debug mode: debug-investigator → then decide.
 6. **Note the handoff context** each adventurer will need — you will pass this in the `prompt` field of their `Agent` dispatch.
-7. **Read each adventurer's model.** For each adventurer in your sequence, open `plugin/agents/<name>.md` and capture the `model:` value from its frontmatter. Cache per-adventurer for this quest. You will pass this value as the `model` parameter on the `Agent` dispatch call in Step 4 — this is REQUIRED, not optional. Each adventurer's frontmatter is the source of truth for its intended model; the dispatch parameter is the mechanism that makes it take effect.
+7. **Read each adventurer's model.** For each adventurer in your sequence, locate its agent file with `Glob("**/agents/<name>.md")` (do NOT hardcode `plugin/agents/` — the plugin may be installed at an arbitrary path) and Read the match to capture the `model:` value from its frontmatter. Cache per-adventurer for this quest. You will pass this value as the `model` parameter on the `Agent` dispatch call in Step 4 — this is REQUIRED, not optional. Each adventurer's frontmatter is the source of truth for its intended model; the dispatch parameter is the mechanism that makes it take effect.
 
 Write the plan to `TodoWrite` as a checklist. This is both your own scratchpad and the user's visibility into what you're about to do.
 
 ### Step 4 — Dispatch, one adventurer at a time
 
-Dispatch via `Agent(subagent_type: <name>, model: <value cached in Step 3>, description: <short>, prompt: <full handoff context>)`. Wait for the adventurer to complete before dispatching the next one. The adventurers are sequential by design — parallel dispatch breaks the TDD order and the independence guardrails.
+Dispatch via `Agent(subagent_type: <adventurer-agent-type>, model: <alias from that adventurer's frontmatter, one of "sonnet" | "opus" | "haiku">, description: <short description of the dispatch>, prompt: <full handoff context>)`.
 
-**The `model` parameter is REQUIRED.** Claude Code's subagent dispatch does not honor the `model:` field in the agent file's frontmatter directly — if you omit the dispatch parameter, the adventurer inherits your (Opus 4.7) model and the plugin's cost posture is invalidated. The `model` parameter at dispatch time is the mechanism that makes the frontmatter declaration take effect. You read each adventurer's model in Step 3; pass it here.
+Concrete filled example (Seraphine, the `test-author`, whose frontmatter declares `model: sonnet`):
+
+```
+Agent(
+  subagent_type: "test-author",
+  model: "sonnet",
+  description: "Write failing tests from reservations spec",
+  prompt: "Read docs/specs/2026-04-18-reservations.md ..."
+)
+```
+
+Wait for the adventurer to complete before dispatching the next one. The adventurers are sequential by design — parallel dispatch breaks the TDD order and the independence guardrails.
+
+**The `model` parameter is REQUIRED.** Claude Code's subagent dispatch does not honor the `model:` field in the agent file's frontmatter directly — if you omit the dispatch parameter, the adventurer inherits your (Opus 4.7) model and the plugin's cost posture is invalidated. The `model` parameter at dispatch time is the mechanism that makes the frontmatter declaration take effect. You read each adventurer's model in Step 3; pass its literal string value (not a placeholder) here.
 
 **Exception:** Kael (`debug-investigator`) and Pip (`prototype-builder`) are standalone — nothing chains from them. After they complete, report back to the user and let them direct the next move.
 
