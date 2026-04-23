@@ -8,7 +8,7 @@ description: Use this agent to write tests that cover the Expectations block of 
   assistant: "Dispatching test-author — it will read only the spec, not the implementation."
   </example>
 
-model: sonnet
+model: claude-sonnet-4-6
 color: purple
 tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 ---
