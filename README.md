@@ -6,7 +6,7 @@ A TDD-ordered coding agent harness for Claude Code, tuned for Opus 4.7.
 
 Generic Claude Code + Opus 4.7 produces more assumption-driven code than 4.6 did — 4.7 follows instructions literally and fills in fewer gaps. The remedy is a tuned harness, not cleverer prompting.
 
-The Guildhall provides the **`/quest` slash command** — inhabited by Mordain the Keeper, Guildmaster — that plans and dispatches, plus **six adventurer agents on Sonnet** that each do one narrow job. Feature work follows a strict TDD red-green-refactor handoff. Prototype work skips the ceremony. Debug work starts with root-cause before any fix. One of the six adventurers, the optional Playwright `ui-test-author`, drives a real browser for E2E UI tests.
+The Guildhall provides the **`/quest` slash command** — inhabited by Mordain the Keeper, Guildmaster — that plans, writes a durable plan file, and dispatches, plus **eleven adventurer agents tiered across Opus / Sonnet / Haiku** that each do one narrow job. Feature work follows a strict TDD red-green-refactor handoff for the build, then fans out post-green reviews (security, docs, optional Playwright UI tests) in parallel, and closes with a platform-agnostic PR draft. Prototype work skips the ceremony. Debug work starts with root-cause before any fix.
 
 ## Quick start
 
