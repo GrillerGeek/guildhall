@@ -51,16 +51,17 @@ If the mode is ambiguous from the quest text, ask ONE clarifying question using 
 
 ### Step 2 — Model-routing self-check
 
-Before producing the plan, dispatch the `model-echo` diagnostic to verify that subagent model frontmatter is being honored. This is a one-shot diagnostic, not a blocking gate.
+Before producing the plan, dispatch the `model-echo` diagnostic to verify that the explicit-model-parameter workaround is functioning. This is a one-shot diagnostic, not a blocking gate.
 
-1. Dispatch: `Agent(subagent_type: "model-echo", description: "Verify model routing", prompt: "Report the model you are running on.")`.
-2. Read the response. Because `model-echo` declares `model: sonnet` in its own frontmatter, an honest reply will contain `sonnet` or a Sonnet model ID such as `claude-sonnet-4-6`.
-3. If the response contains `opus` (case-insensitive), emit the following warning to the user and then continue to Step 3:
+1. Read `plugin/agents/model-echo.md` frontmatter and confirm `model: sonnet`.
+2. Dispatch with the model passed explicitly: `Agent(subagent_type: "model-echo", model: "sonnet", description: "Verify model routing", prompt: "Report the model you are running on.")`. The explicit `model` parameter is REQUIRED — Claude Code's subagent dispatch does not honor the agent file's frontmatter `model:` directly; only the explicit parameter works (see Step 4 for the full rationale).
+3. Read the response. An honest reply will contain `sonnet` or a Sonnet model ID such as `claude-sonnet-4-6`.
+4. If the response contains `opus` (case-insensitive), emit the following warning to the user and then continue to Step 3:
 
-   > ⚠️ Model-routing self-check: `model-echo` declares `model: sonnet` in its frontmatter, but reported running on Opus. This quest will continue, but the cost posture documented in the README is compromised. Likely causes: `ANTHROPIC_MODEL=claude-opus-4-7` set in your environment, an Opus-only plan, or the plugin's model frontmatter not being honored by this Claude Code version.
+   > ⚠️ Model-routing self-check: `model-echo` was dispatched with explicit `model: "sonnet"` parameter, but reported running on Opus. The dispatch parameter is not being honored. Likely causes: `ANTHROPIC_MODEL=claude-opus-4-7` set in your environment, an Opus-only plan, or a deeper Claude Code issue. This quest will continue, but the cost posture documented in the README is compromised — investigate before trusting quest cost estimates.
 
-4. If the response is `model: unknown`, note that in your report but do NOT emit the warning — the agent could not introspect; lack of evidence is not evidence of a problem. Continue to Step 3.
-5. Cache the result in memory for the duration of this quest. Do NOT re-run the self-check for subsequent dispatches within the same quest.
+5. If the response is `model: unknown`, note that in your report but do NOT emit the warning — the agent could not introspect; lack of evidence is not evidence of a problem. Continue to Step 3.
+6. Cache the result in memory for the duration of this quest. Do NOT re-run the self-check for subsequent dispatches within the same quest.
 
 This step never blocks the quest. The user is trusted to Ctrl-C if the cost posture matters to them and the banner has fired.
 
@@ -74,12 +75,15 @@ Before dispatching, produce an implementation plan. This is the design-thinking 
 4. **Identify files to touch.** List them. Be specific.
 5. **Sequence the adventurers.** For feature mode: test-author → feature-implementer → refactorer → (ui-test-author if UI). For prototype mode: prototype-builder only. For debug mode: debug-investigator → then decide.
 6. **Note the handoff context** each adventurer will need — you will pass this in the `prompt` field of their `Agent` dispatch.
+7. **Read each adventurer's model.** For each adventurer in your sequence, open `plugin/agents/<name>.md` and capture the `model:` value from its frontmatter. Cache per-adventurer for this quest. You will pass this value as the `model` parameter on the `Agent` dispatch call in Step 4 — this is REQUIRED, not optional. Each adventurer's frontmatter is the source of truth for its intended model; the dispatch parameter is the mechanism that makes it take effect.
 
 Write the plan to `TodoWrite` as a checklist. This is both your own scratchpad and the user's visibility into what you're about to do.
 
 ### Step 4 — Dispatch, one adventurer at a time
 
-Dispatch via `Agent(subagent_type: <name>, description: <short>, prompt: <full handoff context>)`. Wait for the adventurer to complete before dispatching the next one. The adventurers are sequential by design — parallel dispatch breaks the TDD order and the independence guardrails.
+Dispatch via `Agent(subagent_type: <name>, model: <value cached in Step 3>, description: <short>, prompt: <full handoff context>)`. Wait for the adventurer to complete before dispatching the next one. The adventurers are sequential by design — parallel dispatch breaks the TDD order and the independence guardrails.
+
+**The `model` parameter is REQUIRED.** Claude Code's subagent dispatch does not honor the `model:` field in the agent file's frontmatter directly — if you omit the dispatch parameter, the adventurer inherits your (Opus 4.7) model and the plugin's cost posture is invalidated. The `model` parameter at dispatch time is the mechanism that makes the frontmatter declaration take effect. You read each adventurer's model in Step 3; pass it here.
 
 **Exception:** Kael (`debug-investigator`) and Pip (`prototype-builder`) are standalone — nothing chains from them. After they complete, report back to the user and let them direct the next move.
 
