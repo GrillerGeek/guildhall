@@ -50,7 +50,7 @@ guildhall/
 
 ## Status
 
-**Version 0.1.0** — Initial release. Not yet dogfooded end-to-end.
+**Version 0.2.5** — first dogfood run completed 2026-04-23; surfaced an upstream Claude Code issue where subagent `model:` frontmatter is not honored (adventurers declared `model: sonnet` inherit the parent session's Opus instead). The cost-posture section in `plugin/README.md` has been marked aspirational pending resolution. See `docs/superpowers/specs/2026-04-23-guildhall-v0.3-design.md` for the full v0.3 design and the staircase release plan driving this work.
 
 The Guildhall is a living system. Expect prompt iterations as real usage reveals friction. Changes to agents in `plugin/agents/` are the primary axis of iteration.
 
