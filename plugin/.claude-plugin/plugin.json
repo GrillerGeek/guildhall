@@ -1,6 +1,6 @@
 {
   "name": "guildhall",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "The Guildhall — a gathering place for adventurers. A TDD-ordered coding agent harness for Claude Code, tuned for Opus 4.7. The /quest slash command runs the orchestration layer (Mordain the Guildmaster) and dispatches to six Sonnet adventurer agents: prototype-builder, test-author, feature-implementer, refactorer, debug-investigator, and the optional Playwright ui-test-author. Integrates with IDD-framework specs.",
   "author": { "name": "GrillerGeek" },
   "homepage": "https://github.com/GrillerGeek/guildhall",
