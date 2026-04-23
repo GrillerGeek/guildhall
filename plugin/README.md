@@ -51,4 +51,8 @@ Guildhall is the implementation-side complement to the [IDD-framework](https://g
 
 ## Cost posture
 
-The orchestrator runs on Opus for reasoning-heavy planning. Workers run on Sonnet for execution. If a worker proves overkill on Sonnet, downgrade to Haiku per-agent in its frontmatter.
+> **⚠️ Known issue (as of v0.2.5):** the `model-echo` diagnostic introduced in v0.2.4 confirmed that subagents declared `model: sonnet` in their frontmatter currently inherit the parent session's model instead. Every adventurer therefore runs on whatever model your Claude Code session is on — so expect Opus-level costs for quests issued from an Opus session. An upstream Claude Code issue has been filed; the cost posture below is the *intended* design and will become real once subagent model routing is honored. See `docs/superpowers/specs/2026-04-23-guildhall-v0.3-design.md` for the full context.
+
+**Intended posture (aspirational):** the orchestrator runs on Opus for reasoning-heavy planning. Workers run on Sonnet for execution. If a worker proves overkill on Sonnet, downgrade to Haiku per-agent in its frontmatter.
+
+**What the `⚠️` banner means during a quest:** if Mordain emits a model-routing self-check warning at the start of your quest, it is confirming the above — Sonnet frontmatter isn't being honored for this dispatch. The quest continues; cost is on you to monitor.
