@@ -6,7 +6,7 @@ A TDD-ordered coding agent harness for Claude Code, tuned for Opus 4.7.
 
 Generic Claude Code + Opus 4.7 produces more assumption-driven code than 4.6 did — 4.7 follows instructions literally and fills in fewer gaps. The remedy is a tuned harness, not cleverer prompting.
 
-The Guildhall provides the **`/quest` slash command** — inhabited by Mordain the Keeper, Guildmaster — that plans and dispatches, plus **six adventurer agents on Sonnet** that each do one narrow job. Feature work follows a strict TDD red-green-refactor handoff. Prototype work skips the ceremony. Debug work starts with root-cause before any fix. One of the six adventurers, the optional Playwright `ui-test-author`, drives a real browser for E2E UI tests.
+The Guildhall provides the **`/quest` slash command** — inhabited by Mordain the Keeper, Guildmaster — that plans, writes a durable plan file, and dispatches, plus **eleven adventurer agents tiered across Opus / Sonnet / Haiku** that each do one narrow job. Feature work follows a strict TDD red-green-refactor handoff for the build, then fans out post-green reviews (security, docs, optional Playwright UI tests) in parallel, and closes with a platform-agnostic PR draft. Prototype work skips the ceremony. Debug work starts with root-cause before any fix.
 
 ## Quick start
 
@@ -50,7 +50,7 @@ guildhall/
 
 ## Status
 
-**Version 0.2.7** — the subagent-frontmatter routing bug is worked around: Mordain reads each adventurer's `model:` value from its agent file and passes it explicitly as the `model` parameter on every `Agent(...)` dispatch, which Claude Code honors. Cost posture is now operational, not aspirational. See `docs/superpowers/specs/2026-04-23-guildhall-v0.3-design.md` for the v0.3 roadmap (remaining work: full roster expansion, plan.md artifact, parallel review fan-out).
+**Version 0.3.0** — full v0.3 roster is in place: 11 adventurers + 1 diagnostic. New since v0.2.x: security-reviewer (Oriana, Opus), architecture-reviewer (Aldric, Opus), docs-writer (Cassian, Sonnet), pr-author (Rook, Sonnet), plugin-validator (Tabs, Haiku). `/quest` now writes a durable `docs/guildhall/plans/<slug>.md` for every feature and debug quest, dispatches post-green reviews in parallel, and closes with Rook drafting a platform-agnostic PR title + body to stdout. Subagent model routing uses the explicit `model` dispatch parameter (workaround shipped in v0.2.7) — cost posture is operational. See `docs/superpowers/specs/2026-04-23-guildhall-v0.3-design.md` for the v0.3 design, and [`plugin/CHARACTERS.md`](plugin/CHARACTERS.md) for the full cast.
 
 The Guildhall is a living system. Expect prompt iterations as real usage reveals friction. Changes to agents in `plugin/agents/` are the primary axis of iteration.
 
