@@ -1,6 +1,6 @@
 {
   "name": "guildhall",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "The Guildhall — a gathering place for adventurers. A TDD-ordered coding agent harness for Claude Code, tuned for Opus 4.7. The /quest slash command runs Mordain the Guildmaster, who writes a durable plan file, then dispatches 11 specialist adventurers across three tiers: Opus (architecture-reviewer, security-reviewer), Sonnet (test-author, feature-implementer, refactorer, ui-test-author, docs-writer, pr-author, prototype-builder, debug-investigator), and Haiku (plugin-validator). Post-green reviews run in parallel; Rook (pr-author) closes the quest with a platform-agnostic PR draft. Integrates with IDD-framework specs.",
   "author": { "name": "GrillerGeek" },
   "homepage": "https://github.com/GrillerGeek/guildhall",
