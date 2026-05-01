@@ -28,6 +28,34 @@ Plus one diagnostic: **`model-echo`** — dispatched first in every quest to ver
 
 Full character sheets in [`CHARACTERS.md`](CHARACTERS.md).
 
+## Installation
+
+### From GitHub (recommended)
+
+Claude Code can install plugins directly from a GitHub URL. Run this once inside any Claude Code session:
+
+```
+/install-github-app https://github.com/GrillerGeek/guildhall
+```
+
+Claude Code will clone the repository and register the plugin automatically.
+
+### From a local clone
+
+```bash
+# Replace <path-to-repo> with the directory where you cloned guildhall
+cc --plugin-dir <path-to-repo>/plugin
+```
+
+### Keeping up to date
+
+Restart Claude Code to pick up the latest version. If using `--plugin-dir`, pull first:
+
+```bash
+cd <path-to-repo>
+git pull
+```
+
 ## Flow at a glance
 
 For a feature quest, Mordain runs: **model-echo self-check → (optional Aldric) → Seraphine → Bruga → (optional Tink) → parallel fan-out (Oriana ∥ Cassian ∥ optional Vera) → Rook** — with a committed `plan.md` opening the quest and a PR draft closing it.
