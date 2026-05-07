@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-Guildhall is a **Claude Code plugin** — markdown-only. As of v0.3.0 it ships one slash command (`/quest`) and 12 agent definitions (11 adventurers tiered across Opus / Sonnet / Haiku, plus the `model-echo` diagnostic). There is no application code, no build step, no test suite, no linter. "Running" the plugin means installing it into Claude Code and issuing `/quest`; "testing" a change means dogfooding a quest against a real task.
+Guildhall is a **Claude Code plugin** — markdown-only. As of v0.4.0 it ships one slash command (`/quest`) and 18 agent definitions (17 adventurers tiered across Opus / Sonnet / Haiku, plus the `model-echo` diagnostic). There is no application code, no build step, no test suite, no linter. "Running" the plugin means installing it into Claude Code and issuing `/quest`; "testing" a change means dogfooding a quest against a real task.
 
 Install for local development:
 
@@ -31,8 +31,9 @@ Mordain's origin story (see `plugin/CHARACTERS.md`, and commit `f5d9cd5` — `re
 ### Dispatch is phased: sequential build, parallel reviews, sequential closer
 
 - **TDD build chain stays strictly sequential:** (optional `architecture-reviewer`) → `test-author` → `feature-implementer` → (optional `refactorer`). This preserves the **independence guardrail** — `test-author` must not see the implementation.
-- **Post-green reviews fan out in parallel:** `security-reviewer` ∥ `docs-writer` ∥ (optional `ui-test-author`). Mordain fires them in a SINGLE assistant message with multiple `Agent(...)` calls. Independence is verified by file-disjointness (reviewers either write to different files or are stdout-only).
-- **`pr-author` is always sequential-last.** It needs the completed picture.
+- **Post-green reviews fan out in parallel:** two always-on (`security-reviewer` ∥ `docs-writer`) plus six gated production-readiness reviewers (`observability-reviewer`, `reliability-reviewer`, `performance-reviewer`, `ops-readiness-reviewer`, `migration-safety-reviewer`, `accessibility-reviewer`) and `ui-test-author` — each fires only when its trigger applies. Mordain fires the selected set in a SINGLE assistant message with multiple `Agent(...)` calls. Independence is verified by file-disjointness (the eight reviewers other than `docs-writer` and `ui-test-author` are stdout-only; `docs-writer` writes to named docs; `ui-test-author` writes to test files).
+- **Gating decisions are auditable.** Mordain records which gated reviewers fired and which were skipped (with one-line reasons) in the plan file's `## Reviewers selected` section. The bias on ambiguous triggers is **fire** — a missed reviewer is more expensive than an unnecessary one. Gating triggers are documented in `quest.md` Step 3.7.
+- **`pr-author` is always sequential-last.** It needs the completed picture, and folds Garran's runbook output verbatim into the PR body when `ops-readiness-reviewer` fired.
 - **Standalone adventurers** (no chain): `prototype-builder`, `debug-investigator`. `debug-investigator` specifically does NOT fix — it reports root cause and returns to Mordain.
 
 When editing `quest.md`, preserve this three-phase shape. Serializing the review fan-out wastes the whole point of those agents' independence; parallelizing the TDD build chain breaks the independence guardrail.
@@ -51,10 +52,10 @@ Guildhall is the implementation-side complement to the separate [IDD-framework](
 
 `/quest` (Mordain) runs on whatever model the user's session is on — Opus 4.7 is the intended target; the whole harness exists *because* Opus 4.7 follows instructions literally and fills in fewer gaps than 4.6.
 
-**Adventurer tiers (post-v0.3.0):**
+**Adventurer tiers (post-v0.4.0):**
 
-- **Opus:** `architecture-reviewer` (Aldric), `security-reviewer` (Oriana). Missed architecture and missed security are the expensive classes of error.
-- **Sonnet:** `test-author`, `feature-implementer`, `refactorer`, `ui-test-author`, `docs-writer`, `pr-author`, `prototype-builder`, `debug-investigator`. The majority — execution and structured summarization.
+- **Opus:** `architecture-reviewer` (Aldric), `security-reviewer` (Oriana), `reliability-reviewer` (Thalia), `migration-safety-reviewer` (Ysolde). The four classes where a miss is hardest to reverse — bad architecture, bad security, cascading prod failures, irreversible data changes.
+- **Sonnet:** `test-author`, `feature-implementer`, `refactorer`, `ui-test-author`, `docs-writer`, `pr-author`, `prototype-builder`, `debug-investigator`, `observability-reviewer` (Vance), `performance-reviewer` (Cassia), `ops-readiness-reviewer` (Garran), `accessibility-reviewer` (Lior). The majority — execution and structured checklist work.
 - **Haiku:** `plugin-validator`. Mechanical regex / structural checks.
 - **Diagnostic:** `model-echo` (declared Sonnet; its purpose is verifying the routing workaround).
 
@@ -74,3 +75,4 @@ Every agent's `model:` field must use an alias (`sonnet` / `opus` / `haiku`), no
 - No orchestrator-as-subagent. The `Agent` dispatch tool is not available inside subagent contexts, so moving Mordain out of `/quest` into an agent file would fail silently. (Historical: commit `f5d9cd5` records this lesson.)
 - No skipping the explicit `model` parameter on dispatch. Every `Agent(...)` call in `quest.md` must include `model: <alias>`; the frontmatter alone is not honored by Claude Code and cost posture depends on this.
 - No `Write` access for Mordain beyond plan files. If a new artifact type is needed, either dispatch an adventurer (who has `Write`) or design a new adventurer specifically for it.
+- No always-on additions to the post-green fan-out beyond `security-reviewer` and `docs-writer`. New reviewers must be GATED with an explicit trigger documented in `quest.md` Step 3.7, recorded in the plan file's `## Reviewers selected` section. The selectivity is the scaling mechanism — making everything always-on negates the design.

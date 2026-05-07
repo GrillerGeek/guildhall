@@ -8,17 +8,23 @@ A TDD-ordered coding agent harness for Claude Code, tuned for Opus 4.7.
 
 **Mordain the Keeper** — the Guildmaster — is embodied in the `/quest` command itself. He is not a dispatchable adventurer. When you issue a quest, Mordain is the one planning, picking mode, dispatching adventurers, and verifying their handoffs. His `Write` access is scoped narrowly to the quest's plan file at `docs/guildhall/plans/*.md` — a forcing function that keeps him from doing the adventurers' code-writing work.
 
-The eleven adventurers:
+The seventeen adventurers:
 
 | Adventurer | Agent | Role | Model |
 |---|---|---|---|
 | **Aldric Stonemap** *(optional)* | `architecture-reviewer` | Cartographer. 2–3 alternatives with trade-offs; recommends one. | Opus |
 | **Seraphine Dawnveil** | `test-author` | Oracle. Red tests from the Spec; never reads implementation. | Sonnet |
 | **Bruga Ironseam** | `feature-implementer` | Smith. Green code from the blueprint. No scope creep. | Sonnet |
-| **Tink Whiffletree** | `refactorer` | Enchanter. Narrow scoped refactors; preserves behavior. | Sonnet |
-| **Vera Nightwhistle** *(optional)* | `ui-test-author` | Playwright. Drives Playwright E2E tests against the running app. | Sonnet |
-| **Oriana the Watcher** | `security-reviewer` | Sentinel. Reviews diff for authn / authz / secrets / injection. | Opus |
-| **Cassian Inkwell** | `docs-writer` | Scribe. Updates named doc surfaces + docstrings on touched code. | Sonnet |
+| **Tink Whiffletree** *(optional)* | `refactorer` | Enchanter. Narrow scoped refactors; preserves behavior. | Sonnet |
+| **Vera Nightwhistle** *(gated: UI)* | `ui-test-author` | Playwright. Drives Playwright E2E tests against the running app. | Sonnet |
+| **Oriana the Watcher** | `security-reviewer` | Sentinel. Always-on. Reviews diff for authn / authz / secrets / injection. | Opus |
+| **Cassian Inkwell** | `docs-writer` | Scribe. Always-on. Updates named doc surfaces + docstrings on touched code. | Sonnet |
+| **Vance Quillmark** *(gated: runtime code)* | `observability-reviewer` | Chronicler. Reviews log structure, error capture, redaction, silent failures. | Sonnet |
+| **Thalia Stormgale** *(gated: I/O / concurrency)* | `reliability-reviewer` | Stormwarden. Reviews timeouts, retries, idempotency, degradation. | Opus |
+| **Cassia Thornquick** *(gated: DB / hot paths)* | `performance-reviewer` | Smith of cycles. Reviews N+1, unbounded loops, hot-path allocations. | Sonnet |
+| **Garran Dunwall** *(gated: user-visible deploy)* | `ops-readiness-reviewer` | Quartermaster. Produces deploy plan / alerts / rollback / on-call notes that Rook folds into the PR. | Sonnet |
+| **Ysolde Hollowmoor** *(gated: schema / migrations)* | `migration-safety-reviewer` | Gravedigger. Reviews migrations for lock contention, irreversibility, backfill safety. | Opus |
+| **Lior Brightpath** *(gated: UI; pairs with Vera)* | `accessibility-reviewer` | Lampbearer. Reviews UI for keyboard, focus, ARIA, contrast, alt text, motion. | Sonnet |
 | **Rook Mossbrook** | `pr-author` | Herald. PR title + body to stdout; never creates the PR itself. | Sonnet |
 | **Tabs Grinspoon** *(optional)* | `plugin-validator` | Apprentice. Mechanical lint of Claude Code plugins. | Haiku |
 | **Pip Quickfoot** | `prototype-builder` | Scout. Fast spikes, no tests, disposable code. | Sonnet |
@@ -58,7 +64,7 @@ git pull
 
 ## Flow at a glance
 
-For a feature quest, Mordain runs: **model-echo self-check → (optional Aldric) → Seraphine → Bruga → (optional Tink) → parallel fan-out (Oriana ∥ Cassian ∥ optional Vera) → Rook** — with a committed `plan.md` opening the quest and a PR draft closing it.
+For a feature quest, Mordain runs: **model-echo self-check → (optional Aldric) → Seraphine → Bruga → (optional Tink) → parallel fan-out (Oriana + Cassian always; Vance / Thalia / Cassia / Garran / Ysolde / Vera / Lior gated by trigger) → Rook** — with a committed `plan.md` opening the quest and a PR draft closing it. The plan file's `## Reviewers selected` section records which gated reviewers fired and why.
 
 Prototype mode skips to Pip. Debug mode starts with Kael.
 
