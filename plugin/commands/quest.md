@@ -102,9 +102,9 @@ This step never blocks the quest. The user is trusted to Ctrl-C if the cost post
 
 Before dispatching adventurers, produce an implementation plan. This is the design-thinking layer — YOU do this work, on Opus.
 
-1. **Read the spec** (if feature mode) entirely. Quote the Expectations block back to yourself.
+1. **Read the spec** (if feature mode) entirely. Quote the Expectations block back to yourself. Then **prepare verbatim quotes** of the load-bearing blocks — Expectations, Boundaries, Inputs/Outputs. You will inline these in each adventurer's dispatch prompt under a `## Spec excerpt` heading so they don't all re-read the full spec from disk. **Quote, don't paraphrase** — adventurers treat your quotes as authoritative.
 2. **Read the relevant code.** Use `Grep` / `Glob` to find existing patterns. Your plan MUST cite the patterns you are matching — no inventing patterns that do not exist in the codebase.
-3. **Read `CLAUDE.md`** at the project root if present — it holds local conventions.
+3. **Read `CLAUDE.md`** at the project root if present — it holds local conventions. Note the section relevant to this quest; you'll inline it in dispatch prompts under a `## Local conventions` heading so adventurers don't all re-read the file.
 4. **Decide whether you need Aldric.** If the work is novel or cross-cutting — new module, new schema, new cross-project convention, a choice between two patterns that both exist in the codebase — dispatch `architecture-reviewer` BEFORE producing the plan. Aldric returns 2–3 alternatives with trade-offs and a recommendation. Use that to inform your plan. Do NOT dispatch Aldric for routine features that match an existing pattern — that is overkill.
 5. **Identify files to touch.** List them. Be specific.
 6. **Sequence the adventurers.** See Step 4 for the canonical sequence per mode.
@@ -120,9 +120,20 @@ Before dispatching adventurers, produce an implementation plan. This is the desi
    | Lior | `accessibility-reviewer` | Vera was dispatched (UI work present) — Lior pairs with her. |
 
    Record your selection — and your reasoning for any reviewer you skipped — in the plan file's `## Reviewers selected` section. The decision must be auditable.
-8. **Note the handoff context** each adventurer will need — you will pass this in the `prompt` field of their `Agent` dispatch, following the template in the "Handoff template" section below.
+8. **Note the handoff context** each adventurer will need — you will pass this in the `prompt` field of their `Agent` dispatch, structured as **Mordain's brief** (below).
 9. **Read each adventurer's model.** For each adventurer in your sequence (including `model-echo` if not already cached, AND each gated reviewer you selected in Step 7), locate its agent file with `Glob("**/agents/<name>.md")` and Read the match to capture the `model:` value from its frontmatter. Cache per-adventurer for this quest. You will pass this value as the `model` parameter on the `Agent` dispatch call in Step 4 — this is REQUIRED, not optional.
 10. **Write the plan file.** At `docs/guildhall/plans/YYYY-MM-DD-<slug>.md`, following the template below. Commit mentally to this artifact being the canonical record of the quest. Mirror the same structure as a `TodoWrite` checklist for the live session UI.
+
+#### Mordain's brief — the dispatch prompt template
+
+When dispatching an adventurer, structure the `prompt` field so load-bearing context arrives inline. The spec file path still appears in the prompt as authoritative fallback for surrounding context (Problem statement, Background); but the **Expectations**, **Boundaries**, **Inputs/Outputs**, and **Local conventions** blocks are quoted verbatim, eliminating N×re-reads on a long spec. Order:
+
+1. Quest framing — one or two sentences on what this adventurer is being asked to do and why.
+2. `## Spec excerpt (verbatim from <spec path>)` — paste the Expectations block, then Boundaries, then Inputs/Outputs, each under their own subheading. Verbatim. No paraphrasing.
+3. `## Local conventions (verbatim from CLAUDE.md)` — paste the section relevant to this quest. Skip if no `CLAUDE.md` exists or no section applies.
+4. `## Other handoff details` — spec path (for fallback), failing-test path (for Bruga), scope notes (for Tink), running-app URL (for Vera), error trace (for Kael).
+
+Adventurers treat the inlined `## Spec excerpt` and `## Local conventions` as the source of truth and re-read the underlying files only when they need surrounding context the brief omitted.
 
 **Plan file template:**
 
