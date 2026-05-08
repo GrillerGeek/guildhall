@@ -14,7 +14,7 @@ description: Use this agent for NARROW, SCOPED refactors only. User must specify
   assistant: "Dispatching refactorer — rename only, no other changes."
   </example>
 
-model: sonnet
+model: claude-haiku-4-5-20251001
 color: yellow
 tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 ---
