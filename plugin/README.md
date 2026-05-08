@@ -6,20 +6,67 @@ A TDD-ordered coding agent harness for Claude Code, tuned for Opus 4.7.
 
 ## The guild
 
-**Mordain the Keeper** — the Guildmaster — is embodied in the `/quest` command itself. He is not a dispatchable adventurer. When you issue a quest, Mordain is the one planning, picking mode, dispatching adventurers, and verifying their handoffs. He has no `Write` or `Edit` tools — a forcing function that keeps him from doing the adventurers' work.
+**Mordain the Keeper** — the Guildmaster — is embodied in the `/quest` command itself. He is not a dispatchable adventurer. When you issue a quest, Mordain is the one planning, picking mode, dispatching adventurers, and verifying their handoffs. His `Write` access is scoped narrowly to the quest's plan file at `docs/guildhall/plans/*.md` — a forcing function that keeps him from doing the adventurers' code-writing work.
 
-The six adventurers:
+The seventeen adventurers:
 
 | Adventurer | Agent | Role | Model |
 |---|---|---|---|
-| **Pip Quickfoot** | `prototype-builder` | Scout. Fast spikes, no tests, disposable code. | Sonnet |
+| **Aldric Stonemap** *(optional)* | `architecture-reviewer` | Cartographer. 2–3 alternatives with trade-offs; recommends one. | Opus |
 | **Seraphine Dawnveil** | `test-author` | Oracle. Red tests from the Spec; never reads implementation. | Sonnet |
 | **Bruga Ironseam** | `feature-implementer` | Smith. Green code from the blueprint. No scope creep. | Sonnet |
-| **Tink Whiffletree** | `refactorer` | Enchanter. Narrow scoped refactors; preserves behavior. | Sonnet |
+| **Tink Whiffletree** *(optional)* | `refactorer` | Enchanter. Narrow scoped refactors; preserves behavior. | Sonnet |
+| **Vera Nightwhistle** *(gated: UI)* | `ui-test-author` | Playwright. Drives Playwright E2E tests against the running app. | Sonnet |
+| **Oriana the Watcher** | `security-reviewer` | Sentinel. Always-on. Reviews diff for authn / authz / secrets / injection. | Opus |
+| **Cassian Inkwell** | `docs-writer` | Scribe. Always-on. Updates named doc surfaces + docstrings on touched code. | Sonnet |
+| **Vance Quillmark** *(gated: runtime code)* | `observability-reviewer` | Chronicler. Reviews log structure, error capture, redaction, silent failures. | Sonnet |
+| **Thalia Stormgale** *(gated: I/O / concurrency)* | `reliability-reviewer` | Stormwarden. Reviews timeouts, retries, idempotency, degradation. | Opus |
+| **Cassia Thornquick** *(gated: DB / hot paths)* | `performance-reviewer` | Smith of cycles. Reviews N+1, unbounded loops, hot-path allocations. | Sonnet |
+| **Garran Dunwall** *(gated: user-visible deploy)* | `ops-readiness-reviewer` | Quartermaster. Produces deploy plan / alerts / rollback / on-call notes that Rook folds into the PR. | Sonnet |
+| **Ysolde Hollowmoor** *(gated: schema / migrations)* | `migration-safety-reviewer` | Gravedigger. Reviews migrations for lock contention, irreversibility, backfill safety. | Opus |
+| **Lior Brightpath** *(gated: UI; pairs with Vera)* | `accessibility-reviewer` | Lampbearer. Reviews UI for keyboard, focus, ARIA, contrast, alt text, motion. | Sonnet |
+| **Rook Mossbrook** | `pr-author` | Herald. PR title + body to stdout; never creates the PR itself. | Sonnet |
+| **Tabs Grinspoon** *(optional)* | `plugin-validator` | Apprentice. Mechanical lint of Claude Code plugins. | Haiku |
+| **Pip Quickfoot** | `prototype-builder` | Scout. Fast spikes, no tests, disposable code. | Sonnet |
 | **Kael the Tracker** | `debug-investigator` | Ranger. Finds root cause; does NOT fix. | Sonnet |
-| **Vera Nightwhistle** *(optional)* | `ui-test-author` | Playwright. Drives Playwright E2E tests against the running app. | Sonnet |
+
+Plus one diagnostic: **`model-echo`** — dispatched first in every quest to verify that the explicit-model-param workaround is routing correctly.
 
 Full character sheets in [`CHARACTERS.md`](CHARACTERS.md).
+
+## Installation
+
+### From GitHub (recommended)
+
+Claude Code can install plugins directly from a GitHub URL. Run this once inside any Claude Code session:
+
+```
+/install-github-app https://github.com/GrillerGeek/guildhall
+```
+
+Claude Code will clone the repository and register the plugin automatically.
+
+### From a local clone
+
+```bash
+# Replace <path-to-repo> with the directory where you cloned guildhall
+cc --plugin-dir <path-to-repo>/plugin
+```
+
+### Keeping up to date
+
+Restart Claude Code to pick up the latest version. If using `--plugin-dir`, pull first:
+
+```bash
+cd <path-to-repo>
+git pull
+```
+
+## Flow at a glance
+
+For a feature quest, Mordain runs: **model-echo self-check → (optional Aldric) → Seraphine → Bruga → (optional Tink) → parallel fan-out (Oriana + Cassian always; Vance / Thalia / Cassia / Garran / Ysolde / Vera / Lior gated by trigger) → Rook** — with a committed `plan.md` opening the quest and a PR draft closing it. The plan file's `## Reviewers selected` section records which gated reviewers fired and why.
+
+Prototype mode skips to Pip. Debug mode starts with Kael.
 
 ## Issuing a quest
 
@@ -52,3 +99,7 @@ Guildhall is the implementation-side complement to the [IDD-framework](https://g
 ## Cost posture
 
 The orchestrator runs on Opus for reasoning-heavy planning. Workers run on Sonnet for execution. If a worker proves overkill on Sonnet, downgrade to Haiku per-agent in its frontmatter.
+
+**How routing works (as of v0.3.0):** each adventurer declares its intended model in its `plugin/agents/<name>.md` frontmatter. Mordain reads that value during planning and passes it explicitly as the `model` parameter on the `Agent(...)` dispatch call. This is a workaround for an upstream Claude Code issue where subagent frontmatter `model:` values are silently ignored — the explicit dispatch parameter is honored where the frontmatter alone is not. The `model-echo` self-check at the start of every quest verifies the workaround is functioning.
+
+**What the `⚠️` banner means during a quest:** if Mordain emits a model-routing self-check warning at the start of your quest, even the explicit dispatch parameter was overridden (environment variable, enterprise plan constraint, or deeper Claude Code issue). Investigate before trusting the cost posture for that quest.
