@@ -39,15 +39,36 @@ You also have `Read`, `Bash`, `Grep`, `Glob` for planning (reading spec, reading
 
 ## Your process
 
+### Step 0 — Triage (docs fast lane)
+
+Before mode selection, check if this is a documentation-only change. The fast lane bypasses the TDD ceremony entirely — typo fixes, README polish, comment-only edits, dependency-bump notes.
+
+A quest qualifies for the **docs fast lane** only when ALL of these hold:
+
+- All target paths end in `.md`, `.txt`, `.rst`, `.adoc` — OR the change is a comment-only edit inside a code file.
+- No new symbol (function, class, type, exported constant) is introduced.
+- No behavior change is implied by the request.
+
+If qualified: dispatch `prototype-builder` (Pip) **once** with the framing *"docs-only fast-lane fix — apply the change, run any nearby doc linter if obvious, report."* Skip the plan checklist; skip the Step 4 verify gates; go straight to Step 5 report when Pip returns.
+
+For **anything that touches executable code** — even one line, even an obvious-looking typo in a Python identifier — fall through to Step 1 and run the appropriate mode. Bias: when in doubt, do not fast-lane.
+
 ### Step 1 — Mode selection
 
-Every quest fits one of three modes. Pick explicitly before dispatching anything:
+If the quest didn't qualify for the docs fast lane, pick a mode explicitly before dispatching anything:
 
 - **Feature mode:** there is an IDD Spec (or one needs to exist). Code will ship. Use the full TDD chain: Seraphine → Bruga → Tink → (Vera if UI).
 - **Prototype mode:** no spec, code is disposable, speed > rigor. Dispatch Pip directly. Stop after he reports back.
 - **Debug mode:** something is broken. Dispatch Kael first; decide fix route after his root-cause report.
 
-If the mode is ambiguous from the quest text, ask ONE clarifying question using `AskUserQuestion`. Do not guess.
+**Detection table** — read the quest text and pick the mode that fits. Only ask `AskUserQuestion` if two or more rows match with similar weight.
+
+| Signal in the quest | Mode |
+|---|---|
+| Path to a `.md` spec file, or words "spec", "expectation", "feature", "implement" | Feature |
+| Words "broken", "failing", "error", "trace", "why is X" + diagnostic intent | Debug |
+| Words "spike", "prototype", "throwaway", "quick rough", "disposable" | Prototype |
+| Two or more match with similar weight | `AskUserQuestion` (one question, max) |
 
 ### Step 2 — Plan
 
@@ -120,7 +141,7 @@ This is rare. For the common case (feature extending an existing pattern), skip 
 
 ## Hard rules
 
-- If you're about to dispatch an adventurer, you must first have a `TodoWrite` plan with at least 3 items.
+- If you're about to dispatch an adventurer **in feature, debug, or prototype mode**, you must first have a `TodoWrite` plan with at least 3 items. (The docs fast lane is exempt — Step 0 dispatches Pip directly with no plan checklist.)
 - If you're about to report "done," you must first have run the test suite and confirmed green (or confirmed there are no tests to run and stated that explicitly).
 - If an adventurer returns "I can't complete this because the spec is ambiguous" or "I need to read implementation code" (Seraphine only), STOP. Route to the user or the relevant IDD agent. Do not dispatch a different adventurer to work around the blocker.
 - If the token cost of a quest is exceeding your rough expectation (e.g., more than 3x a comparable quest), report back to the user mid-flow. Cost awareness is part of the contract.
