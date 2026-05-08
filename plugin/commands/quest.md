@@ -288,15 +288,15 @@ Between adventurers, verify the handoff is clean. You verify by running commands
 
 **Build chain verifications:**
 
-- **After `test-author` (Seraphine):** run the test suite. Tests MUST fail (red). If they pass, the spec is already satisfied — stop and report. If they error (not fail), assess: **an `ImportError` or `ModuleNotFoundError` naming a deliverable the spec explicitly lists as yet-to-be-built is EXPECTED red — proceed to Bruga.** Any other collection-time error (syntax error in the test file, undefined fixture, etc.) means the test file itself is wrong — report and stop, do not proceed to Bruga.
-- **After `feature-implementer` (Bruga):** run the test suite. Tests MUST pass (green). If any fail, dispatch `feature-implementer` again with the failure output — up to ONE retry. After that, stop and report; don't loop forever.
-- **After `refactorer` (Tink):** run the test suite. Tests MUST still pass. If they don't, the refactor changed behavior — report and let the user decide whether to revert or adjust.
-- **Before dispatching `refactorer` (Tink) at all:** the refactor step is not automatic. Before you dispatch, inspect the green code (`Grep` for structure, `Read` the hottest files) and judge whether there is genuine refactor work — spec-mandated docstring/type-hint coverage missing, duplicated logic, unclear naming, structure that violates project conventions. If you find no meaningful improvement, **skip Tink and say so in the report.** Dispatching him ceremonially wastes tokens. If you do dispatch, give him a narrow scoped instruction based on what you found, not a vague "clean it up."
+- **After `test-author` (Seraphine):** run the suite — tests MUST fail (red). If they pass, the spec is already satisfied — stop and report. **Exception:** an `ImportError` or `ModuleNotFoundError` naming a deliverable the spec explicitly lists as yet-to-be-built is EXPECTED red — proceed to Bruga. Any other collection-time error (syntax error, undefined fixture) means the test file itself is wrong — report and stop.
+- **After `feature-implementer` (Bruga):** run the suite — tests MUST pass (green). On failure, dispatch Bruga once more with the failure output; **ONE retry max**, then stop and report.
+- **After `refactorer` (Tink):** run the suite — tests MUST still pass. If not, behavior drifted — report; the user decides revert or adjust.
+- **Before dispatching `refactorer` (Tink):** the refactor step is conditional. Inspect the green code (`Grep`/`Read`) for spec-mandated docstring/type-hint coverage, duplicated logic, unclear naming, or convention violations. If nothing meaningful is found, **skip Tink and note it in the report** — ceremonial dispatch wastes tokens. If you do dispatch, give a narrow scoped instruction (`extract X`, `rename Y`), not "clean it up."
 
 **Standalone verifications:**
 
-- **After `debug-investigator` (Kael):** read the root-cause report. Decide whether the fix is a feature-cycle (route through test-author + feature-implementer with a fresh spec) or a scoped refactor (route through refactorer). If it's a design decision, stop and ask the user.
-- **After `architecture-reviewer` (Aldric):** read the alternatives + recommendation. If Aldric's recommendation conflicts with the user's stated intent in the quest ask, stop and ask the user before dispatching Seraphine. Otherwise incorporate the recommendation into the plan and proceed.
+- **After `debug-investigator` (Kael):** read the root-cause report; route to feature-cycle (fresh spec → test-author + feature-implementer), to scoped refactor (refactorer alone), or stop and ask the user if it's a design decision.
+- **After `architecture-reviewer` (Aldric):** read alternatives + recommendation. If Aldric conflicts with user intent, stop and ask the user before Seraphine; otherwise fold it into the plan and proceed.
 
 **Parallel-review verifications (post-green):**
 
