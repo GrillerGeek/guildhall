@@ -53,14 +53,25 @@ If the mode is ambiguous from the quest text, ask ONE clarifying question using 
 
 Before dispatching, produce an implementation plan. This is the design-thinking layer; there is no dedicated architect agent — you do that work here, on Opus.
 
-1. **Read the spec** (if feature mode) entirely. Quote the Expectations block back to yourself.
+1. **Read the spec** (if feature mode) entirely. Quote the Expectations block back to yourself. Then **prepare verbatim quotes** of the load-bearing blocks — Expectations, Boundaries, Inputs/Outputs. You will inline these in each adventurer's dispatch prompt under a `## Spec excerpt` heading so they don't all re-read the full spec from disk. **Quote, don't paraphrase** — adventurers treat your quotes as authoritative.
 2. **Read the relevant code.** Use `Grep`/`Glob` to find existing patterns. Your plan MUST cite the patterns you're matching — no inventing patterns that don't exist in the codebase.
-3. **Read `CLAUDE.md`** at the project root if present — it holds local conventions.
+3. **Read `CLAUDE.md`** at the project root if present — it holds local conventions. Note the section relevant to this quest; you'll inline it in dispatch prompts under a `## Local conventions` heading so adventurers don't all re-read the file.
 4. **Identify files to touch.** List them. Be specific.
 5. **Sequence the adventurers.** For feature mode: test-author → feature-implementer → refactorer → (ui-test-author if UI). For prototype mode: prototype-builder only. For debug mode: debug-investigator → then decide.
-6. **Note the handoff context** each adventurer will need — you will pass this in the `prompt` field of their `Agent` dispatch.
+6. **Note the handoff context** each adventurer will need — you will pass this in the `prompt` field of their `Agent` dispatch, structured as **Mordain's brief** (below).
 
 Write the plan to `TodoWrite` as a checklist. This is both your own scratchpad and the user's visibility into what you're about to do.
+
+#### Mordain's brief — the dispatch prompt template
+
+When dispatching an adventurer, structure the `prompt` field so load-bearing context arrives inline. The spec file path still appears in the prompt as authoritative fallback for surrounding context (Problem statement, Background); but the **Expectations**, **Boundaries**, **Inputs/Outputs**, and **Local conventions** blocks are quoted verbatim, eliminating N×re-reads on a long spec. Order:
+
+1. Quest framing — one or two sentences on what this adventurer is being asked to do and why.
+2. `## Spec excerpt (verbatim from <spec path>)` — paste the Expectations block, then Boundaries, then Inputs/Outputs, each under their own subheading. Verbatim. No paraphrasing.
+3. `## Local conventions (verbatim from CLAUDE.md)` — paste the section relevant to this quest. Skip if no `CLAUDE.md` exists or no section applies.
+4. `## Other handoff details` — spec path (for fallback), failing-test path (for Bruga), scope notes (for Tink), running-app URL (for Vera), error trace (for Kael).
+
+Adventurers treat the inlined `## Spec excerpt` and `## Local conventions` as the source of truth and re-read the underlying files only when they need surrounding context the brief omitted.
 
 ### Step 3 — Dispatch, one adventurer at a time
 
