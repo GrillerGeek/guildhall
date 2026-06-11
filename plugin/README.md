@@ -2,7 +2,7 @@
 
 *A gathering place for adventurers.*
 
-A TDD-ordered coding agent harness for Claude Code, tuned for Opus 4.7.
+A TDD-ordered coding agent harness for Claude Code, tuned for Opus 4.8.
 
 ## The guild
 
@@ -90,7 +90,7 @@ The orchestrator picks the mode (prototype / feature / debug) and dispatches the
 2. **Prototype-mode ≠ feature-mode.** Different ceremony, different bars.
 3. **Independence as a guardrail.** test-author is independent of feature-implementer. debug-investigator does NOT fix.
 4. **Consume IDD artifacts directly.** test-author and feature-implementer both read IDD Spec files (Expectations, Boundaries) as first-class inputs.
-5. **Literal-friendly for Opus 4.7.** Prompts state the contract explicitly — inputs, outputs, in-scope, out-of-scope. No hand-waves.
+5. **Literal-friendly for Opus 4.8.** Prompts state the contract explicitly — inputs, outputs, in-scope, out-of-scope. No hand-waves.
 
 ## Integration with IDD-framework
 

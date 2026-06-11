@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-Guildhall is a **Claude Code plugin** — markdown-only. As of v0.4.1 it ships one slash command (`/quest`) and 18 agent definitions (17 adventurers tiered across Opus / Sonnet / Haiku, plus the `model-echo` diagnostic). There is no application code, no build step, no test suite, no linter. "Running" the plugin means installing it into Claude Code and issuing `/quest`; "testing" a change means dogfooding a quest against a real task.
+Guildhall is a **Claude Code plugin** — markdown-only. As of v0.5.0 it ships one slash command (`/quest`) and 18 agent definitions (17 adventurers tiered across Opus / Sonnet / Haiku, plus the `model-echo` diagnostic). There is no application code, no build step, no test suite, no linter. "Running" the plugin means installing it into Claude Code and issuing `/quest`; "testing" a change means dogfooding a quest against a real task.
 
 Install for local development:
 
@@ -52,7 +52,7 @@ Guildhall is the implementation-side complement to the separate [IDD-framework](
 
 ### Model tiers
 
-`/quest` (Mordain) runs on whatever model the user's session is on — Opus 4.7 is the intended target; the whole harness exists *because* Opus 4.7 follows instructions literally and fills in fewer gaps than 4.6.
+`/quest` (Mordain) runs on whatever model the user's session is on — Opus 4.8 is the intended target. The whole harness exists *because* Opus-tier models from 4.7 onward follow instructions literally and fill in fewer gaps; 4.8 additionally under-reaches for subagents unless told exactly when to dispatch — the explicit dispatch triggers throughout `quest.md` are that telling.
 
 **Adventurer tiers (post-v0.4.0):**
 
@@ -65,7 +65,7 @@ Every agent's `model:` field must use an alias (`sonnet` / `opus` / `haiku`), no
 
 ## Editing conventions for agent and command prompts
 
-- **State the contract explicitly.** Inputs, outputs, in-scope, out-of-scope. Opus 4.7 is literal-friendly — hand-waves produce drift. Existing agents follow an `## Your contract` / `## Your tools` / `## Your process` / `## Explicit non-goals` / `## Hard rules` skeleton; match it.
+- **State the contract explicitly.** Inputs, outputs, in-scope, out-of-scope. Opus 4.8 is literal-friendly — hand-waves produce drift. Existing agents follow an `## Your contract` / `## Your tools` / `## Your process` / `## Explicit non-goals` / `## Hard rules` skeleton; match it.
 - **Each adventurer has ONE job.** Don't broaden an agent's description to cover an adjacent case; that's what a different adventurer (or a new one) is for.
 - **Frontmatter example blocks are indented 2 spaces** (see commit `320c3c6`). Keep that when adding `<example>` blocks to an agent's `description`.
 - **Character voice is load-bearing.** The D&D personas in `CHARACTERS.md` are not decoration — they're the in-character forcing function that makes violating the contract feel wrong (e.g., Seraphine "has never read an implementation and does not intend to start"). When editing an agent's system prompt, keep the voice; when adding a new agent, write a character sheet in `CHARACTERS.md` too.
