@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-Guildhall is a **Claude Code plugin** — markdown-only. As of v0.6.1 it ships one slash command (`/quest`) and 18 agent definitions (17 adventurers tiered across Opus / Sonnet / Haiku, plus the `model-echo` diagnostic). There is no application code, no build step, no test suite, no linter. "Running" the plugin means installing it into Claude Code and issuing `/quest`; "testing" a change means dogfooding a quest against a real task — **from a freshly started session**: Claude Code snapshots command/skill content at session start, so a `/quest` issued in the session that edited `quest.md` exercises the stale snapshot, not your change (verified 2026-06-10). Agent files are read at dispatch time and don't have this constraint.
+Guildhall is a **Claude Code plugin** — markdown-only. As of v0.6.2 it ships one slash command (`/quest`) and 18 agent definitions (17 adventurers tiered across Opus / Sonnet / Haiku, plus the `model-echo` diagnostic). There is no application code, no build step, no test suite, no linter. "Running" the plugin means installing it into Claude Code and issuing `/quest`; "testing" a change means dogfooding a quest against a real task — **from a freshly started session**: Claude Code snapshots command/skill content at session start, so a `/quest` issued in the session that edited `quest.md` exercises the stale snapshot, not your change (verified 2026-06-10). Agent files are read at dispatch time and don't have this constraint.
 
 Install for local development:
 

@@ -91,7 +91,7 @@ If the quest didn't qualify for the docs fast lane, pick a mode explicitly befor
 Before producing the plan, dispatch the `model-echo` diagnostic to verify that the explicit-model-parameter workaround is functioning. This is a one-shot diagnostic, not a blocking gate.
 
 1. `model-echo`'s tier is `sonnet`, per the roster table above. The table is a validator-enforced mirror of the agent frontmatter (plugin-validator check 8), so you do NOT need to locate and read the agent file first.
-2. Dispatch with the model passed explicitly: `Agent(subagent_type: "model-echo", model: "sonnet", description: "Verify model routing", prompt: "Report the model you are running on.")`. The explicit `model` parameter is REQUIRED — Claude Code's subagent dispatch does not honor the agent file's frontmatter `model:` directly; only the explicit parameter works (see Step 4 for the full rationale).
+2. Dispatch with the model passed explicitly: `Agent(subagent_type: "guildhall:model-echo", model: "sonnet", description: "Verify model routing", prompt: "Report the model you are running on.")`. Plugin agents resolve under their `guildhall:` namespace (see the namespace note in Step 4). The explicit `model` parameter is REQUIRED — Claude Code's subagent dispatch does not honor the agent file's frontmatter `model:` directly; only the explicit parameter works (see Step 4 for the full rationale).
 3. Read the response's `model:` line — by contract the final line of the reply (smaller models sometimes preface it with narration; ignore everything before the `model:` line). An honest reply will name `sonnet` or a Sonnet model ID such as `claude-sonnet-4-6`.
 4. If the response names any model other than Sonnet (case-insensitive — `opus`, `fable`, `haiku`, or a non-Sonnet model ID), emit the following warning to the user (substituting the reported model) and then continue to Step 3:
 
@@ -213,11 +213,13 @@ Agent(
 )
 ```
 
+**Agent-type namespace:** plugin-provided agents resolve under their plugin-namespaced form — `guildhall:<agent-type>` (e.g., `guildhall:test-author`). Use the namespaced form on every dispatch. If a namespaced dispatch fails to resolve (older Claude Code), retry once with the bare name — a name-resolution miss is not a routing failure and does not warrant the Step 2 warning.
+
 Concrete filled example (Seraphine, `test-author`, model `sonnet`):
 
 ```
 Agent(
-  subagent_type: "test-author",
+  subagent_type: "guildhall:test-author",
   model: "sonnet",
   description: "Write failing tests from reservations spec",
   prompt: "You are Seraphine Dawnveil, the test-author. === MISSION === ..."
