@@ -2,9 +2,9 @@
 
 *A gathering place for adventurers.*
 
-A TDD-ordered coding agent harness for Claude Code, tuned for Opus 4.7.
+A TDD-ordered coding agent harness for Claude Code, tuned for Opus 4.8.
 
-Generic Claude Code + Opus 4.7 produces more assumption-driven code than 4.6 did — 4.7 follows instructions literally and fills in fewer gaps. The remedy is a tuned harness, not cleverer prompting.
+Opus-tier models from 4.7 onward follow instructions literally and fill in fewer gaps than their predecessors — and Opus 4.8 is additionally conservative about reaching for subagents unless told exactly when to dispatch them. The remedy is the same as it ever was: a tuned harness with explicit contracts and dispatch triggers, not cleverer prompting.
 
 The Guildhall provides the **`/quest` slash command** — inhabited by Mordain the Keeper, Guildmaster — that plans, writes a durable plan file, and dispatches, plus **seventeen adventurer agents tiered across Opus / Sonnet / Haiku** that each do one narrow job. Feature work follows a strict TDD red-green-refactor handoff for the build, then fans out post-green reviews (security, docs, optional Playwright UI tests) in parallel, and closes with a platform-agnostic PR draft. Prototype work skips the ceremony. Debug work starts with root-cause before any fix.
 
