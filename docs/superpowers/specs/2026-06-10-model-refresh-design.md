@@ -66,6 +66,15 @@ Scoped after PRs 1–3 dogfooding. Candidate pool: smarter post-green batching, 
 
 Per PR: Tabs (`plugin-validator`) clean on the plugin tree, then a real `/quest` dogfood run (the repo's definition of testing), then merge. Commit style `type(scope): summary (vX.Y.Z)`.
 
-## Appendix — routing re-verification results
+## Appendix — routing re-verification results (2026-06-10)
 
-*(filled during PR 1)*
+Parent session model: Fable 5. Agent under test: `model-echo` (frontmatter `model: sonnet`).
+
+| Test | Dispatch | Reported | Conclusion |
+|---|---|---|---|
+| A | no `model` param | `claude-sonnet-4-6` | Frontmatter **is now honored** — under the old (2026-04-23) behavior this would have inherited the Fable 5 parent. |
+| B | explicit `model: "haiku"` | `claude-haiku-4-5-20251001` | Explicit param still works and **overrides frontmatter**. |
+
+The upstream issue that motivated the explicit-param workaround appears fixed in current Claude Code. Per this design's pre-commitment, no routing redesign happens in PR 1: the workaround stays as belt-and-braces (older Claude Code versions in the field still need it). **PR 4 candidate:** decide whether to retire the workaround — which would simplify `quest.md` Steps 2, 3.9, and 4.
+
+Incidental observation: in test B, model-echo (on Haiku) prepended an explanatory line, violating its own "exactly one line" hard rule. Minor; candidate for PR 4 prompt-hardening.

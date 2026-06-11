@@ -15,7 +15,7 @@ The seventeen adventurers:
 | **Aldric Stonemap** *(optional)* | `architecture-reviewer` | Cartographer. 2–3 alternatives with trade-offs; recommends one. | Opus |
 | **Seraphine Dawnveil** | `test-author` | Oracle. Red tests from the Spec; never reads implementation. | Sonnet |
 | **Bruga Ironseam** | `feature-implementer` | Smith. Green code from the blueprint. No scope creep. | Sonnet |
-| **Tink Whiffletree** *(optional)* | `refactorer` | Enchanter. Narrow scoped refactors; preserves behavior. | Sonnet |
+| **Tink Whiffletree** *(optional)* | `refactorer` | Enchanter. Narrow scoped refactors; preserves behavior. | Haiku |
 | **Vera Nightwhistle** *(gated: UI)* | `ui-test-author` | Playwright. Drives Playwright E2E tests against the running app. | Sonnet |
 | **Oriana the Watcher** | `security-reviewer` | Sentinel. Always-on. Reviews diff for authn / authz / secrets / injection. | Opus |
 | **Cassian Inkwell** | `docs-writer` | Scribe. Always-on. Updates named doc surfaces + docstrings on touched code. | Sonnet |
@@ -100,6 +100,6 @@ Guildhall is the implementation-side complement to the [IDD-framework](https://g
 
 The orchestrator runs on Opus for reasoning-heavy planning. Workers run on Sonnet for execution. If a worker proves overkill on Sonnet, downgrade to Haiku per-agent in its frontmatter.
 
-**How routing works (as of v0.3.0):** each adventurer declares its intended model in its `plugin/agents/<name>.md` frontmatter. Mordain reads that value during planning and passes it explicitly as the `model` parameter on the `Agent(...)` dispatch call. This is a workaround for an upstream Claude Code issue where subagent frontmatter `model:` values are silently ignored — the explicit dispatch parameter is honored where the frontmatter alone is not. The `model-echo` self-check at the start of every quest verifies the workaround is functioning.
+**How routing works (as of v0.3.0):** each adventurer declares its intended model in its `plugin/agents/<name>.md` frontmatter. Mordain reads that value during planning and passes it explicitly as the `model` parameter on the `Agent(...)` dispatch call. This is a workaround for an upstream Claude Code issue where subagent frontmatter `model:` values were silently ignored — the explicit dispatch parameter is honored where the frontmatter alone was not. (Re-verified 2026-06-10: current Claude Code honors the frontmatter again when no parameter is given; the explicit parameter still takes precedence and is retained as a belt-and-braces measure.) The `model-echo` self-check at the start of every quest verifies routing is functioning.
 
 **What the `⚠️` banner means during a quest:** if Mordain emits a model-routing self-check warning at the start of your quest, even the explicit dispatch parameter was overridden (environment variable, enterprise plan constraint, or deeper Claude Code issue). Investigate before trusting the cost posture for that quest.

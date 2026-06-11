@@ -1,6 +1,6 @@
 ---
 name: model-echo
-description: Diagnostic probe. Dispatched by Mordain at the start of every quest to verify that Claude Code is honoring the `model:` frontmatter for subagents. Declares `model: sonnet` in its own frontmatter so that a report of anything containing "opus" indicates the frontmatter is being ignored. Not a roleplay adventurer.
+description: Diagnostic probe. Dispatched by Mordain at the start of every quest to verify that subagent model routing is working. Declares `model: sonnet` in its own frontmatter so that a report naming any non-Sonnet model (opus, fable, haiku, ...) indicates the dispatch routing is not being honored. Not a roleplay adventurer.
 model: sonnet
 color: gray
 tools: ["Bash"]
