@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-Guildhall is a **Claude Code plugin** — markdown-only. As of v0.6.0 it ships one slash command (`/quest`) and 18 agent definitions (17 adventurers tiered across Opus / Sonnet / Haiku, plus the `model-echo` diagnostic). There is no application code, no build step, no test suite, no linter. "Running" the plugin means installing it into Claude Code and issuing `/quest`; "testing" a change means dogfooding a quest against a real task.
+Guildhall is a **Claude Code plugin** — markdown-only. As of v0.6.1 it ships one slash command (`/quest`) and 18 agent definitions (17 adventurers tiered across Opus / Sonnet / Haiku, plus the `model-echo` diagnostic). There is no application code, no build step, no test suite, no linter. "Running" the plugin means installing it into Claude Code and issuing `/quest`; "testing" a change means dogfooding a quest against a real task — **from a freshly started session**: Claude Code snapshots command/skill content at session start, so a `/quest` issued in the session that edited `quest.md` exercises the stale snapshot, not your change (verified 2026-06-10). Agent files are read at dispatch time and don't have this constraint.
 
 Install for local development:
 
@@ -40,11 +40,11 @@ When editing `quest.md`, preserve this three-phase shape. Serializing the review
 
 ### Subagent model routing requires the explicit `model` dispatch parameter
 
-When this workaround shipped, Claude Code's subagent dispatch did **not** honor the `model:` field in an agent file's frontmatter directly — the agent inherited the parent session's model instead (verified via `model-echo` diagnostic on 2026-04-23). Guildhall works around this by having Mordain read each adventurer's `model:` from its frontmatter (the canonical source) and pass it **explicitly** as the `model` parameter on every `Agent(...)` dispatch. The `Agent` tool's `model` parameter IS honored.
+When this workaround shipped, Claude Code's subagent dispatch did **not** honor the `model:` field in an agent file's frontmatter directly — the agent inherited the parent session's model instead (verified via `model-echo` diagnostic on 2026-04-23). Guildhall works around this by having Mordain pass each adventurer's tier **explicitly** as the `model` parameter on every `Agent(...)` dispatch. The `Agent` tool's `model` parameter IS honored. As of v0.6.1 Mordain resolves tiers from the roster table inside `quest.md` itself (a validator-enforced mirror of the canonical frontmatter — check 8) instead of Glob+Reading every agent file per quest; the file-read path remains as fallback for agents missing from the table.
 
 **Re-verified 2026-06-10:** current Claude Code now honors the frontmatter `model:` when no dispatch parameter is given (model-echo dispatched with no `model` param reported Sonnet under a non-Sonnet parent), and the explicit parameter still works and takes precedence over frontmatter. The explicit-param workaround is **retained** as belt-and-braces — older Claude Code versions in the field still need it, and the cost posture depends on routing being right. Deciding whether to retire it is PR 4 scope in `docs/superpowers/specs/2026-06-10-model-refresh-design.md`.
 
-This means: (a) every `Agent(...)` call in `quest.md` must include the `model` parameter — no exceptions; (b) every agent file must declare `model:` in alias form (`sonnet` / `opus` / `haiku`), never a full model ID; (c) when adding a new agent, also add the read-model step in `quest.md`'s Step 3 if the new agent is dispatched outside the existing sequence.
+This means: (a) every `Agent(...)` call in `quest.md` must include the `model` parameter — no exceptions; (b) every agent file must declare `model:` in alias form (`sonnet` / `opus` / `haiku`), never a full model ID; (c) when adding a new agent, add its row to the `quest.md` roster table (Mordain's dispatch-time tier source) — plugin-validator check 8 will fail if the row and the frontmatter ever disagree.
 
 ### IDD-framework is the upstream spec producer
 

@@ -90,9 +90,9 @@ If the quest didn't qualify for the docs fast lane, pick a mode explicitly befor
 
 Before producing the plan, dispatch the `model-echo` diagnostic to verify that the explicit-model-parameter workaround is functioning. This is a one-shot diagnostic, not a blocking gate.
 
-1. Locate the `model-echo` agent file with `Glob("**/agents/model-echo.md")` (the plugin may be installed at an arbitrary path — do NOT hardcode `plugin/agents/`). Read the match's frontmatter and confirm `model: sonnet`.
+1. `model-echo`'s tier is `sonnet`, per the roster table above. The table is a validator-enforced mirror of the agent frontmatter (plugin-validator check 8), so you do NOT need to locate and read the agent file first.
 2. Dispatch with the model passed explicitly: `Agent(subagent_type: "model-echo", model: "sonnet", description: "Verify model routing", prompt: "Report the model you are running on.")`. The explicit `model` parameter is REQUIRED — Claude Code's subagent dispatch does not honor the agent file's frontmatter `model:` directly; only the explicit parameter works (see Step 4 for the full rationale).
-3. Read the response. An honest reply will contain `sonnet` or a Sonnet model ID such as `claude-sonnet-4-6`.
+3. Read the response's `model:` line — by contract the final line of the reply (smaller models sometimes preface it with narration; ignore everything before the `model:` line). An honest reply will name `sonnet` or a Sonnet model ID such as `claude-sonnet-4-6`.
 4. If the response names any model other than Sonnet (case-insensitive — `opus`, `fable`, `haiku`, or a non-Sonnet model ID), emit the following warning to the user (substituting the reported model) and then continue to Step 3:
 
    > ⚠️ Model-routing self-check: `model-echo` was dispatched with explicit `model: "sonnet"` parameter, but reported running on `<reported model>`. The dispatch parameter is not being honored. Likely causes: an `ANTHROPIC_MODEL` override set in your environment, a plan-level model constraint, or a deeper Claude Code issue. This quest will continue, but the cost posture documented in the README is compromised — investigate before trusting quest cost estimates.
@@ -126,7 +126,7 @@ Before dispatching adventurers, produce an implementation plan. This is the desi
 
    Record your selection — and your reasoning for any reviewer you skipped — in the plan file's `## Reviewers selected` section. The decision must be auditable.
 8. **Note the handoff context** each adventurer will need — you will pass this in the `prompt` field of their `Agent` dispatch, structured as **Mordain's brief** (below).
-9. **Read each adventurer's model.** For each adventurer in your sequence (including `model-echo` if not already cached, AND each gated reviewer you selected in Step 7), locate its agent file with `Glob("**/agents/<name>.md")` and Read the match to capture the `model:` value from its frontmatter. Cache per-adventurer for this quest. You will pass this value as the `model` parameter on the `Agent` dispatch call in Step 4 — this is REQUIRED, not optional.
+9. **Resolve each adventurer's model from the roster table.** For each adventurer in your sequence (AND each gated reviewer you selected in Step 7), take the `Tier` value from the roster table in this scroll. The table is a validator-enforced mirror of the agent frontmatter (plugin-validator check 8 fails the build when they drift), so it is trustworthy at dispatch time — no per-quest file reads needed. ONLY if an agent is missing from the table (e.g., a newly added adventurer), locate its file with `Glob("**/agents/<name>.md")` and Read the frontmatter `model:` — and flag the missing row in your report. You will pass the resolved value as the `model` parameter on the `Agent` dispatch call in Step 4 — this is REQUIRED, not optional.
 10. **Write the plan file.** At `docs/guildhall/plans/YYYY-MM-DD-<slug>.md`, following the template below. Commit mentally to this artifact being the canonical record of the quest. Mirror the same structure as a `TodoWrite` checklist for the live session UI.
 
 #### Mordain's brief — the dispatch prompt template
@@ -207,7 +207,7 @@ Dispatch via:
 ```
 Agent(
   subagent_type: <adventurer-agent-type>,
-  model: <alias from that adventurer's frontmatter, one of "sonnet" | "opus" | "haiku">,
+  model: <alias resolved in Step 3.9 (roster table), one of "sonnet" | "opus" | "haiku">,
   description: <short description of the dispatch>,
   prompt: <full handoff context — see template below>
 )
@@ -224,7 +224,7 @@ Agent(
 )
 ```
 
-**The `model` parameter is REQUIRED.** Older Claude Code versions do not honor the `model:` field in the agent file's frontmatter directly — if you omit the dispatch parameter there, the adventurer inherits your parent model (typically Opus 4.8) and the plugin's cost posture is invalidated. The `model` parameter at dispatch time is the mechanism that makes the frontmatter declaration take effect. You read each adventurer's model in Step 3; pass its literal string value (not a placeholder) here.
+**The `model` parameter is REQUIRED.** Older Claude Code versions do not honor the `model:` field in the agent file's frontmatter directly — if you omit the dispatch parameter there, the adventurer inherits your parent model (typically Opus 4.8) and the plugin's cost posture is invalidated. The `model` parameter at dispatch time is the mechanism that makes the frontmatter declaration take effect everywhere. You resolved each adventurer's model in Step 3.9; pass its literal string value (not a placeholder) here.
 
 #### Dispatch sequence per mode
 
