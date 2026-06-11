@@ -34,7 +34,7 @@ You dispatch adventurers via the `Agent` tool. The seventeen adventurers (plus o
 | Aldric Stonemap | `architecture-reviewer` | opus | Pre-dispatch in feature mode when work is novel or cross-cutting |
 | Seraphine Dawnveil | `test-author` | sonnet | Feature mode, RED step |
 | Bruga Ironseam | `feature-implementer` | sonnet | Feature mode, GREEN step — AFTER Seraphine |
-| Tink Whiffletree | `refactorer` | sonnet | REFACTOR step (conditional) — AFTER Bruga |
+| Tink Whiffletree | `refactorer` | haiku | REFACTOR step (conditional) — AFTER Bruga |
 | Vera Nightwhistle | `ui-test-author` | sonnet | Feature has UI — AFTER Bruga (parallel with other reviews) |
 | Oriana the Watcher | `security-reviewer` | opus | Post-green — parallel fan-out, ALWAYS |
 | Cassian Inkwell | `docs-writer` | sonnet | Post-green — parallel fan-out, ALWAYS |
@@ -91,9 +91,9 @@ Before producing the plan, dispatch the `model-echo` diagnostic to verify that t
 1. Locate the `model-echo` agent file with `Glob("**/agents/model-echo.md")` (the plugin may be installed at an arbitrary path — do NOT hardcode `plugin/agents/`). Read the match's frontmatter and confirm `model: sonnet`.
 2. Dispatch with the model passed explicitly: `Agent(subagent_type: "model-echo", model: "sonnet", description: "Verify model routing", prompt: "Report the model you are running on.")`. The explicit `model` parameter is REQUIRED — Claude Code's subagent dispatch does not honor the agent file's frontmatter `model:` directly; only the explicit parameter works (see Step 4 for the full rationale).
 3. Read the response. An honest reply will contain `sonnet` or a Sonnet model ID such as `claude-sonnet-4-6`.
-4. If the response contains `opus` (case-insensitive), emit the following warning to the user and then continue to Step 3:
+4. If the response names any model other than Sonnet (case-insensitive — `opus`, `fable`, `haiku`, or a non-Sonnet model ID), emit the following warning to the user (substituting the reported model) and then continue to Step 3:
 
-   > ⚠️ Model-routing self-check: `model-echo` was dispatched with explicit `model: "sonnet"` parameter, but reported running on Opus. The dispatch parameter is not being honored. Likely causes: `ANTHROPIC_MODEL=claude-opus-4-7` set in your environment, an Opus-only plan, or a deeper Claude Code issue. This quest will continue, but the cost posture documented in the README is compromised — investigate before trusting quest cost estimates.
+   > ⚠️ Model-routing self-check: `model-echo` was dispatched with explicit `model: "sonnet"` parameter, but reported running on `<reported model>`. The dispatch parameter is not being honored. Likely causes: an `ANTHROPIC_MODEL` override set in your environment, a plan-level model constraint, or a deeper Claude Code issue. This quest will continue, but the cost posture documented in the README is compromised — investigate before trusting quest cost estimates.
 
 5. If the response is `model: unknown`, note that in your report but do NOT emit the warning — the agent could not introspect; lack of evidence is not evidence of a problem. Continue to Step 3.
 6. Cache the result (record it in the plan file's frontmatter `model_check` field in Step 3). Do NOT re-run the self-check for subsequent dispatches within the same quest.

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-Guildhall is a **Claude Code plugin** — markdown-only. As of v0.4.0 it ships one slash command (`/quest`) and 18 agent definitions (17 adventurers tiered across Opus / Sonnet / Haiku, plus the `model-echo` diagnostic). There is no application code, no build step, no test suite, no linter. "Running" the plugin means installing it into Claude Code and issuing `/quest`; "testing" a change means dogfooding a quest against a real task.
+Guildhall is a **Claude Code plugin** — markdown-only. As of v0.4.1 it ships one slash command (`/quest`) and 18 agent definitions (17 adventurers tiered across Opus / Sonnet / Haiku, plus the `model-echo` diagnostic). There is no application code, no build step, no test suite, no linter. "Running" the plugin means installing it into Claude Code and issuing `/quest`; "testing" a change means dogfooding a quest against a real task.
 
 Install for local development:
 
@@ -40,7 +40,9 @@ When editing `quest.md`, preserve this three-phase shape. Serializing the review
 
 ### Subagent model routing requires the explicit `model` dispatch parameter
 
-Claude Code's subagent dispatch does **not** honor the `model:` field in an agent file's frontmatter directly — the agent inherits the parent session's model instead. Verified via `model-echo` diagnostic on 2026-04-23. Guildhall works around this by having Mordain read each adventurer's `model:` from its frontmatter (the documented source of truth) and pass it **explicitly** as the `model` parameter on every `Agent(...)` dispatch. The `Agent` tool's `model` parameter IS honored.
+When this workaround shipped, Claude Code's subagent dispatch did **not** honor the `model:` field in an agent file's frontmatter directly — the agent inherited the parent session's model instead (verified via `model-echo` diagnostic on 2026-04-23). Guildhall works around this by having Mordain read each adventurer's `model:` from its frontmatter (the canonical source) and pass it **explicitly** as the `model` parameter on every `Agent(...)` dispatch. The `Agent` tool's `model` parameter IS honored.
+
+**Re-verified 2026-06-10:** current Claude Code now honors the frontmatter `model:` when no dispatch parameter is given (model-echo dispatched with no `model` param reported Sonnet under a non-Sonnet parent), and the explicit parameter still works and takes precedence over frontmatter. The explicit-param workaround is **retained** as belt-and-braces — older Claude Code versions in the field still need it, and the cost posture depends on routing being right. Deciding whether to retire it is PR 4 scope in `docs/superpowers/specs/2026-06-10-model-refresh-design.md`.
 
 This means: (a) every `Agent(...)` call in `quest.md` must include the `model` parameter — no exceptions; (b) every agent file must declare `model:` in alias form (`sonnet` / `opus` / `haiku`), never a full model ID; (c) when adding a new agent, also add the read-model step in `quest.md`'s Step 3 if the new agent is dispatched outside the existing sequence.
 
@@ -55,11 +57,11 @@ Guildhall is the implementation-side complement to the separate [IDD-framework](
 **Adventurer tiers (post-v0.4.0):**
 
 - **Opus:** `architecture-reviewer` (Aldric), `security-reviewer` (Oriana), `reliability-reviewer` (Thalia), `migration-safety-reviewer` (Ysolde). The four classes where a miss is hardest to reverse — bad architecture, bad security, cascading prod failures, irreversible data changes.
-- **Sonnet:** `test-author`, `feature-implementer`, `refactorer`, `ui-test-author`, `docs-writer`, `pr-author`, `prototype-builder`, `debug-investigator`, `observability-reviewer` (Vance), `performance-reviewer` (Cassia), `ops-readiness-reviewer` (Garran), `accessibility-reviewer` (Lior). The majority — execution and structured checklist work.
-- **Haiku:** `plugin-validator`. Mechanical regex / structural checks.
+- **Sonnet:** `test-author`, `feature-implementer`, `ui-test-author`, `docs-writer`, `pr-author`, `prototype-builder`, `debug-investigator`, `observability-reviewer` (Vance), `performance-reviewer` (Cassia), `ops-readiness-reviewer` (Garran), `accessibility-reviewer` (Lior). The majority — execution and structured checklist work.
+- **Haiku:** `refactorer` (Tink), `plugin-validator` (Tabs). Narrowly-scoped behavior-preserving refactors and mechanical regex / structural checks.
 - **Diagnostic:** `model-echo` (declared Sonnet; its purpose is verifying the routing workaround).
 
-Every agent's `model:` field must use an alias (`sonnet` / `opus` / `haiku`), not a full model ID — full IDs surface as warnings from `plugin-validator`. The tier assignments are the source of truth that Mordain reads at dispatch time per the explicit-`model`-param workaround above.
+Every agent's `model:` field must use an alias (`sonnet` / `opus` / `haiku`), not a full model ID — full IDs surface as warnings from `plugin-validator`. **Agent frontmatter `model:` is the canonical tier source.** Every other surface — the `quest.md` roster table, the `plugin/README.md` roster table, the `CHARACTERS.md` Model rows, the `plugin.json` description, and the tier list above — is a mirror of frontmatter, and `plugin-validator`'s cross-file tier-consistency check (check 8) flags drift between them. Mordain reads frontmatter at dispatch time per the explicit-`model`-param workaround above.
 
 ## Editing conventions for agent and command prompts
 
@@ -73,6 +75,6 @@ Every agent's `model:` field must use an alias (`sonnet` / `opus` / `haiku`), no
 - No generic "coder" agent. The point of the guild is that each adventurer refuses jobs outside their class.
 - No parallelization of the TDD build chain. `test-author` → `feature-implementer` is strictly sequential — the review fan-out parallelism only applies post-green, among agents that don't depend on each other.
 - No orchestrator-as-subagent. The `Agent` dispatch tool is not available inside subagent contexts, so moving Mordain out of `/quest` into an agent file would fail silently. (Historical: commit `f5d9cd5` records this lesson.)
-- No skipping the explicit `model` parameter on dispatch. Every `Agent(...)` call in `quest.md` must include `model: <alias>`; the frontmatter alone is not honored by Claude Code and cost posture depends on this.
+- No skipping the explicit `model` parameter on dispatch. Every `Agent(...)` call in `quest.md` must include `model: <alias>`; the frontmatter alone was not honored by older Claude Code versions (re-verified working 2026-06-10, but the explicit param is retained as belt-and-braces) and cost posture depends on routing being right.
 - No `Write` access for Mordain beyond plan files. If a new artifact type is needed, either dispatch an adventurer (who has `Write`) or design a new adventurer specifically for it.
 - No always-on additions to the post-green fan-out beyond `security-reviewer` and `docs-writer`. New reviewers must be GATED with an explicit trigger documented in `quest.md` Step 3.7, recorded in the plan file's `## Reviewers selected` section. The selectivity is the scaling mechanism — making everything always-on negates the design.
