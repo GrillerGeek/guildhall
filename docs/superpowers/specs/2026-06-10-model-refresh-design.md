@@ -62,6 +62,14 @@ Retarget every "tuned for Opus 4.7" premise, reference, and keyword (`quest.md`,
 
 Scoped after PRs 1–3 dogfooding. Candidate pool: smarter post-green batching, quest-level token budget awareness, chronicle improvements, anything routing re-verification surfaced. Scope decided then; non-goals above still bind.
 
+**Scope as decided (v0.6.1)** — three items, each from observed friction:
+
+1. **model-echo hardening** — on Haiku it prepended an `$ANTHROPIC_MODEL` explanation, violating its one-line contract (appendix, test B). Two prompt-hardening rounds reduced but did not eliminate Haiku's preamble (each round verifiably changed behavior — confirming agent files ARE read at dispatch time, unlike command content). Resolution: robust parse contract instead — the reply MUST end with the `model:` line, and quest.md Step 2.3 parses that line, ignoring any narration before it. Observed Haiku outputs already satisfy this.
+2. **Workaround decision: retain the explicit `model` param, retire the per-quest file reads.** The explicit param stays (older Claude Code in the field; cost posture). But Step 3.9's Glob+Read of every agent file per quest is replaced by reading the quest.md roster table — trustworthy because check 8 (PR 1) validator-enforces it as a mirror of frontmatter. File-read path remains as fallback for table-missing agents. Saves N file-read roundtrips per quest.
+3. **Dogfood protocol documented** — command/skill content is snapshotted at session start (observed when the PR 1 gate quest ran a pre-speed-series quest.md), so dogfooding a quest.md change requires a freshly started session. Recorded in CLAUDE.md; agent files are dispatch-time reads and unaffected.
+
+Skipped (no observed friction, YAGNI): post-green batching changes, quest-level token budget awareness, chronicle format changes.
+
 ## Validation strategy
 
 Per PR: Tabs (`plugin-validator`) clean on the plugin tree, then a real `/quest` dogfood run (the repo's definition of testing), then merge. Commit style `type(scope): summary (vX.Y.Z)`.
