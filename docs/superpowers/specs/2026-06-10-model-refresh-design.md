@@ -86,3 +86,15 @@ Parent session model: Fable 5. Agent under test: `model-echo` (frontmatter `mode
 The upstream issue that motivated the explicit-param workaround appears fixed in current Claude Code. Per this design's pre-commitment, no routing redesign happens in PR 1: the workaround stays as belt-and-braces (older Claude Code versions in the field still need it). **PR 4 candidate:** decide whether to retire the workaround — which would simplify `quest.md` Steps 2, 3.9, and 4.
 
 Incidental observation: in test B, model-echo (on Haiku) prepended an explanatory line, violating its own "exactly one line" hard rule. Minor; candidate for PR 4 prompt-hardening.
+
+## Appendix 2 — fresh-session dogfood verification (2026-06-10, post-merge)
+
+Full feature-mode quest run by Jason from a freshly started **Claude Fable 5** session against a scratch project (`/tmp/guildhall-dogfood`, slugify spec with 5 Expectations). Results:
+
+- `parent_model: "claude-fable-5"` populated in plan frontmatter — Step 2.7 works; the recommended Fable seat was exercised.
+- Roster-table tier resolution confirmed: plan lists `refactorer (haiku)` — the fresh snapshot ran v0.6.1 quest.md, not a stale cache.
+- TDD gates held: expected-RED via the ModuleNotFoundError carve-out → GREEN 10/10 → green after docs. Tink conditionally skipped with reason; Aldric skipped (routine work).
+- Gating textbook: Vance fired (default-on), five reviewers skipped with auditable reasons, Vera/Lior pair-skip correct. Oriana med/low findings → Open items. IDD tech-lead closing gate ran.
+- Chronicle claims were evidence-grounded ("all verifications run by Mordain via pytest").
+
+**Bug found and fixed (v0.6.2):** bare `subagent_type: "model-echo"` failed to resolve; the plugin-namespaced `guildhall:model-echo` worked. quest.md now uses namespaced agent types on all dispatches, with a bare-name retry note for older Claude Code. The model-refresh roadmap is fully verified and closed.
