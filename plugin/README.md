@@ -98,7 +98,7 @@ Guildhall is the implementation-side complement to the [IDD-framework](https://g
 
 ## Cost posture
 
-The orchestrator runs on Opus for reasoning-heavy planning. Workers run on Sonnet for execution. If a worker proves overkill on Sonnet, downgrade to Haiku per-agent in its frontmatter.
+The orchestrator runs on the parent session model for reasoning-heavy planning — Opus 4.8 by default; run `/quest` from a Claude Fable 5 session for the hardest quests (orchestration is the one seat where top-tier spend pays for itself; adventurers never dispatch on `fable`). Workers run on Sonnet for execution. If a worker proves overkill on Sonnet, downgrade to Haiku per-agent in its frontmatter. Every quest's plan file records the orchestrating model in its `parent_model` frontmatter, so cost and quality are attributable per quest.
 
 **How routing works (as of v0.3.0):** each adventurer declares its intended model in its `plugin/agents/<name>.md` frontmatter. Mordain reads that value during planning and passes it explicitly as the `model` parameter on the `Agent(...)` dispatch call. This is a workaround for an upstream Claude Code issue where subagent frontmatter `model:` values were silently ignored — the explicit dispatch parameter is honored where the frontmatter alone was not. (Re-verified 2026-06-10: current Claude Code honors the frontmatter again when no parameter is given; the explicit parameter still takes precedence and is retained as a belt-and-braces measure.) The `model-echo` self-check at the start of every quest verifies routing is functioning.
 

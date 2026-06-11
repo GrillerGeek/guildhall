@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-Guildhall is a **Claude Code plugin** — markdown-only. As of v0.5.0 it ships one slash command (`/quest`) and 18 agent definitions (17 adventurers tiered across Opus / Sonnet / Haiku, plus the `model-echo` diagnostic). There is no application code, no build step, no test suite, no linter. "Running" the plugin means installing it into Claude Code and issuing `/quest`; "testing" a change means dogfooding a quest against a real task.
+Guildhall is a **Claude Code plugin** — markdown-only. As of v0.6.0 it ships one slash command (`/quest`) and 18 agent definitions (17 adventurers tiered across Opus / Sonnet / Haiku, plus the `model-echo` diagnostic). There is no application code, no build step, no test suite, no linter. "Running" the plugin means installing it into Claude Code and issuing `/quest`; "testing" a change means dogfooding a quest against a real task.
 
 Install for local development:
 
@@ -52,7 +52,7 @@ Guildhall is the implementation-side complement to the separate [IDD-framework](
 
 ### Model tiers
 
-`/quest` (Mordain) runs on whatever model the user's session is on — Opus 4.8 is the intended target. The whole harness exists *because* Opus-tier models from 4.7 onward follow instructions literally and fill in fewer gaps; 4.8 additionally under-reaches for subagents unless told exactly when to dispatch — the explicit dispatch triggers throughout `quest.md` are that telling.
+`/quest` (Mordain) runs on whatever model the user's session is on — Opus 4.8 is the intended target, and a Claude Fable 5 session is the recommended seat for the hardest quests. The whole harness exists *because* Opus-tier models from 4.7 onward follow instructions literally and fill in fewer gaps; 4.8 additionally under-reaches for subagents unless told exactly when to dispatch — the explicit dispatch triggers throughout `quest.md` are that telling. **Fable spend is Mordain-only:** no adventurer is ever dispatched with `model: "fable"` — the plugin cannot set Mordain's model (it inherits the session), so "Fable for Mordain" is a documented recommendation, not a dispatch parameter. Each quest's plan file records the orchestrating model in `parent_model` frontmatter for attribution.
 
 **Adventurer tiers (post-v0.4.0):**
 
