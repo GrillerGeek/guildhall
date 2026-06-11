@@ -6,6 +6,8 @@ A TDD-ordered coding agent harness for Claude Code, tuned for Opus 4.8.
 
 Opus-tier models from 4.7 onward follow instructions literally and fill in fewer gaps than their predecessors — and Opus 4.8 is additionally conservative about reaching for subagents unless told exactly when to dispatch them. The remedy is the same as it ever was: a tuned harness with explicit contracts and dispatch triggers, not cleverer prompting.
 
+Mordain (the `/quest` orchestrator) runs on whatever model your session is on. Opus 4.8 is the tuned default; for the hardest quests, **run `/quest` from a Claude Fable 5 session** — orchestration is the one seat where top-tier reasoning pays for itself, and the adventurers stay on their own cheaper tiers regardless (`fable` is never used for adventurer dispatch).
+
 The Guildhall provides the **`/quest` slash command** — inhabited by Mordain the Keeper, Guildmaster — that plans, writes a durable plan file, and dispatches, plus **seventeen adventurer agents tiered across Opus / Sonnet / Haiku** that each do one narrow job. Feature work follows a strict TDD red-green-refactor handoff for the build, then fans out post-green reviews (security, docs, optional Playwright UI tests) in parallel, and closes with a platform-agnostic PR draft. Prototype work skips the ceremony. Debug work starts with root-cause before any fix.
 
 ## Installation
