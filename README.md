@@ -10,6 +10,24 @@ Mordain (the `/quest` orchestrator) runs on whatever model your session is on. O
 
 The Guildhall provides the **`/quest` slash command** — inhabited by Mordain the Keeper, Guildmaster — that plans, writes a durable plan file, and dispatches, plus **seventeen adventurer agents tiered across Opus / Sonnet / Haiku** that each do one narrow job. Feature work follows a strict TDD red-green-refactor handoff for the build, then fans out post-green reviews (security, docs, optional Playwright UI tests) in parallel, and closes with a platform-agnostic PR draft. Prototype work skips the ceremony. Debug work starts with root-cause before any fix.
 
+## How Guildhall fits the AI coding workflow
+
+If you've watched how people build software with AI lately, you've probably seen the arc that's emerging as a shared best practice — Matt Pocock frames it as [seven labeled stages](https://github.com/mattpocock/skills), each backed by a Skill: **Grill → Research → Prototype → PRD/Plan → Issues/Tasks → Implement → Review**. It's a good summary of what the coding world is converging on: get clear, get grounded, decide the destination, break it down, *then* act, then check.
+
+Guildhall doesn't replace that arc — it covers the back half of it with enforced discipline, and pairs with its sibling plugin [IDD-framework](https://github.com/grillergeek/idd-framework), which owns the front half:
+
+| # | Stage | The question it answers | Where it lives |
+|---|---|---|---|
+| 1 | **Grill** | How do I brief the AI well? | **IDD-framework** — `/interview` has the AI interview *you* into a Product artifact |
+| 2 | **Research** *(opt)* | How do I stay grounded in current facts? | Your own sources / either plugin; not a formal Guildhall stage |
+| 3 | **Prototype** *(opt)* | How do I test an idea before I commit? | **Guildhall** — prototype mode (Pip): fast spikes, no tests, disposable code |
+| 4 | **PRD/Plan** | How do we end up at the right place? | **IDD** Intentions → Spec; **Guildhall** Mordain writes the durable plan file (+ optional architecture review) |
+| 5 | **Issues/Tasks** | How do I break a big job into pieces? | **IDD** Expectations decomposition; **Guildhall** Mordain sequences the dispatch |
+| 6 | **Implement** | When do I let the AI actually run? | **Guildhall** feature mode — enforced TDD: test-author → feature-implementer → refactorer |
+| 7 | **Review** | How do I know it got it right? | **Guildhall** post-green fan-out — eight role-separated reviewers (+ IDD's review gate) |
+
+**What's different.** Pocock's seven stages are *skills you invoke in order* — the discipline lives in remembering to run the next one. Guildhall takes the two stages that are hardest to get right — **Implement** and **Review** — and turns them from single skills into a **guild of narrow specialists with independence guardrails**. "Let the AI run" becomes a disciplined red → green → refactor handoff in which the test author *never sees the implementation*. "Review" stops being one QA pass and becomes eight reviewers (security, docs, observability, reliability, performance, ops-readiness, migration-safety, accessibility) that fire only when the diff matches their trigger. The arc is the same; the discipline is enforced by *who is allowed to do what*, not by remembering to invoke the next skill.
+
 ## Installation
 
 ### From GitHub (recommended)
@@ -79,9 +97,17 @@ guildhall/
 
 ## Status
 
-**Version 0.4.0** — production-readiness coverage. The roster grows to 17 adventurers + 1 diagnostic with six new gated post-green reviewers: observability-reviewer (Vance, Sonnet), reliability-reviewer (Thalia, Opus), performance-reviewer (Cassia, Sonnet), ops-readiness-reviewer (Garran, Sonnet), migration-safety-reviewer (Ysolde, Opus), accessibility-reviewer (Lior, Sonnet). Two reviewers remain always-on (security, docs); the six new ones fire only when their trigger applies (network I/O, DB / hot paths, user-visible deploys, schema changes, UI work, etc.). The bias on ambiguous triggers is fire — a missed reviewer is more expensive than an unnecessary one. Mordain records the gating decision (which reviewers fired, which were skipped, and why) in the plan file's `## Reviewers selected` section. Rook now folds Garran's runbook output verbatim into the PR body when `ops-readiness-reviewer` was dispatched.
+**Version 0.6.3.** The harness is tuned for **Opus 4.8** and aware of **Claude Fable 5** as the recommended seat for orchestrating the hardest quests. The roster is **17 adventurers + 1 diagnostic** (model-echo), tiered across Opus / Sonnet / Haiku. A feature quest runs Mordain through a three-phase dispatch: a sequential TDD build chain (optional architecture review → test-author → feature-implementer → optional refactor), a parallel post-green fan-out (two always-on reviewers — security, docs — plus six gated production-readiness reviewers and optional Playwright UI tests), and a sequential PR draft to close. Gated reviewers fire only when the diff matches their trigger; the bias on ambiguous triggers is **fire**, and Mordain records each gating decision in the plan file's `## Reviewers selected` section.
 
-**Version 0.3.2** — documentation improvements (installation guide, updated agent count, corrected design notes). Full v0.3 roster: 11 adventurers + 1 diagnostic. New since v0.2.x: security-reviewer (Oriana, Opus), architecture-reviewer (Aldric, Opus), docs-writer (Cassian, Sonnet), pr-author (Rook, Sonnet), plugin-validator (Tabs, Haiku). `/quest` writes a durable `docs/guildhall/plans/<slug>.md` for every feature and debug quest, dispatches post-green reviews in parallel, and closes with Rook drafting a platform-agnostic PR title + body to stdout. Subagent model routing uses the explicit `model` dispatch parameter (workaround shipped in v0.2.7) — cost posture is operational. See `docs/superpowers/specs/2026-04-23-guildhall-v0.3-design.md` for the v0.3 design, and [`plugin/CHARACTERS.md`](plugin/CHARACTERS.md) for the full cast.
+**Version history since v0.4.0:**
+
+- **v0.5.0** — re-baselined the harness premise from Opus 4.7 to **Opus 4.8**.
+- **v0.6.0** — **Fable 5-aware Mordain**: parent-model attribution recorded in each plan file's `parent_model` frontmatter, plus orchestration tuning for a top-tier parent session.
+- **v0.6.1** — **roster-table tier resolution**: Mordain resolves adventurer tiers from the roster table inside `quest.md` (a validator-enforced mirror of the canonical agent frontmatter) instead of reading every agent file per quest; model-echo's output contract hardened.
+- **v0.6.2** — `/quest` dispatches use **plugin-namespaced agent types** (`guildhall:<agent>`) for reliable resolution.
+- **v0.6.3** — feature-implementer marks deliberate shortcuts with `minimal:` comments so reviewers and the PR author can see them.
+
+Earlier milestones: **v0.4.0** added the six gated production-readiness reviewers (observability, reliability, performance, ops-readiness, migration-safety, accessibility); **v0.3.x** added the security/architecture/docs/pr/validator roster, durable plan files, the parallel review fan-out, and the explicit-`model`-param routing workaround. See `docs/superpowers/specs/` for the v0.3 and model-refresh design docs, and [`plugin/CHARACTERS.md`](plugin/CHARACTERS.md) for the full cast.
 
 The Guildhall is a living system. Expect prompt iterations as real usage reveals friction. Changes to agents in `plugin/agents/` are the primary axis of iteration.
 
