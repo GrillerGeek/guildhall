@@ -30,27 +30,26 @@ The seventeen adventurers:
 | **Pip Quickfoot** | `prototype-builder` | Scout. Fast spikes, no tests, disposable code. | Sonnet |
 | **Kael the Tracker** | `debug-investigator` | Ranger. Finds root cause; does NOT fix. | Sonnet |
 
-Plus one diagnostic: **`model-echo`** — dispatched first in every quest to verify that the explicit-model-param workaround is routing correctly.
+Plus one diagnostic: **`model-echo`** — dispatched first in every quest, deliberately on a model different from its own frontmatter, to verify which routing mechanism (explicit dispatch parameter, frontmatter, or neither) is actually in effect.
 
 Full character sheets in [`CHARACTERS.md`](CHARACTERS.md).
 
 ## Installation
 
-### From GitHub (recommended)
+### From the marketplace (recommended)
 
-Claude Code can install plugins directly from a GitHub URL. Run this once inside any Claude Code session:
+Guildhall is distributed through the [grillergeek-plugins marketplace](https://github.com/GrillerGeek/skills). Run these once inside any Claude Code session:
 
 ```
-/install-github-app https://github.com/GrillerGeek/guildhall
+/plugin marketplace add GrillerGeek/skills
+/plugin install guildhall@grillergeek-plugins
 ```
-
-Claude Code will clone the repository and register the plugin automatically.
 
 ### From a local clone
 
 ```bash
 # Replace <path-to-repo> with the directory where you cloned guildhall
-cc --plugin-dir <path-to-repo>/plugin
+claude --plugin-dir <path-to-repo>/plugin
 ```
 
 ### Keeping up to date
@@ -100,6 +99,6 @@ Guildhall is the implementation-side complement to the [IDD-framework](https://g
 
 The orchestrator runs on the parent session model for reasoning-heavy planning — Opus 4.8 by default; run `/quest` from a Claude Fable 5 session for the hardest quests (orchestration is the one seat where top-tier spend pays for itself; adventurers never dispatch on `fable`). Workers run on Sonnet for execution. If a worker proves overkill on Sonnet, downgrade to Haiku per-agent in its frontmatter. Every quest's plan file records the orchestrating model in its `parent_model` frontmatter, so cost and quality are attributable per quest.
 
-**How routing works:** each adventurer declares its intended model in its `plugin/agents/<name>.md` frontmatter — the canonical tier source. At dispatch time Mordain resolves each tier from the roster table inside `quest.md` (a validator-enforced mirror of that frontmatter, since v0.6.1 — reading the agent file directly only as a fallback) and passes it explicitly as the `model` parameter on the `Agent(...)` dispatch call. This is a workaround for an upstream Claude Code issue where subagent frontmatter `model:` values were silently ignored — the explicit dispatch parameter is honored where the frontmatter alone was not. (Re-verified 2026-06-10: current Claude Code honors the frontmatter again when no parameter is given; the explicit parameter still takes precedence and is retained as a belt-and-braces measure.) The `model-echo` self-check at the start of every quest verifies routing is functioning.
+**How routing works:** each adventurer declares its intended model in its `plugin/agents/<name>.md` frontmatter — the canonical tier source. At dispatch time Mordain resolves each tier from the roster table inside `quest.md` (a validator-enforced mirror of that frontmatter, since v0.6.1 — reading the agent file directly only as a fallback) and passes it explicitly as the `model` parameter on the `Agent(...)` dispatch call. This is a workaround for an upstream Claude Code issue where subagent frontmatter `model:` values were silently ignored — the explicit dispatch parameter is honored where the frontmatter alone was not. (Re-verified 2026-06-10: current Claude Code honors the frontmatter again when no parameter is given; the explicit parameter still takes precedence and is retained as a belt-and-braces measure.) The `model-echo` self-check at the start of every quest verifies routing is functioning — Mordain dispatches it with `model: "haiku"`, deliberately different from its `sonnet` frontmatter, so the reply reveals *which* mechanism routed it: `haiku` means the dispatch parameter is honored, `sonnet` means only the frontmatter is honored (cost posture intact, workaround inert), anything else means neither.
 
-**What the `⚠️` banner means during a quest:** if Mordain emits a model-routing self-check warning at the start of your quest, even the explicit dispatch parameter was overridden (environment variable, enterprise plan constraint, or deeper Claude Code issue). Investigate before trusting the cost posture for that quest.
+**What the `⚠️` banner means during a quest:** if Mordain emits a model-routing self-check warning at the start of your quest, neither the dispatch parameter nor the agent frontmatter was honored (environment variable, enterprise plan constraint, or deeper Claude Code issue). Investigate before trusting the cost posture for that quest. A softer note — "param ignored; frontmatter honored" — means tier routing still landed and cost posture holds, but the belt-and-braces parameter is inert on your Claude Code version.

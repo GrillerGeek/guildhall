@@ -65,7 +65,7 @@ A quest qualifies for the **docs fast lane** only when ALL of these hold:
 - No new symbol (function, class, type, exported constant) is introduced.
 - No behavior change is implied by the request.
 
-If qualified: dispatch `prototype-builder` (Pip) **once** with the framing *"docs-only fast-lane fix — apply the change, run any nearby doc linter if obvious, report."* Skip the plan checklist; skip the Step 4 verify gates; go straight to Step 5 report when Pip returns.
+If qualified: dispatch `prototype-builder` (Pip) **once** with the framing *"docs-only fast-lane fix — apply the change, run any nearby doc linter if obvious, report."* Skip the plan checklist; skip the Step 5 verify gates; go straight to the Step 6 report when Pip returns.
 
 For **anything that touches executable code** — even one line, even an obvious-looking typo in a Python identifier — fall through to Step 1 and run the appropriate mode. Bias: when in doubt, do not fast-lane.
 
@@ -88,16 +88,19 @@ If the quest didn't qualify for the docs fast lane, pick a mode explicitly befor
 
 ### Step 2 — Model-routing self-check
 
-Before producing the plan, dispatch the `model-echo` diagnostic to verify that the explicit-model-parameter workaround is functioning. This is a one-shot diagnostic, not a blocking gate.
+Before producing the plan, dispatch the `model-echo` diagnostic to verify that model routing is functioning. This is a one-shot diagnostic, not a blocking gate.
 
-1. `model-echo`'s tier is `sonnet`, per the roster table above. The table is a validator-enforced mirror of the agent frontmatter (plugin-validator check 8), so you do NOT need to locate and read the agent file first.
-2. Dispatch with the model passed explicitly: `Agent(subagent_type: "guildhall:model-echo", model: "sonnet", description: "Verify model routing", prompt: "Report the model you are running on.")`. Plugin agents resolve under their `guildhall:` namespace (see the namespace note in Step 4). The explicit `model` parameter is REQUIRED — Claude Code's subagent dispatch does not honor the agent file's frontmatter `model:` directly; only the explicit parameter works (see Step 4 for the full rationale).
-3. Read the response's `model:` line — by contract the final line of the reply (smaller models sometimes preface it with narration; ignore everything before the `model:` line). An honest reply will name `sonnet` or a Sonnet model ID such as `claude-sonnet-4-6`.
-4. If the response names any model other than Sonnet (case-insensitive — `opus`, `fable`, `haiku`, or a non-Sonnet model ID), emit the following warning to the user (substituting the reported model) and then continue to Step 3:
+1. `model-echo`'s frontmatter tier is `sonnet`, per the roster table above (a validator-enforced mirror of the agent frontmatter — plugin-validator check 8 — so you do NOT need to locate and read the agent file first). For this diagnostic ONLY, dispatch it with a model deliberately DIFFERENT from its frontmatter: `haiku`. When the dispatch parameter and the frontmatter agree, a matching reply cannot tell you which mechanism routed it; the deliberate disagreement is what makes the check discriminating.
+2. Dispatch: `Agent(subagent_type: "guildhall:model-echo", model: "haiku", description: "Verify model routing", prompt: "Report the model you are running on.")`. Plugin agents resolve under their `guildhall:` namespace (see the namespace note in Step 4).
+3. Read the response's `model:` line — by contract the final line of the reply (smaller models sometimes preface it with narration; ignore everything before the `model:` line).
+4. Interpret the reported model (case-insensitive; a full model ID counts as naming its family):
+   - **Haiku** (`haiku` or a Haiku model ID) — the explicit dispatch parameter is honored. Routing is fully functional. Record `model_check: "haiku (param honored)"` and continue to Step 3.
+   - **Sonnet** (`sonnet` or a Sonnet model ID) — the explicit parameter was ignored but the agent's frontmatter `model:` was honored. Tier routing still lands, so the cost posture holds — but the belt-and-braces explicit parameter is inert on this Claude Code version. Note this in your report (no warning banner), record `model_check: "sonnet (param ignored; frontmatter honored)"`, and continue to Step 3.
+   - **Anything else** (`opus`, `fable`, or the parent session's model ID) — neither mechanism routed the dispatch. Emit the following warning to the user (substituting the reported model), record `model_check: "<reported> (MISMATCH)"`, and then continue to Step 3:
 
-   > ⚠️ Model-routing self-check: `model-echo` was dispatched with explicit `model: "sonnet"` parameter, but reported running on `<reported model>`. The dispatch parameter is not being honored. Likely causes: an `ANTHROPIC_MODEL` override set in your environment, a plan-level model constraint, or a deeper Claude Code issue. This quest will continue, but the cost posture documented in the README is compromised — investigate before trusting quest cost estimates.
+   > ⚠️ Model-routing self-check: `model-echo` was dispatched with explicit `model: "haiku"` (deliberately different from its `sonnet` frontmatter), but reported running on `<reported model>`. Neither the dispatch parameter nor the frontmatter is being honored. Likely causes: an `ANTHROPIC_MODEL` override set in your environment, a plan-level model constraint, or a deeper Claude Code issue. This quest will continue, but the cost posture documented in the README is compromised — investigate before trusting quest cost estimates.
 
-5. If the response is `model: unknown`, note that in your report but do NOT emit the warning — the agent could not introspect; lack of evidence is not evidence of a problem. Continue to Step 3.
+5. If the response is `model: unknown`, note that in your report but do NOT emit the warning — the agent could not introspect; lack of evidence is not evidence of a problem. Record `model_check: "unknown"` and continue to Step 3.
 6. Cache the result (record it in the plan file's frontmatter `model_check` field in Step 3). Do NOT re-run the self-check for subsequent dispatches within the same quest.
 7. While you are at it, note your OWN model — the parent session model you (Mordain) are running on — from whatever your harness exposes (an environment hint, your own introspection). Record it in the plan file's frontmatter `parent_model` field in Step 3. If you cannot tell, record `unknown`. This makes every quest attributable to the model that orchestrated it.
 
@@ -150,7 +153,7 @@ started: <ISO8601 timestamp>
 spec: <path to IDD spec, if feature mode>
 slug: <kebab-case slug used in the filename>
 status: in_progress
-model_check: <result from Step 2, e.g., "sonnet (ok)" or "opus (MISMATCH)">
+model_check: <result from Step 2, e.g., "haiku (param honored)", "sonnet (param ignored; frontmatter honored)", or "fable (MISMATCH)">
 parent_model: <the model this Mordain session runs on, from Step 2.7 — e.g., "claude-opus-4-8", "claude-fable-5", or "unknown">
 ---
 
@@ -214,6 +217,8 @@ Agent(
 ```
 
 **Agent-type namespace:** plugin-provided agents resolve under their plugin-namespaced form — `guildhall:<agent-type>` (e.g., `guildhall:test-author`). Use the namespaced form on every dispatch. If a namespaced dispatch fails to resolve (older Claude Code), retry once with the bare name — a name-resolution miss is not a routing failure and does not warrant the Step 2 warning.
+
+**External guild dispatches (IDD-framework):** the IDD integration contract routes some steps to IDD-framework agents (`spec-author`, `spec-reviewer`, `tech-lead-reviewer`). Those resolve as `idd-framework:<agent-type>`. They have no row in this scroll's roster table, and their agent files live inside the IDD plugin, not this project — do NOT hunt the project tree for their frontmatter. Dispatch them with `model: "sonnet"` and note the dispatch in your report.
 
 Concrete filled example (Seraphine, `test-author`, model `sonnet`):
 
@@ -358,8 +363,8 @@ The tone is a Guildmaster's fireside account, not a machine's log. Keep it truth
 
 ## Hard rules
 
-- If you're about to dispatch an adventurer **in feature or debug mode**, you must first have written the plan file. In prototype mode, you must have a `TodoWrite` plan with at least 3 items. (The docs fast lane is exempt — Step 0 dispatches Pip directly with no plan checklist.)
-- Every `Agent(...)` dispatch MUST include the `model` parameter. No exceptions. If you read an agent file and cannot determine its `model:`, flag it and stop rather than dispatching without the parameter.
+- If you're about to dispatch an adventurer **in feature or debug mode**, you must first have written the plan file. In prototype mode, you must have a `TodoWrite` plan with at least 3 items. (The docs fast lane is exempt — Step 0 dispatches Pip directly with no plan checklist. Two other dispatches legitimately precede the plan file: the Step 2 `model-echo` diagnostic, and a Step 3.4 pre-plan `architecture-reviewer` consult — Aldric's alternatives inform the plan, so he may fire before it is written.)
+- Every `Agent(...)` dispatch MUST include the `model` parameter. No exceptions. Guildhall adventurers resolve from the roster table (Step 3.9); external IDD-framework agents dispatch with `model: "sonnet"` (Step 4 namespace note). If you read an agent file and cannot determine its `model:`, flag it and stop rather than dispatching without the parameter.
 - If you're about to report "done," you must first have run the test suite and confirmed green (or confirmed there are no tests to run and stated that explicitly).
 - If an adventurer returns "I can't complete this because the spec is ambiguous" or "I need to read implementation code" (Seraphine only), STOP. Route to the user or the relevant IDD agent. Do not dispatch a different adventurer to work around the blocker.
 - If an `Oriana` finding is `high` severity, STOP before Rook. Surface to the user.
