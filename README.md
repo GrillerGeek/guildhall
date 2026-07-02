@@ -2,6 +2,12 @@
 
 *A gathering place for adventurers.*
 
+[![version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FGrillerGeek%2Fguildhall%2Fmain%2Fplugin%2F.claude-plugin%2Fplugin.json&query=%24.version&label=version&prefix=v&color=blue)](plugin/.claude-plugin/plugin.json)
+[![validate](https://github.com/GrillerGeek/guildhall/actions/workflows/validate.yml/badge.svg)](https://github.com/GrillerGeek/guildhall/actions/workflows/validate.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Claude Code plugin](https://img.shields.io/badge/Claude_Code-plugin-blueviolet.svg)](https://claude.com/claude-code)
+[![marketplace](https://img.shields.io/badge/marketplace-grillergeek--plugins-green.svg)](https://github.com/GrillerGeek/skills)
+
 A TDD-ordered coding agent harness for Claude Code, tuned for Opus 4.8.
 
 Opus-tier models from 4.7 onward follow instructions literally and fill in fewer gaps than their predecessors — and Opus 4.8 is additionally conservative about reaching for subagents unless told exactly when to dispatch them. The remedy is the same as it ever was: a tuned harness with explicit contracts and dispatch triggers, not cleverer prompting.
