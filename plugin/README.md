@@ -83,6 +83,25 @@ Examples:
 
 The orchestrator picks the mode (prototype / feature / debug) and dispatches the right worker(s) in TDD order.
 
+## Quests on a schedule
+
+`/quest` composes with Claude Code's loop primitives — no extra configuration needed:
+
+```
+# Babysit a PR: re-run every 30 minutes until you cancel
+/loop 30m /quest Address new review comments on PR #12 and fix any failing CI.
+
+# Recurring maintenance as a scheduled cloud routine
+/schedule a nightly routine that runs: /quest Apply patch-level dependency bumps and verify the full suite stays green.
+```
+
+Two rules of thumb keep scheduled quests cheap and safe:
+
+1. **Give the task text a verifiable stop condition** ("until CI is green", "only patch-level bumps") — Mordain's gates handle correctness within a run, but the loop needs to know when a run has nothing to do.
+2. **Match the interval to how often the underlying state actually changes.** A PR that gets one human review a day does not need a five-minute loop.
+
+Docs-fast-lane and debug quests loop cheaply. Full feature quests on a schedule are best reserved for well-defined recurring work (dependency upgrades, triage sweeps) — the spec-or-route-to-`spec-author` rule still applies on every iteration.
+
 ## Design principles
 
 1. **Each adventurer has ONE job.** No multi-purpose coder.
