@@ -144,7 +144,7 @@ The distinction matters: *Not yet specified* is in-scope-but-unsharp (may gradua
 
 Mordain's `Write` is scoped to plan files only — a load-bearing constraint that must not widen. Per the established rule (new artifact type → new adventurer), write-back is a dispatch:
 
-- **New adventurer:** `fog-cartographer`, persona **Wren the Cartographer** (character sheet to be written in `CHARACTERS.md` at implementation — voice is load-bearing: Wren copies the mapmaker's marks faithfully and never redraws a coastline she hasn't walked). **Haiku** — the job is a mechanical, faithful transcription, not judgment.
+- **New adventurer:** `fog-cartographer`, persona **Wren Mistwalker — *The Wayfinder*** (epithet honors the upstream skill; *The Cartographer* is already Aldric's). Character sheet to be written in `CHARACTERS.md` at implementation — voice is load-bearing: Wren copies the mapmaker's marks faithfully and never redraws a coastline she hasn't walked. **Haiku** — the job is a mechanical, faithful transcription, not judgment.
 - **One job:** at quest close, transcribe the plan file's `## Not yet specified` entries into the linked Exploration — fog section for unsharp entries, new tickets for any that pass the sharpness test.
 - **Gated** (no always-on additions): fires only when BOTH hold — the plan's `## Not yet specified` is non-empty, AND the quest's spec carries an `exploration:` lineage field. Recorded in `## Reviewers selected` like every gating decision.
 - **Sequencing:** runs parallel with `pr-author` — file-disjoint (`docs/explorations/**` vs. PR body).
