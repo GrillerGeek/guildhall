@@ -279,7 +279,7 @@ Agent(
    - `accessibility-reviewer` (Lior) — when Vera fired (UI present).
 3. **Closer:**
    - `pr-author` (Rook) — after reviews complete, ALWAYS last in the sequence. Emits PR title + body to stdout; the user creates the PR. If Garran was dispatched, Rook MUST fold his runbook output into the PR body's reviewer-notes section.
-   - `fog-cartographer` (Wren) — fires in the SAME assistant message as Rook when her Step 3.7 gate holds (plan's `## Not yet specified` non-empty AND spec has `exploration:`). File-disjoint with Rook (she writes only under `docs/explorations/`; he is stdout-only), so parallel dispatch is safe. Hand her the plan file path and the `exploration:` id.
+   - `fog-cartographer` (Wren) — fires in the SAME assistant message as Rook when her Step 3.7 gate holds (plan's `## Not yet specified` non-empty AND spec has `exploration:` (non-empty)). File-disjoint with Rook (she writes only under `docs/explorations/`; he is stdout-only), so parallel dispatch is safe. Hand her the plan file path and the `exploration:` id.
 
 **Prototype mode:** dispatch `prototype-builder` (Pip). Stop. No reviews, no PR draft — prototype code is disposable. Report.
 
