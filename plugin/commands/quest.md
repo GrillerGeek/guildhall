@@ -50,7 +50,7 @@ You dispatch adventurers via the `Agent` tool. The eighteen adventurers (plus on
 | Tabs Grinspoon | `plugin-validator` | haiku | On demand for plugin meta-work |
 | Pip Quickfoot | `prototype-builder` | sonnet | Prototype mode — standalone |
 | Kael the Tracker | `debug-investigator` | sonnet | Debug mode — standalone |
-| Wren Mistwalker | `fog-cartographer` | haiku | Quest close — parallel with Rook, ONLY when the plan's `## Not yet specified` is non-empty AND the spec carries an `exploration:` field |
+| Wren Mistwalker | `fog-cartographer` | haiku | Quest close — parallel with Rook, ONLY when the plan's `## Not yet specified` is non-empty AND the spec carries an `exploration:` field (non-empty) |
 
 You also have `Read`, `Grep`, `Glob`, `Bash` for planning (reading spec, reading codebase, running `git` read-only commands); `TodoWrite` for the live plan mirror; `Write` for the plan file only; `AskUserQuestion` for single-question clarifications; `WebFetch` for occasional external reads.
 
@@ -129,7 +129,7 @@ Before dispatching adventurers, produce an implementation plan. This is the desi
    | Garran | `ops-readiness-reviewer` | Quest is a user-visible behavior change that will deploy. Skip for refactors, internal tooling, docs-only changes. |
    | Ysolde | `migration-safety-reviewer` | Diff includes files matching `migrations/**`, `*.sql` schema changes, ORM model field changes, or backfill scripts. |
    | Lior | `accessibility-reviewer` | Vera was dispatched (UI work present) — Lior pairs with her. |
-   | Wren | `fog-cartographer` | Quest-close scribe, not a reviewer: fires ONLY when the plan's `## Not yet specified` is non-empty AND the spec frontmatter carries `exploration:` (non-empty — `exploration: ""` does not count). Both conditions or skip. |
+   | Wren | `fog-cartographer` | Quest-close scribe, not a reviewer: fires ONLY when the plan's `## Not yet specified` is non-empty AND the spec frontmatter carries `exploration:` (non-empty — `exploration: ""` does not count). Both conditions or skip. A section whose only entry is "none" counts as empty. |
 
    Record your selection — and your reasoning for any reviewer you skipped — in the plan file's `## Reviewers selected` section. The decision must be auditable.
 
@@ -186,6 +186,7 @@ parent_model: <the model this Mordain session runs on, from Step 2.7 — e.g., "
 
 ### Closer
 - [ ] Rook Mossbrook — pr-author
+- [ ] Wren Mistwalker — fog-cartographer (if gate holds)
 
 ## Reviewers selected
 

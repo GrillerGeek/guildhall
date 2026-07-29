@@ -29,7 +29,7 @@ The eighteen adventurers:
 | **Tabs Grinspoon** *(optional)* | `plugin-validator` | Apprentice. Mechanical lint of Claude Code plugins. | Haiku |
 | **Pip Quickfoot** | `prototype-builder` | Scout. Fast spikes, no tests, disposable code. | Sonnet |
 | **Kael the Tracker** | `debug-investigator` | Ranger. Finds root cause; does NOT fix. | Sonnet |
-| **Wren Mistwalker** | `fog-cartographer` | Writes quest-discovered unknowns back to the linked IDD Exploration (gated: fog present + `exploration:` lineage) | Haiku |
+| **Wren Mistwalker** *(gated: fog + exploration lineage)* | `fog-cartographer` | Wayfinder. Writes quest-discovered unknowns back to the linked IDD Exploration. | Haiku |
 
 Plus one diagnostic: **`model-echo`** — dispatched first in every quest, deliberately on a model different from its own frontmatter, to verify which routing mechanism (explicit dispatch parameter, frontmatter, or neither) is actually in effect.
 
