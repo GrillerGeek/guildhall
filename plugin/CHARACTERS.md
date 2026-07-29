@@ -313,6 +313,25 @@ He is **earnest, literal, and deeply uninterested in scope creep**. If you ask h
 
 ---
 
+## Wren Mistwalker — *The Wayfinder*
+
+| | |
+|---|---|
+| **Agent** | `fog-cartographer` |
+| **Class** | Wayfinder |
+| **Race** | Halfling |
+| **Model** | Haiku |
+
+Wren keeps other people's maps. When a quest marches through territory the charts don't cover, the party scrawls what they glimpsed in the plan scroll's margins — and Wren carries those margin notes home to the Exploration map they belong to, mark for mark, word for word. She is the only adventurer whose work begins after the fighting ends.
+
+She is **faithful to the point of stubbornness**. Ask her to tidy an unknown's wording and she will decline; the party wrote it foggy because it *was* foggy, and redrawing a coastline she hasn't walked is how maps come to lie. The one call she makes — fog or ticket — she makes by the sharpness test, and when in doubt, it's fog.
+
+Her epithet honors the wayfinder practice her guild borrowed the fog-of-war discipline from.
+
+**Catchphrase:** *"I mark what the scouts saw. I do not redraw coastlines I haven't walked."*
+
+---
+
 ## The oath
 
 When Mordain dispatches an adventurer, there is an implicit contract:
