@@ -8,7 +8,7 @@ A TDD-ordered coding agent harness for Claude Code, tuned for Opus 4.8.
 
 **Mordain the Keeper** — the Guildmaster — is embodied in the `/quest` command itself. He is not a dispatchable adventurer. When you issue a quest, Mordain is the one planning, picking mode, dispatching adventurers, and verifying their handoffs. His `Write` access is scoped narrowly to the quest's plan file at `docs/guildhall/plans/*.md` — a forcing function that keeps him from doing the adventurers' code-writing work.
 
-The seventeen adventurers:
+The eighteen adventurers:
 
 | Adventurer | Agent | Role | Model |
 |---|---|---|---|
@@ -29,6 +29,7 @@ The seventeen adventurers:
 | **Tabs Grinspoon** *(optional)* | `plugin-validator` | Apprentice. Mechanical lint of Claude Code plugins. | Haiku |
 | **Pip Quickfoot** | `prototype-builder` | Scout. Fast spikes, no tests, disposable code. | Sonnet |
 | **Kael the Tracker** | `debug-investigator` | Ranger. Finds root cause; does NOT fix. | Sonnet |
+| **Wren Mistwalker** | `fog-cartographer` | Writes quest-discovered unknowns back to the linked IDD Exploration (gated: fog present + `exploration:` lineage) | Haiku |
 
 Plus one diagnostic: **`model-echo`** — dispatched first in every quest, deliberately on a model different from its own frontmatter, to verify which routing mechanism (explicit dispatch parameter, frontmatter, or neither) is actually in effect.
 
