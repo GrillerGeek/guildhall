@@ -14,7 +14,7 @@ Opus-tier models from 4.7 onward follow instructions literally and fill in fewer
 
 Mordain (the `/quest` orchestrator) runs on whatever model your session is on. Opus 4.8 is the tuned default; for the hardest quests, **run `/quest` from a Claude Fable 5 session** — orchestration is the one seat where top-tier reasoning pays for itself, and the adventurers stay on their own cheaper tiers regardless (`fable` is never used for adventurer dispatch).
 
-The Guildhall provides the **`/quest` slash command** — inhabited by Mordain the Keeper, Guildmaster — that plans, writes a durable plan file, and dispatches, plus **seventeen adventurer agents tiered across Opus / Sonnet / Haiku** that each do one narrow job. Feature work follows a strict TDD red-green-refactor handoff for the build, then fans out post-green reviews (security, docs, optional Playwright UI tests) in parallel, and closes with a platform-agnostic PR draft. Prototype work skips the ceremony. Debug work starts with root-cause before any fix.
+The Guildhall provides the **`/quest` slash command** — inhabited by Mordain the Keeper, Guildmaster — that plans, writes a durable plan file, and dispatches, plus **eighteen adventurer agents tiered across Opus / Sonnet / Haiku** that each do one narrow job. Feature work follows a strict TDD red-green-refactor handoff for the build, then fans out post-green reviews (security, docs, optional Playwright UI tests) in parallel, and closes with a platform-agnostic PR draft. Prototype work skips the ceremony. Debug work starts with root-cause before any fix.
 
 ## How Guildhall fits the AI coding workflow
 
@@ -84,7 +84,7 @@ guildhall/
 ├── plugin/                      # What gets installed
 │   ├── .claude-plugin/
 │   │   └── plugin.json
-│   ├── agents/                  # 18 adventurer/diagnostic definitions
+│   ├── agents/                  # 19 adventurer/diagnostic definitions
 │   ├── commands/
 │   │   └── quest.md             # /quest slash command (Mordain lives here)
 │   ├── CHARACTERS.md            # Full character sheets for the cast
@@ -109,7 +109,7 @@ guildhall/
 
 ## Status
 
-**Version 0.6.4.** The harness is tuned for **Opus 4.8** and aware of **Claude Fable 5** as the recommended seat for orchestrating the hardest quests. The roster is **17 adventurers + 1 diagnostic** (model-echo), tiered across Opus / Sonnet / Haiku. A feature quest runs Mordain through a three-phase dispatch: a sequential TDD build chain (optional architecture review → test-author → feature-implementer → optional refactor), a parallel post-green fan-out (two always-on reviewers — security, docs — plus six gated production-readiness reviewers and optional Playwright UI tests), and a sequential PR draft to close. Gated reviewers fire only when the diff matches their trigger; the bias on ambiguous triggers is **fire**, and Mordain records each gating decision in the plan file's `## Reviewers selected` section.
+**Version 0.7.0.** The harness is tuned for **Opus 4.8** and aware of **Claude Fable 5** as the recommended seat for orchestrating the hardest quests. The roster is **18 adventurers + 1 diagnostic** (model-echo), tiered across Opus / Sonnet / Haiku. A feature quest runs Mordain through a three-phase dispatch: a sequential TDD build chain (optional architecture review → test-author → feature-implementer → optional refactor), a parallel post-green fan-out (two always-on reviewers — security, docs — plus six gated production-readiness reviewers and optional Playwright UI tests), and a sequential PR draft to close. Gated reviewers fire only when the diff matches their trigger; the bias on ambiguous triggers is **fire**, and Mordain records each gating decision in the plan file's `## Reviewers selected` section.
 
 **Version history since v0.4.0:**
 
@@ -119,6 +119,8 @@ guildhall/
 - **v0.6.2** — `/quest` dispatches use **plugin-namespaced agent types** (`guildhall:<agent>`) for reliable resolution.
 - **v0.6.3** — feature-implementer marks deliberate shortcuts with `minimal:` comments so reviewers and the PR author can see them.
 - **v0.6.4** — corrected install docs (marketplace-based install, `claude --plugin-dir`); **discriminating model-echo self-check** (dispatched on `haiku`, deliberately ≠ its `sonnet` frontmatter, so param-honored and frontmatter-honored routing are distinguishable); **CI validation** (`scripts/validate_plugin.py` implements plugin-validator's checks on every PR); `quest.md` consistency fixes (pre-plan dispatch exceptions, IDD-framework dispatch guidance, step-number corrections).
+- **v0.6.5** — lessons ledger, project-verify gate, quantitative goals, loop docs.
+- **v0.7.0** — fog-of-war: Not-yet-specified/Out-of-scope plan sections, fog triage lane, fog-cartographer (Wren) write-back to IDD Explorations.
 
 Earlier milestones: **v0.4.0** added the six gated production-readiness reviewers (observability, reliability, performance, ops-readiness, migration-safety, accessibility); **v0.3.x** added the security/architecture/docs/pr/validator roster, durable plan files, the parallel review fan-out, and the explicit-`model`-param routing workaround. See `docs/superpowers/specs/` for the v0.3 and model-refresh design docs, and [`plugin/CHARACTERS.md`](plugin/CHARACTERS.md) for the full cast.
 
