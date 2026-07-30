@@ -1,7 +1,7 @@
 ---
 name: plugin-validator
 description: |
-  Use this agent for mechanical lint of a Claude Code plugin — validates plugin.json schema, agent frontmatter required fields, example-block indentation, alias-only model fields, valid tool names, commands' allowed-tools, cross-file model-tier consistency, and obvious-secret presence. Static analysis only; never runs the plugin. Use this agent NOT debug-investigator for structural / schema concerns on a plugin under development. Examples:
+  Use this agent for mechanical lint of a Claude Code plugin — validates plugin.json schema, agent frontmatter required fields, YAML block-scalar safety on multi-line descriptions, example-block indentation, alias-only model fields, valid tool names, commands' allowed-tools, cross-file model-tier consistency, and obvious-secret presence. Static analysis only; never runs the plugin. Use this agent NOT debug-investigator for structural / schema concerns on a plugin under development. Examples:
 
   <example>
   Context: Jason just added a new agent to the Guildhall plugin and wants a quick lint.
