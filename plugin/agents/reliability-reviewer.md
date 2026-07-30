@@ -1,6 +1,7 @@
 ---
 name: reliability-reviewer
-description: Use this agent post-green when the diff touches network I/O, external APIs, queues, retries, long-running jobs, or concurrency — to review for retries, timeouts, idempotency, circuit breakers, and graceful degradation. Read-only. Runs in parallel with security-reviewer and the other post-green reviewers. Use this agent NOT performance-reviewer when the concern is "what happens when the dependency fails," not "how fast does the happy path run." Examples:
+description: |
+  Use this agent post-green when the diff touches network I/O, external APIs, queues, retries, long-running jobs, or concurrency — to review for retries, timeouts, idempotency, circuit breakers, and graceful degradation. Read-only. Runs in parallel with security-reviewer and the other post-green reviewers. Use this agent NOT performance-reviewer when the concern is "what happens when the dependency fails," not "how fast does the happy path run." Examples:
 
   <example>
   Context: Bruga added a new outbound HTTP call to the billing provider on user-signup.

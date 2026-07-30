@@ -1,6 +1,7 @@
 ---
 name: ops-readiness-reviewer
-description: Use this agent post-green when the quest is a user-visible behavior change that will deploy — to produce a runbook checklist (alerts, SLOs, rollback plan, feature-flag gating, deploy ordering, on-call notes) that Rook will fold into the PR body. Read-only on code; the output is structured operational metadata, not edits. Runs in parallel with security-reviewer and the other post-green reviewers. Use this agent NOT docs-writer when the artifact is operational guidance for the deploy / on-call, not user-facing documentation. Examples:
+description: |
+  Use this agent post-green when the quest is a user-visible behavior change that will deploy — to produce a runbook checklist (alerts, SLOs, rollback plan, feature-flag gating, deploy ordering, on-call notes) that Rook will fold into the PR body. Read-only on code; the output is structured operational metadata, not edits. Runs in parallel with security-reviewer and the other post-green reviewers. Use this agent NOT docs-writer when the artifact is operational guidance for the deploy / on-call, not user-facing documentation. Examples:
 
   <example>
   Context: A new payments path is shipping; on-call needs to know what to watch and how to roll back.

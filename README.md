@@ -109,7 +109,7 @@ guildhall/
 
 ## Status
 
-**Version 0.7.0.** The harness is tuned for **Opus 4.8** and aware of **Claude Fable 5** as the recommended seat for orchestrating the hardest quests. The roster is **18 adventurers + 1 diagnostic** (model-echo), tiered across Opus / Sonnet / Haiku. A feature quest runs Mordain through a three-phase dispatch: a sequential TDD build chain (optional architecture review → test-author → feature-implementer → optional refactor), a parallel post-green fan-out (two always-on reviewers — security, docs — plus six gated production-readiness reviewers and optional Playwright UI tests), and a sequential PR draft to close. Gated reviewers fire only when the diff matches their trigger; the bias on ambiguous triggers is **fire**, and Mordain records each gating decision in the plan file's `## Reviewers selected` section.
+**Version 0.7.1.** The harness is tuned for **Opus 4.8** and aware of **Claude Fable 5** as the recommended seat for orchestrating the hardest quests. The roster is **18 adventurers + 1 diagnostic** (model-echo), tiered across Opus / Sonnet / Haiku. A feature quest runs Mordain through a three-phase dispatch: a sequential TDD build chain (optional architecture review → test-author → feature-implementer → optional refactor), a parallel post-green fan-out (two always-on reviewers — security, docs — plus six gated production-readiness reviewers and optional Playwright UI tests), and a sequential PR draft to close. Gated reviewers fire only when the diff matches their trigger; the bias on ambiguous triggers is **fire**, and Mordain records each gating decision in the plan file's `## Reviewers selected` section.
 
 **Version history since v0.4.0:**
 
@@ -120,6 +120,7 @@ guildhall/
 - **v0.6.3** — feature-implementer marks deliberate shortcuts with `minimal:` comments so reviewers and the PR author can see them.
 - **v0.6.4** — corrected install docs (marketplace-based install, `claude --plugin-dir`); **discriminating model-echo self-check** (dispatched on `haiku`, deliberately ≠ its `sonnet` frontmatter, so param-honored and frontmatter-honored routing are distinguishable); **CI validation** (`scripts/validate_plugin.py` implements plugin-validator's checks on every PR); `quest.md` consistency fixes (pre-plan dispatch exceptions, IDD-framework dispatch guidance, step-number corrections).
 - **v0.6.5** — lessons ledger, project-verify gate, quantitative goals, loop docs.
+- **v0.7.1** — frontmatter fix: every agent `description:` is a block scalar, so Claude Code loads real descriptions instead of the `"Agent from guildhall plugin"` placeholder; validator check 9 guards it.
 - **v0.7.0** — fog-of-war: Not-yet-specified/Out-of-scope plan sections, fog triage lane, fog-cartographer (Wren) write-back to IDD Explorations.
 
 Earlier milestones: **v0.4.0** added the six gated production-readiness reviewers (observability, reliability, performance, ops-readiness, migration-safety, accessibility); **v0.3.x** added the security/architecture/docs/pr/validator roster, durable plan files, the parallel review fan-out, and the explicit-`model`-param routing workaround. See `docs/superpowers/specs/` for the v0.3 and model-refresh design docs, and [`plugin/CHARACTERS.md`](plugin/CHARACTERS.md) for the full cast.

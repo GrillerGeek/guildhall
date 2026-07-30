@@ -1,6 +1,7 @@
 ---
 name: fog-cartographer
-description: Use this agent ONLY at quest close, when the plan file's "Not yet specified" section is non-empty AND the quest's spec carries an `exploration:` lineage field. It transcribes quest-discovered unknowns back to the linked IDD Exploration map. It does not judge, resolve, or reword the unknowns. Examples:
+description: |
+  Use this agent ONLY at quest close, when the plan file's "Not yet specified" section is non-empty AND the quest's spec carries an `exploration:` lineage field. It transcribes quest-discovered unknowns back to the linked IDD Exploration map. It does not judge, resolve, or reword the unknowns. Examples:
 
   <example>
   Context: Quest close; plan has two Not-yet-specified entries; spec frontmatter says exploration: EXPL-a3f8.

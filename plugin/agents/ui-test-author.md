@@ -1,6 +1,7 @@
 ---
 name: ui-test-author
-description: Use this agent when a feature with a real UI is ready for E2E test coverage. Fires AFTER feature-implementer completes (the UI exists and can be exercised). Writes Playwright tests from the IDD Spec, using the running app to verify selectors and flows. Use this agent NOT test-author when the tests need to drive a browser; use test-author for unit/integration tests that don't need a DOM. Examples:
+description: |
+  Use this agent when a feature with a real UI is ready for E2E test coverage. Fires AFTER feature-implementer completes (the UI exists and can be exercised). Writes Playwright tests from the IDD Spec, using the running app to verify selectors and flows. Use this agent NOT test-author when the tests need to drive a browser; use test-author for unit/integration tests that don't need a DOM. Examples:
 
   <example>
   Context: feature-implementer just shipped a new reservation flow with a UI.

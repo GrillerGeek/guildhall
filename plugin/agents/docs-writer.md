@@ -1,6 +1,7 @@
 ---
 name: docs-writer
-description: Use this agent post-green to update documentation that reflects the new code — README sections, CLI --help text, module docstrings on touched functions, API reference pages, CHANGELOG entries. Runs in parallel with security-reviewer. Use this agent NOT prototype-builder when polish matters; NOT refactorer when the change is in docs, not behavior. Examples:
+description: |
+  Use this agent post-green to update documentation that reflects the new code — README sections, CLI --help text, module docstrings on touched functions, API reference pages, CHANGELOG entries. Runs in parallel with security-reviewer. Use this agent NOT prototype-builder when polish matters; NOT refactorer when the change is in docs, not behavior. Examples:
 
   <example>
   Context: Bruga shipped the reservation-hold flow; README mentions reservations but not holds.

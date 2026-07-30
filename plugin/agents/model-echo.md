@@ -1,6 +1,7 @@
 ---
 name: model-echo
-description: Diagnostic probe. Dispatched by Mordain at the start of every quest to verify that subagent model routing is working. Declares `model: sonnet` in its own frontmatter while Mordain dispatches it with an explicit `model: "haiku"` parameter — the deliberate disagreement makes the reply discriminating. A report of haiku means the dispatch parameter is honored; sonnet means only the frontmatter is honored; anything else means neither mechanism routed the dispatch. Not a roleplay adventurer.
+description: |
+  Diagnostic probe. Dispatched by Mordain at the start of every quest to verify that subagent model routing is working. Declares `model: sonnet` in its own frontmatter while Mordain dispatches it with an explicit `model: "haiku"` parameter — the deliberate disagreement makes the reply discriminating. A report of haiku means the dispatch parameter is honored; sonnet means only the frontmatter is honored; anything else means neither mechanism routed the dispatch. Not a roleplay adventurer.
 model: sonnet
 color: gray
 tools: ["Bash"]

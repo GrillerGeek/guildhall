@@ -1,6 +1,7 @@
 ---
 name: refactorer
-description: Use this agent for NARROW, SCOPED refactors only. User must specify the scope. Agent preserves behavior — runs tests before and after. Refuses to expand scope. Examples:
+description: |
+  Use this agent for NARROW, SCOPED refactors only. User must specify the scope. Agent preserves behavior — runs tests before and after. Refuses to expand scope. Examples:
 
   <example>
   Context: Jason wants to extract a method.

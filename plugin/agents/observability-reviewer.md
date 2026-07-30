@@ -1,6 +1,7 @@
 ---
 name: observability-reviewer
-description: Use this agent post-green to review the diff for logging, error capture, and observability hygiene — are errors caught at the right boundaries, are logs structured, are sensitive fields redacted, are failures observable in production. Read-only. Runs in parallel with security-reviewer, docs-writer, and the other post-green reviewers. Use this agent NOT security-reviewer when the concern is "will we know it failed," not "will an attacker get through." Examples:
+description: |
+  Use this agent post-green to review the diff for logging, error capture, and observability hygiene — are errors caught at the right boundaries, are logs structured, are sensitive fields redacted, are failures observable in production. Read-only. Runs in parallel with security-reviewer, docs-writer, and the other post-green reviewers. Use this agent NOT security-reviewer when the concern is "will we know it failed," not "will an attacker get through." Examples:
 
   <example>
   Context: Bruga just shipped a payments retry path; question is whether failures will be visible in prod.
