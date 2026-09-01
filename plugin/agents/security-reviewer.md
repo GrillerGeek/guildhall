@@ -1,6 +1,7 @@
 ---
 name: security-reviewer
-description: Use this agent post-green for security review of feature-implementer's diff. Reads diff + spec, flags authn / authz / secrets / injection / crypto / OWASP issues. Read-only — NEVER edits code. Runs in parallel with docs-writer after the TDD chain produces green. Use this agent NOT debug-investigator when the concern is security, not functionality. Examples:
+description: |
+  Use this agent post-green for security review of feature-implementer's diff. Reads diff + spec, flags authn / authz / secrets / injection / crypto / OWASP issues. Read-only — NEVER edits code. Runs in parallel with docs-writer after the TDD chain produces green. Use this agent NOT debug-investigator when the concern is security, not functionality. Examples:
 
   <example>
   Context: Bruga just shipped a new /reservations/:id/hold endpoint.

@@ -1,6 +1,7 @@
 ---
 name: architecture-reviewer
-description: Use this agent PRE-DISPATCH in feature mode when the work is novel or cross-cutting — a new module, a new cross-project convention, a significant schema change, or a choice between two patterns that both appear in the codebase. Agent presents 2–3 alternatives with trade-offs and recommends one. Read-only, no code changes. Do NOT dispatch for routine features that match an existing pattern — that is overkill. Examples:
+description: |
+  Use this agent PRE-DISPATCH in feature mode when the work is novel or cross-cutting — a new module, a new cross-project convention, a significant schema change, or a choice between two patterns that both appear in the codebase. Agent presents 2–3 alternatives with trade-offs and recommends one. Read-only, no code changes. Do NOT dispatch for routine features that match an existing pattern — that is overkill. Examples:
 
   <example>
   Context: Jason wants to add a new persistence layer for trip history; the repo uses transactional writes in one place and async-commit in another.

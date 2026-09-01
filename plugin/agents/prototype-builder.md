@@ -1,6 +1,7 @@
 ---
 name: prototype-builder
-description: Use this agent when Jason wants to spike a prototype FAST to validate an idea or see it running. Prioritizes speed and disposability over correctness. Use this agent NOT feature-implementer when there is no IDD Spec, no tests will be written, and the code will likely be rewritten before shipping. Examples:
+description: |
+  Use this agent when Jason wants to spike a prototype FAST to validate an idea or see it running. Prioritizes speed and disposability over correctness. Use this agent NOT feature-implementer when there is no IDD Spec, no tests will be written, and the code will likely be rewritten before shipping. Examples:
 
   <example>
   Context: Jason wants to test if a third-party API does what he needs.

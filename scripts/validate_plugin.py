@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Mechanical validator for the Guildhall plugin tree.
 
-Implements plugin-validator's (Tabs') eight checks as CI-runnable code, so the
+Implements plugin-validator's (Tabs') nine checks as CI-runnable code, so the
 mirror-consistency guarantees hold on every push instead of only when Tabs is
 dispatched. Stdlib only; exits 1 on any error-severity finding, 0 otherwise
 (warnings are printed but do not fail the build).
@@ -22,6 +22,14 @@ Check list (mirrors plugin/agents/plugin-validator.md):
      CHARACTERS.md Model rows, plugin.json description groups, and CLAUDE.md
      tier lists are warnings. A surface that does not mention an agent is not
      a finding.
+  9. No multi-line plain scalars in frontmatter. A field that continues onto
+     indented following lines MUST declare a block scalar (`|` or `>`).
+     Claude Code's frontmatter loader silently discards a whole agent's
+     metadata when it meets a bare multi-line value and substitutes the
+     placeholder "Agent from <plugin> plugin", so the agent becomes
+     unroutable on merit. Checks 2-5 use a per-line regex reader (fm_field)
+     that cannot see this class of defect -- hence a dedicated structural
+     check.
 """
 
 from __future__ import annotations
@@ -213,6 +221,60 @@ def check_8_tiers(agents: dict[str, str], manifest: dict) -> None:
                     compare("CLAUDE.md tier list", agent, m.group(1), warn)
 
 
+TOP_LEVEL_KEY = re.compile(r"^([A-Za-z_][A-Za-z0-9_-]*):[ \t]*(.*)$")
+
+
+def check_9_block_scalars() -> None:
+    """Flag frontmatter fields that continue onto indented lines without `|`/`>`.
+
+    YAML permits a multi-line plain scalar, but Claude Code's frontmatter
+    loader does not: on meeting one it abandons the whole block and falls back
+    to a placeholder description. Every field whose value spans lines must say
+    so explicitly with a block indicator.
+    """
+    targets = [(p, p.relative_to(REPO)) for p in agent_files()]
+    targets += [(p, p.relative_to(REPO)) for p in sorted((PLUGIN / "commands").glob("*.md"))]
+
+    for path, rel in targets:
+        block = frontmatter(path.read_text(encoding="utf-8"))
+        if block is None:
+            continue
+        key = None
+        inline = ""
+        is_block_scalar = False
+        for line in block.splitlines():
+            m = TOP_LEVEL_KEY.match(line)
+            if m:
+                key, inline = m.group(1), m.group(2).strip()
+                is_block_scalar = inline.startswith("|") or inline.startswith(">")
+                continue
+            if not line.strip():
+                continue
+            if line[0] in " \t" and key and not is_block_scalar and inline:
+                error(
+                    f"check 9: {rel} field '{key}:' is a multi-line plain scalar "
+                    f"(continues at {line.strip()[:40]!r}); use '{key}: |' so the "
+                    f"loader keeps the description instead of dropping it"
+                )
+                key = None  # one finding per field is enough
+
+        # A plain scalar carrying ': ' is invalid YAML even on a single line --
+        # model-echo shipped that way and survived only because the current
+        # loader is lenient. Block scalars make the colon safe.
+        for line in block.splitlines():
+            m = TOP_LEVEL_KEY.match(line)
+            if not m:
+                continue
+            value = m.group(2).strip()
+            if value[:1] in ("|", ">", "[", "{", '"', "'"):
+                continue
+            if ": " in value:
+                error(
+                    f"check 9: {rel} field '{m.group(1)}:' is a plain scalar "
+                    f"containing ': ' -- invalid YAML; use '{m.group(1)}: |'"
+                )
+
+
 def main() -> int:
     manifest = check_1_manifest()
     agents: dict[str, str] = {}
@@ -220,6 +282,7 @@ def main() -> int:
     check_6_commands()
     check_7_secrets()
     check_8_tiers(agents, manifest)
+    check_9_block_scalars()
 
     for msg in errors:
         print(f"ERROR  {msg}")

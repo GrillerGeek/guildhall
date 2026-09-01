@@ -1,6 +1,7 @@
 ---
 name: migration-safety-reviewer
-description: Use this agent post-green when the diff creates or alters database schema, migrations, indexes, or backfills — to review for irreversible changes, lock contention under load, breaking schema changes, and unsafe backfill patterns. Read-only. Runs in parallel with security-reviewer and the other post-green reviewers. Use this agent NOT performance-reviewer when the concern is "will this migration take the DB down or lose data," not "will the steady-state query be slow." Examples:
+description: |
+  Use this agent post-green when the diff creates or alters database schema, migrations, indexes, or backfills — to review for irreversible changes, lock contention under load, breaking schema changes, and unsafe backfill patterns. Read-only. Runs in parallel with security-reviewer and the other post-green reviewers. Use this agent NOT performance-reviewer when the concern is "will this migration take the DB down or lose data," not "will the steady-state query be slow." Examples:
 
   <example>
   Context: A new migration adds a NOT NULL column to a 50M-row table.

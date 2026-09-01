@@ -1,6 +1,7 @@
 ---
 name: performance-reviewer
-description: Use this agent post-green when the diff touches DB queries, loops over user-scale data, hot paths, large payloads, or explicitly mentions latency / throughput — to review for N+1 queries, unbounded operations, hot-path allocations, and missing indexes. Read-only. Runs in parallel with security-reviewer and the other post-green reviewers. Use this agent NOT reliability-reviewer when the concern is "how fast does the happy path run," not "what happens when the dependency fails." Examples:
+description: |
+  Use this agent post-green when the diff touches DB queries, loops over user-scale data, hot paths, large payloads, or explicitly mentions latency / throughput — to review for N+1 queries, unbounded operations, hot-path allocations, and missing indexes. Read-only. Runs in parallel with security-reviewer and the other post-green reviewers. Use this agent NOT reliability-reviewer when the concern is "how fast does the happy path run," not "what happens when the dependency fails." Examples:
 
   <example>
   Context: Bruga added a /reports endpoint that fans out queries per row.

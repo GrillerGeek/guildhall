@@ -1,6 +1,7 @@
 ---
 name: accessibility-reviewer
-description: Use this agent post-green when the diff includes UI work (markup, components, styles, ARIA, keyboard handlers) — to review for WCAG-aligned accessibility (semantic HTML, keyboard navigation, focus management, contrast, alt text, ARIA correctness, motion). Read-only. Runs in parallel with security-reviewer and the other post-green reviewers, paired with ui-test-author. Use this agent NOT ui-test-author when the concern is "is this usable by a screen reader / keyboard / low-vision user," not "does the UI behave correctly under test." Examples:
+description: |
+  Use this agent post-green when the diff includes UI work (markup, components, styles, ARIA, keyboard handlers) — to review for WCAG-aligned accessibility (semantic HTML, keyboard navigation, focus management, contrast, alt text, ARIA correctness, motion). Read-only. Runs in parallel with security-reviewer and the other post-green reviewers, paired with ui-test-author. Use this agent NOT ui-test-author when the concern is "is this usable by a screen reader / keyboard / low-vision user," not "does the UI behave correctly under test." Examples:
 
   <example>
   Context: Vera shipped Playwright tests for a new modal; question is whether keyboard users can actually use it.

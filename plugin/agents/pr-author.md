@@ -1,6 +1,7 @@
 ---
 name: pr-author
-description: Use this agent at quest close to draft a pull-request title and body from the plan.md + diff + commit history. Output is platform-agnostic markdown printed to stdout — the user runs `gh pr create` or `az repos pr create` themselves. NEVER pushes, NEVER invokes GitHub / Azure DevOps CLIs. Use this agent NOT docs-writer when the output is a PR artifact, not in-repo documentation. Examples:
+description: |
+  Use this agent at quest close to draft a pull-request title and body from the plan.md + diff + commit history. Output is platform-agnostic markdown printed to stdout — the user runs `gh pr create` or `az repos pr create` themselves. NEVER pushes, NEVER invokes GitHub / Azure DevOps CLIs. Use this agent NOT docs-writer when the output is a PR artifact, not in-repo documentation. Examples:
 
   <example>
   Context: Feature quest just finished; all tests green; Mordain is closing out.
