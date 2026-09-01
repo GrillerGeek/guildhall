@@ -8,11 +8,11 @@
 [![Claude Code plugin](https://img.shields.io/badge/Claude_Code-plugin-blueviolet.svg)](https://claude.com/claude-code)
 [![marketplace](https://img.shields.io/badge/marketplace-grillergeek--plugins-green.svg)](https://github.com/GrillerGeek/skills)
 
-A TDD-ordered coding agent harness for Claude Code, tuned for Opus 4.8.
+A TDD-ordered coding agent harness for Claude Code, tuned for Opus-tier orchestration — Opus 5 is the recommended seat.
 
 Opus-tier models from 4.7 onward follow instructions literally and fill in fewer gaps than their predecessors — and Opus 4.8 is additionally conservative about reaching for subagents unless told exactly when to dispatch them. The remedy is the same as it ever was: a tuned harness with explicit contracts and dispatch triggers, not cleverer prompting.
 
-Mordain (the `/quest` orchestrator) runs on whatever model your session is on. Opus 4.8 is the tuned default; for the hardest quests, **run `/quest` from a Claude Fable 5 session** — orchestration is the one seat where top-tier reasoning pays for itself, and the adventurers stay on their own cheaper tiers regardless (`fable` is never used for adventurer dispatch).
+Mordain (the `/quest` orchestrator) runs on whatever model your session is on. The current Opus (Opus 5) is the recommended default seat — Anthropic's own guidance is to start most agent workloads on Opus — and the harness prose, tuned on Opus 4.8, carries forward. For the hardest quests, **run `/quest` from a Claude Fable 5 session** — orchestration is the one seat where top-tier reasoning pays for itself, and the adventurers stay on their own cheaper tiers regardless (`fable` is never used for adventurer dispatch).
 
 The Guildhall provides the **`/quest` slash command** — inhabited by Mordain the Keeper, Guildmaster — that plans, writes a durable plan file, and dispatches, plus **eighteen adventurer agents tiered across Opus / Sonnet / Haiku** that each do one narrow job. Feature work follows a strict TDD red-green-refactor handoff for the build, then fans out post-green reviews (security, docs, optional Playwright UI tests) in parallel, and closes with a platform-agnostic PR draft. Prototype work skips the ceremony. Debug work starts with root-cause before any fix.
 
@@ -116,7 +116,7 @@ guildhall/
 
 ## Status
 
-**Version 0.7.1.** The harness is tuned for **Opus 4.8** and aware of **Claude Fable 5** as the recommended seat for orchestrating the hardest quests. The roster is **18 adventurers + 1 diagnostic** (model-echo), tiered across Opus / Sonnet / Haiku. A feature quest runs Mordain through a three-phase dispatch: a sequential TDD build chain (optional architecture review → test-author → feature-implementer → optional refactor), a parallel post-green fan-out (two always-on reviewers — security, docs — plus six gated production-readiness reviewers and optional Playwright UI tests), and a sequential PR draft to close. Gated reviewers fire only when the diff matches their trigger; the bias on ambiguous triggers is **fire**, and Mordain records each gating decision in the plan file's `## Reviewers selected` section.
+**Version 0.8.1.** The harness targets the **current Opus** as the default seat (Opus 5 today; the prompt style was tuned on Opus 4.8 and carries forward) and **Claude Fable 5** as the recommended seat for orchestrating the hardest quests. The roster is **18 adventurers + 1 diagnostic** (model-echo), tiered across Opus / Sonnet / Haiku. A feature quest runs Mordain through a three-phase dispatch: a sequential TDD build chain (optional architecture review → test-author → feature-implementer → optional refactor), a parallel post-green fan-out (two always-on reviewers — security, docs — plus six gated production-readiness reviewers and optional Playwright UI tests), and a sequential PR draft to close. Gated reviewers fire only when the diff matches their trigger; the bias on ambiguous triggers is **fire**, and Mordain records each gating decision in the plan file's `## Reviewers selected` section.
 
 **Version history since v0.4.0:**
 
@@ -129,6 +129,8 @@ guildhall/
 - **v0.6.5** — lessons ledger, project-verify gate, quantitative goals, loop docs.
 - **v0.7.1** — frontmatter fix: every agent `description:` is a block scalar, so Claude Code loads real descriptions instead of the `"Agent from guildhall plugin"` placeholder; validator check 9 guards it.
 - **v0.7.0** — fog-of-war: Not-yet-specified/Out-of-scope plan sections, fog triage lane, fog-cartographer (Wren) write-back to IDD Explorations.
+- **v0.8.0** — **deterministic write guard**: plugin hooks (`plugin/hooks/`) enforce Mordain's plan-file-only `Write` rule during quests; repo-local PostToolUse hook runs the validator on every `plugin/` edit; re-verified that current Claude Code allows nested subagent dispatch (Mordain stays in `/quest` by design).
+- **v0.8.1** — **model-seat refresh** per Anthropic's choosing-a-model guidance: Opus 5 documented as the recommended default seat (prompt style tuned on Opus 4.8 carries forward); cost posture reframed around cost per completed task.
 
 Earlier milestones: **v0.4.0** added the six gated production-readiness reviewers (observability, reliability, performance, ops-readiness, migration-safety, accessibility); **v0.3.x** added the security/architecture/docs/pr/validator roster, durable plan files, the parallel review fan-out, and the explicit-`model`-param routing workaround. See `docs/superpowers/specs/` for the v0.3 and model-refresh design docs, and [`plugin/CHARACTERS.md`](plugin/CHARACTERS.md) for the full cast.
 

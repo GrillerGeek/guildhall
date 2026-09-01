@@ -2,7 +2,7 @@
 
 *A gathering place for adventurers.*
 
-A TDD-ordered coding agent harness for Claude Code, tuned for Opus 4.8.
+A TDD-ordered coding agent harness for Claude Code, tuned for Opus-tier orchestration — Opus 5 is the recommended seat.
 
 ## The guild
 
@@ -109,7 +109,7 @@ Docs-fast-lane and debug quests loop cheaply. Full feature quests on a schedule 
 2. **Prototype-mode ≠ feature-mode.** Different ceremony, different bars.
 3. **Independence as a guardrail.** test-author is independent of feature-implementer. debug-investigator does NOT fix.
 4. **Consume IDD artifacts directly.** test-author and feature-implementer both read IDD Spec files (Expectations, Boundaries) as first-class inputs.
-5. **Literal-friendly for Opus 4.8.** Prompts state the contract explicitly — inputs, outputs, in-scope, out-of-scope. No hand-waves.
+5. **Literal-friendly for Opus-tier models.** Prompts state the contract explicitly — inputs, outputs, in-scope, out-of-scope. No hand-waves. (The prompt style was tuned on Opus 4.8 and carries forward.)
 6. **Hard rules get hooks, not just prose.** Mordain's plan-file-only `Write` rule is enforced by a deterministic plugin hook, not only by instructions (see below).
 
 ## Hooks the plugin installs
@@ -127,7 +127,7 @@ Guildhall is the implementation-side complement to the [IDD-framework](https://g
 
 ## Cost posture
 
-The orchestrator runs on the parent session model for reasoning-heavy planning — Opus 4.8 by default; run `/quest` from a Claude Fable 5 session for the hardest quests (orchestration is the one seat where top-tier spend pays for itself; adventurers never dispatch on `fable`). Workers run on Sonnet for execution. If a worker proves overkill on Sonnet, downgrade to Haiku per-agent in its frontmatter. Every quest's plan file records the orchestrating model in its `parent_model` frontmatter, so cost and quality are attributable per quest.
+The orchestrator runs on the parent session model for reasoning-heavy planning — the current Opus (Opus 5) by default, per Anthropic's guidance that most agent workloads should start on Opus; run `/quest` from a Claude Fable 5 session for the hardest quests (orchestration is the one seat where top-tier spend pays for itself; adventurers never dispatch on `fable`). Workers run on Sonnet for execution. If a worker proves overkill on Sonnet, downgrade to Haiku per-agent in its frontmatter — but judge the downgrade by **cost per completed task, not per token**: a cheaper model that breaks gates, burns Mordain's retry budget, or returns blocked costs more than the token savings. The plan files are the measurement instrument — gates held/broken and retries are recorded per quest, and a bad downgrade shows up as recurring entries in `## Lessons for the Guildhall`. Every quest's plan file also records the orchestrating model in its `parent_model` frontmatter, so cost and quality are attributable per quest.
 
 **How routing works:** each adventurer declares its intended model in its `plugin/agents/<name>.md` frontmatter — the canonical tier source. At dispatch time Mordain resolves each tier from the roster table inside `quest.md` (a validator-enforced mirror of that frontmatter, since v0.6.1 — reading the agent file directly only as a fallback) and passes it explicitly as the `model` parameter on the `Agent(...)` dispatch call. This is a workaround for an upstream Claude Code issue where subagent frontmatter `model:` values were silently ignored — the explicit dispatch parameter is honored where the frontmatter alone was not. (Re-verified 2026-06-10: current Claude Code honors the frontmatter again when no parameter is given; the explicit parameter still takes precedence and is retained as a belt-and-braces measure.) The `model-echo` self-check at the start of every quest verifies routing is functioning — Mordain dispatches it with `model: "haiku"`, deliberately different from its `sonnet` frontmatter, so the reply reveals *which* mechanism routed it: `haiku` means the dispatch parameter is honored, `sonnet` means only the frontmatter is honored (cost posture intact, workaround inert), anything else means neither.
 

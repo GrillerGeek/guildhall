@@ -1,10 +1,10 @@
 {
   "name": "guildhall",
-  "version": "0.8.0",
-  "description": "The Guildhall — a gathering place for adventurers. A TDD-ordered coding agent harness for Claude Code, tuned for Opus 4.8. The /quest slash command runs Mordain the Guildmaster, who writes a durable plan file, then dispatches 18 specialist adventurers across three tiers: Opus (architecture-reviewer, security-reviewer, reliability-reviewer, migration-safety-reviewer), Sonnet (test-author, feature-implementer, ui-test-author, docs-writer, pr-author, prototype-builder, debug-investigator, observability-reviewer, performance-reviewer, ops-readiness-reviewer, accessibility-reviewer), and Haiku (refactorer, plugin-validator, fog-cartographer). Post-green reviews fan out in parallel — two always-on (security, docs) plus six gated production-readiness reviewers (observability, reliability, performance, ops-readiness, migration-safety, accessibility) that fire only when their trigger matches the diff. Rook (pr-author) closes the quest with a platform-agnostic PR draft and folds the runbook into the body. Integrates with IDD-framework specs.",
+  "version": "0.8.1",
+  "description": "The Guildhall — a gathering place for adventurers. A TDD-ordered coding agent harness for Claude Code, tuned for Opus-tier orchestration (Opus 5 recommended seat). The /quest slash command runs Mordain the Guildmaster, who writes a durable plan file, then dispatches 18 specialist adventurers across three tiers: Opus (architecture-reviewer, security-reviewer, reliability-reviewer, migration-safety-reviewer), Sonnet (test-author, feature-implementer, ui-test-author, docs-writer, pr-author, prototype-builder, debug-investigator, observability-reviewer, performance-reviewer, ops-readiness-reviewer, accessibility-reviewer), and Haiku (refactorer, plugin-validator, fog-cartographer). Post-green reviews fan out in parallel — two always-on (security, docs) plus six gated production-readiness reviewers (observability, reliability, performance, ops-readiness, migration-safety, accessibility) that fire only when their trigger matches the diff. Rook (pr-author) closes the quest with a platform-agnostic PR draft and folds the runbook into the body. Integrates with IDD-framework specs.",
   "author": { "name": "GrillerGeek" },
   "homepage": "https://github.com/GrillerGeek/guildhall",
   "repository": "https://github.com/GrillerGeek/guildhall.git",
   "license": "MIT",
-  "keywords": ["claude-code", "agents", "tdd", "opus-4.8", "idd-framework", "harness"]
+  "keywords": ["claude-code", "agents", "tdd", "opus-5", "idd-framework", "harness"]
 }
