@@ -1,0 +1,29 @@
+{
+  "description": "Deterministic backstop for Mordain's plan-file-only Write rule. quest_flag.py marks when a /quest turn is in flight; quest_write_guard.py denies main-agent Writes outside docs/guildhall/plans/ only while that flag is set, and never touches subagent (adventurer) Writes.",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/quest_flag.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/quest_write_guard.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

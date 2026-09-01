@@ -110,6 +110,16 @@ Docs-fast-lane and debug quests loop cheaply. Full feature quests on a schedule 
 3. **Independence as a guardrail.** test-author is independent of feature-implementer. debug-investigator does NOT fix.
 4. **Consume IDD artifacts directly.** test-author and feature-implementer both read IDD Spec files (Expectations, Boundaries) as first-class inputs.
 5. **Literal-friendly for Opus 4.8.** Prompts state the contract explicitly — inputs, outputs, in-scope, out-of-scope. No hand-waves.
+6. **Hard rules get hooks, not just prose.** Mordain's plan-file-only `Write` rule is enforced by a deterministic plugin hook, not only by instructions (see below).
+
+## Hooks the plugin installs
+
+Installing Guildhall registers two small hooks (`plugin/hooks/`), both stdlib-Python and both inert outside quests:
+
+- **`quest_flag.py`** (UserPromptSubmit) — marks the session "quest in flight" when you submit `/quest` (or `/guildhall:quest`), and clears the mark on your next non-quest prompt.
+- **`quest_write_guard.py`** (PreToolUse on `Write`) — while a quest is in flight, denies any **main-agent** `Write` outside `docs/guildhall/plans/*.md`, with a message steering Mordain to dispatch an adventurer instead. Adventurers (subagents) are never touched — their write access is governed by each agent's own tool list.
+
+This is the deterministic backstop for the design rule that Mordain plans and dispatches but never writes code himself. Ordinary (non-quest) sessions are unaffected. Hooks load at session start, so the guard first takes effect in the next session after installing or updating the plugin.
 
 ## Integration with IDD-framework
 
