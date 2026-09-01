@@ -87,10 +87,17 @@ guildhall/
 │   ├── agents/                  # 19 adventurer/diagnostic definitions
 │   ├── commands/
 │   │   └── quest.md             # /quest slash command (Mordain lives here)
+│   ├── hooks/                   # Quest-flag + write-guard hooks (Mordain's plan-only Write rule)
+│   │   ├── hooks.json
+│   │   ├── quest_flag.py
+│   │   └── quest_write_guard.py
 │   ├── CHARACTERS.md            # Full character sheets for the cast
 │   └── README.md                # User-facing docs
+├── .claude/
+│   └── settings.json            # Repo-local PostToolUse hook: validator runs on every plugin/ edit
 ├── scripts/
-│   └── validate_plugin.py       # Mechanical validator (plugin-validator's checks) run by CI
+│   ├── validate_plugin.py       # Mechanical validator (plugin-validator's checks) run by CI
+│   └── validate_plugin_hook.py  # PostToolUse wrapper that runs the validator at edit time
 ├── .github/
 │   └── workflows/
 │       └── validate.yml         # Runs the validator on every push / PR
