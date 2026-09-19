@@ -1,0 +1,34 @@
+{
+  "name": "guildhall",
+  "version": "0.9.0",
+  "author": {
+    "name": "GrillerGeek"
+  },
+  "homepage": "https://github.com/GrillerGeek/guildhall",
+  "repository": "https://github.com/GrillerGeek/guildhall.git",
+  "license": "MIT",
+  "description": "Guildhall: independent specialist agents, test-first implementation, gated reviews and durable quest plans for capable coding hosts.",
+  "keywords": [
+    "guildhall",
+    "agents",
+    "tdd",
+    "idd-framework",
+    "skills"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Guildhall",
+    "shortDescription": "Independent specialists for test-first coding quests.",
+    "longDescription": "Plan a quest, dispatch independent specialists, verify a sequential test-first build, collect gated reviews and draft a PR.",
+    "developerName": "GrillerGeek",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/GrillerGeek/guildhall",
+    "defaultPrompt": [
+      "Run a Guildhall quest for this task."
+    ]
+  }
+}

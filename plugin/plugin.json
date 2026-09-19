@@ -1,0 +1,19 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "guildhall",
+  "version": "0.9.0",
+  "author": {
+    "name": "GrillerGeek"
+  },
+  "homepage": "https://github.com/GrillerGeek/guildhall",
+  "repository": "https://github.com/GrillerGeek/guildhall.git",
+  "license": "MIT",
+  "description": "Guildhall: independent specialist agents, test-first implementation, gated reviews and durable quest plans for capable coding hosts.",
+  "keywords": [
+    "guildhall",
+    "agents",
+    "tdd",
+    "idd-framework",
+    "skills"
+  ]
+}

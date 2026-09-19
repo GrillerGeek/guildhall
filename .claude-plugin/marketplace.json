@@ -1,0 +1,12 @@
+{
+  "name": "guildhall-local",
+  "owner": {
+    "name": "GrillerGeek"
+  },
+  "plugins": [
+    {
+      "name": "guildhall",
+      "source": "./plugin"
+    }
+  ]
+}

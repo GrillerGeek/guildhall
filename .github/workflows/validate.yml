@@ -15,3 +15,7 @@ jobs:
           python-version: "3.12"
       - name: Run plugin validator (Tabs' checks, mechanized)
         run: python scripts/validate_plugin.py
+      - name: Check portable bundles and distribution metadata
+        run: python scripts/validate_portable.py
+      - name: Test portable packaging invariants
+        run: python -m unittest discover -s tests -v
