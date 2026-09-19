@@ -52,6 +52,15 @@ In the consuming project, choose the host explicitly:
 npx --yes skills@1.5.25 add /absolute/path/to/guildhall/plugin/skills/guildhall-quest --skill guildhall-quest --agent codex --copy --yes
 ```
 
+Repository-root discovery is also verified with the pinned installer:
+
+```bash
+npx --yes skills@1.5.25 add /absolute/path/to/guildhall --skill guildhall-quest --agent codex --copy --yes
+```
+
+It selects the complete generated bundle. The published GitHub-ref equivalent
+still needs verification after this branch is published.
+
 Use `--agent claude-code` for Claude. Other agent targets may install Agent
 Skills; consult the installer's offered targets. Installability does not certify
 that an app has fresh worker contexts, browser tools or model-routing controls.
@@ -59,6 +68,20 @@ The bundle includes its role references, workflow and MIT license; it does not
 need the source checkout after a copy install. There are no consumer npm or
 Python dependencies merely to load the skill. IDD execution requires a safe YAML
 parser available in the host and actual, recorded human readiness approval.
+
+## Verified coverage
+
+| Route | Installation evidence | Execution evidence |
+|---|---|---|
+| Native Codex plugin | Installed/enabled 0.9.1 in an isolated profile; complete cache retained after source removal. | Portable execution was tested from a complete copied skill bundle; native-cache invocation after source removal was not exercised. |
+| Standalone Codex skill | Explicit bundle and repository-root copy routes pass with skills 1.5.25. | Full feature quest, prototype, debugging and selected refusal cases observed. |
+| Native Claude plugin | Project installation enabled 0.9.1; complete cache retained after source removal. | Native prototype command observed using session-only plugin loading. |
+| Standalone Claude skill | Explicit bundle and repository-root copy routes pass with skills 1.5.25. | Portable quest execution in Claude remains unverified. |
+| Other skill-capable apps | Not exercised. | Requires host capability checks; not certified. |
+
+Feature execution used explicitly synthetic readiness and gap-check inputs;
+actual human approval remains required for live Specs. The execution report
+records the exact evidence and remaining limits.
 
 ## Operational differences
 

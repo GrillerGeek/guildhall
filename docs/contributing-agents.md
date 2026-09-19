@@ -52,11 +52,14 @@ receipts and verify installed contents/modes after source removal:
 
 ```bash
 python3 scripts/test_install.py --native-codex
+python3 scripts/test_install.py --native-claude
 python3 scripts/test_install.py --skills-cli /absolute/path/to/skills-1.5.25/bin/cli.mjs
 ```
 
-The second path must resolve into an already acquired `skills@1.5.25` package;
-the probe checks its package version. Acquire development dependencies explicitly;
+The skills CLI path must resolve into an already acquired `skills@1.5.25` package;
+the probe checks its package version. It exercises both an explicit complete
+bundle path and repository-root discovery for Codex and Claude, ensuring the
+canonical authoring source cannot accidentally replace the generated bundle. Acquire development dependencies explicitly;
 no network/install step is hidden in normal validation. Consumer projects do not
 need this repository's Python tooling to invoke a skill.
 

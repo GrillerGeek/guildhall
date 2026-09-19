@@ -4,6 +4,16 @@ This report supplements, rather than rewrites, the [0.9.0 assessment](2026-09-19
 Work remains on the local `codex/portable-guildhall` branch. No publication,
 release or personal Guildhall installation is implied by these observations.
 
+## Outcome
+
+Candidate **0.9.1** is implemented and verified locally: all 16 unit tests and
+six installation cases pass. A fresh Codex feature quest using the final bundle
+completed without interruption or external clarification, and native Claude's
+prototype command completed successfully. Independent evidence review found no
+material defects in these scoped observations. Human readiness and gap-check
+inputs in the feature fixture were explicitly synthetic; this is not live human
+approval or certification of every supported host and workflow.
+
 ## Changes and decisions
 
 The installed IDD technical-review procedure assigns Spec annotation writes to
@@ -191,14 +201,84 @@ status scalar and new report; product/test/docs hashes stayed fixed. Parent
 mutation records are plan-only. This supports completed explicit recovery,
 without upgrading the trial to clean/unassisted execution or child read isolation.
 
+## Fresh final-bundle Codex feature observation
+
+`guildhall-feature-_lg7zt6w` exercised the exact final 26-file skill bundle in a
+new session. It completed with exit **0** in **1342.62 seconds** (about 22 minutes),
+with no stop reason, external steering, recovery or bundle changes during the
+run. Retained root-session SHA-256:
+`d54ee72915a83dac1f2d7eef28ae08e07ca9e445ddd8190b76f454e80d1222fd`.
+
+Actual successful dispatch calls requested `fork_turns: none` for test author,
+implementer, documentation, security, observability, closing technical reviewer,
+PR drafter and separate BEGIN, report-only and final-advance recorders. No model
+or reasoning override was requested. The bundled checklist was sufficient;
+there was no external personal IDD lookup or RED classification clarification.
+
+The observed sequence was two passing baseline tests, accepted RED with two
+passes and three attributable runtime errors (zero assertion failures), then
+GREEN with five passes. All five README assertions also passed. Accepted test
+bytes remained unchanged, SHA-256:
+`419c5978a933b55968118d44e933d282eabb3f132fdfc759b8afcbe8d530ca34`.
+Selected reviews completed without findings. The saved Execution Report was
+audited before advancing the Spec to **review**:
+
+- Report: `docs/reviews/SPEC-f101-20260919T233331Z-execution.md`, SHA-256
+  `7cc2d1c17bdec0f51b0cb0d58311100b382999297a975a74fe12de07bf48e5d3`.
+- Plan and final PR draft: `docs/guildhall/plans/2026-09-19-spec-f101.md`.
+- All 33 protected original files retain their bytes and modes. The only modified
+  baseline files are the allowed greeting source, README and exact status-only
+  Spec change. The only additions are the tests, plan and Execution Report.
+
+An independent reviewer recomputed the final snapshots, bundle and record hashes,
+checked actual dispatch calls/results and the BEGIN/report/advance sequence, and
+confirmed that observed parent file mutations target only the plan. No material
+defect was found. Opaque child payloads and full child read isolation were not
+verified. The synthetic readiness/gap-check inputs remain synthetic, and actual
+human implementation approval and QA remain pending. This clean final-bundle
+result is separate from the earlier interrupted and explicitly recovered trial.
+
+## Native Claude compatibility smoke
+
+Claude Code **2.1.278** loaded the final plugin with session-only `--plugin-dir`.
+Discovery identified the fixture path, source `guildhall@inline` and version
+0.9.1. The initial event registered both `guildhall:quest` and `guildhall:guildhall-quest`;
+the prompt explicitly selected the native command. A disposable prototype ran
+with inherited authentication/model configuration, scoped tool allowances,
+`acceptEdits`, and no permission bypass. No personal installation or settings-edit command was issued. Existing personal
+settings/plugins were loaded; this was not a clean-environment isolation test. Normal host session/runtime files are outside the project
+snapshot; this is not a full-filesystem isolation assertion.
+
+Evidence: `guildhall-native-claude-u9hm2awq`, **97.871 seconds**, exit **0**,
+no stop reason. Stream SHA-256:
+`5c68cd399d1e52325fc283eb746b1b640812c2fc38ee217dfa3a92cdedb4a083`.
+The local one-off driver is `/tmp/guildhall-native-claude-probe.py`; exact argv is
+retained in the fixture's `invocation.json`.
+
+Independent checks establish:
+
+- All 61 baseline files retain hashes/modes, including the copied entire plugin;
+  only `hello.py` and the quest plan were added.
+- Four independent assertions pass: normal, padded, empty and whitespace-only
+  greeting inputs. No Spec, test files, commits, pushes or PR were produced.
+- Actual Agent calls target `guildhall:model-echo` with requested `haiku`, then
+  `guildhall:prototype-builder` with requested `sonnet`.
+- Unlike the Codex worker captures, the native stream includes child tool events:
+  the `hello.py` Write is correlated to Pip's Agent call by `parent_tool_use_id`;
+  the parent's recorded Write/Edit calls affect only its plan.
+- Actual assistant metadata identifies parent `claude-opus-5`, diagnostic
+  `claude-haiku-4-5-20251001` and prototype worker `claude-sonnet-5` for this run.
+  This is runtime evidence for these invocations, not a universal routing promise
+  or validation of every native role/hook denial case.
+
 ## Verification boundaries
 
-Packaging/install evidence is distinct from execution evidence. Native Claude
-source preservation does not certify native quest execution after adding the
-portable entry. Skills installation does not certify another host's delegation,
-browser or enforcement features. A clean full-feature run of the final bundle, missing-UI behavior, out-of-scope
-writes, retry exhaustion, real ownership integration and additional interruption
-points still need targeted observations before broad production certification.
+Packaging/install evidence is distinct from execution evidence. The native Claude prototype smoke verifies this narrow command route; it does
+not certify every native feature/review path or deterministic hook denial. Skills installation does not certify another host's delegation,
+browser or enforcement features. Missing-UI behavior, out-of-scope writes, retry
+exhaustion, real ownership integration and additional interruption points still
+need targeted observations before broad production certification. Hosted CI and
+published GitHub-ref installation remain release checks after publication.
 
 ## Mechanical and installation checks
 
@@ -210,10 +290,25 @@ manifest/version agreement, internal resources, Codex plugin schema and skill
 schema checks pass. Native agents, commands, hooks and character reference remain
 byte-for-byte identical to main `5286df9`; the Claude manifest changes only version.
 
-Final bundle installation receipt: `guildhall-install-vd3eaghx/report.json` under
+Final installation receipt: `guildhall-install-t_ydl8wx/report.json` under
 the temporary evidence parent above. Native Codex installed/enabled version 0.9.1;
-standalone Codex and Claude Code copy routes also passed. Every installed byte
+native Claude project installation and standalone Codex/Claude Code copy routes
+also passed. The native Claude entry is enabled at 0.9.1 and its full cache is
+source-independent. The installer auditor shares the symlink-aware snapshot
+routine used by model observations. Every installed byte
 and mode matched, including after deleting each fixture source. Earlier 0.9.1
 receipts `guildhall-install-uwdp6bew/report.json` and
 `guildhall-install-hj0u3ux3/report.json` passed before final protocol edits.
-These no-model probes used isolated credential-free home/client profiles.
+`guildhall-install-vd3eaghx/report.json` passed the three original routes on the
+final bundle; `guildhall-install-io5y3iq2/report.json` separately passed the new
+native Claude probe before the combined four-route check. The exploratory
+native Claude receipt is `guildhall-claude-install-oc27uze7/verification.json`.
+These no-model probes used isolated credential-free home/client profiles. The
+independent review confirmed 59 native-plugin entries and 26 standalone-skill
+entries, with sources removed and snapshots intact. The final probe additionally
+installs from the repository root for each standalone host: both select the exact
+complete generated bundle, rather than the similarly named authoring source.
+All six cases pass. The earlier four-route receipt is
+`guildhall-install-zubiv5b8/report.json`. This verifies retained file
+integrity, not actual runtime invocation after source deletion or every possible
+client side effect outside the redirected profiles.
