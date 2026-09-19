@@ -64,7 +64,7 @@ def main():
             installed=Path(result['installedPath']);assert installed.is_relative_to(case)
             assert snapshot(installed)==expected,'Native installed contents/modes differ'
             listing=json.loads(run(['codex','plugin','list','--marketplace','guildhall-local','--json'],env,case))
-            assert any(x['name']=='guildhall' and x['enabled'] and x['version']=='0.9.0' for x in listing['installed'])
+            assert any(x['name']=='guildhall' and x['enabled'] and x['version']==json.loads((ROOT/'plugin/.codex-plugin/plugin.json').read_text())['version'] for x in listing['installed'])
             shutil.rmtree(source)
             assert snapshot(installed)==expected,'Native cache depends on removed source'
             report['native_codex']='passed: installed/enabled, exact bytes/modes, source removal'

@@ -37,11 +37,14 @@ to in-progress and read back the verified transition before the test author
 or any other execution writer starts. A successful quest
 never supplies human review, QA acceptance or `done` by itself.
 
-Resolve the required closing design-review capability before any execution
-writes. Use an available `idd-tech-review` workflow and preserve Spec status.
-If that required capability is missing, stop before starting the feature. Author/reviewer ambiguity returns to the author; it is
-not an excuse to have a different worker guess. Wren uses existing Exploration
-lineage, never creates an absent map, and leaves decisions to `idd-resolve`.
+Resolve the bundled architecture-reviewer and its [post-green technical review](technical-review.md)
+mode before execution. This required closing Guildhall technical review is
+read-only and runs after implementation and all relevant writer changes. It does
+not invoke `idd-tech-review` or write an IDD review annotation. Formal IDD
+technical review, when requested, remains a separate workflow under its own
+writer contract. Author/reviewer ambiguity returns to the author; it is not an
+excuse to have a different worker guess. Wren uses existing Exploration lineage,
+never creates an absent map, and leaves decisions to `idd-resolve`.
 
 ## Plan and brief
 
@@ -73,12 +76,17 @@ Quote contract text accurately; do not paraphrase away an edge case or Boundary.
 1. Seraphine writes tests from the Spec and existing test conventions. She may
    not read implementation or change assertions to match implementation.
 2. Mordain runs the suite to observe RED. Record command, exit status, failing
-   and passing counts, and failure causes. Already-green tests establish only the tested behavior. Stop the test-first
+   error, failure and passing counts separately, and the causes. Already-green tests establish only the tested behavior. Stop the test-first
    implementation chain and audit remaining Deliverables, checks and human
    validation before reporting a no-op; do not claim the whole Spec is satisfied. An import
    failure counts as expected RED only when it names an explicitly promised,
-   unbuilt deliverable. Syntax errors and missing fixtures are broken tests.
-3. Bruga receives the tests and a numeric goal: all N previously failing tests
+   unbuilt deliverable. A runtime error directly witnessing absent promised
+   behavior (such as NotImplementedError instead of a promised return value)
+   can also establish RED. Syntax errors, broken fixtures, unrelated missing
+   dependencies/configuration and unrelated runtime errors block verification.
+   Preserve the runner's actual classifications; do not rename errors as assertion
+   failures. If attribution is ambiguous, stop and resolve it before implementation.
+3. Bruga receives the tests and a numeric goal: all N tests with accepted RED outcomes
    pass, with zero regressions among M previously passing tests. Tests are
    read-only for Bruga. Mordain verifies GREEN from actual command output and
    compares the test files to their accepted pre-implementation contents.
@@ -139,6 +147,17 @@ Tabs' structural errors stop closure; warnings are reported. Tabs' bundled
 legacy checklist covers Claude packages; do not apply its Claude-only schema as
 a Codex schema. Prefer the target project's declared package validator.
 
+## Required closing technical review
+
+After all implementation, documentation and UI-test writes, dispatch Aldric in
+post-green mode with the full Spec, current worktree evidence and actual checks.
+Follow [technical review](technical-review.md); await its explicit PASS/BLOCKED
+result and complete coverage before report assembly or advancing to review.
+Coverage must distinguish completed implementation outputs from pending
+orchestration outputs as that contract specifies; lifecycle finish still verifies
+every required saved artifact before advancing.
+Relevant later changes invalidate this result and require a fresh review.
+
 ## Close and chronicle
 
 For IDD, collect each worker's complete self-verification, assemble and audit
@@ -146,7 +165,7 @@ the Execution Report through the recorder, and perform the separately verified
 in-progress → review transition as defined in [lifecycle bookkeeping](lifecycle.md).
 Do this only after the required reviews and checks; failures remain in-progress.
 
-After completed reviews and the applicable IDD design gate, send Rook the plan,
+After completed reviews and a passing Guildhall technical review, send Rook the plan,
 base/diff/commit evidence, findings and Garran's runbook verbatim. Rook drafts a
 PR title (at most 70 characters, matching repository conventions) and body with
 Summary, Plan reference, Test plan, optional Runbook, Reviewer notes and a

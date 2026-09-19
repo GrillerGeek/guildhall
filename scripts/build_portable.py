@@ -53,9 +53,21 @@ def outputs(root: Path) -> dict[Path, bytes]:
         if file.stem == 'refactorer':
             body = body.replace('back out completely — every time, no exceptions.', 'stop, preserve the diff and report for a recovery decision; never undo pre-existing edits.')
             body = body.replace('you went too far — back out.', 'you went too far — stop, preserve the diff and report for a recovery decision.')
+        if file.stem == 'architecture-reviewer':
+            header += ('Select exactly one mode from the handoff. For post-green technical review, '
+                       'follow [the closing review contract](../technical-review.md) exclusively; '
+                       'the pre-plan contract below does not apply. Post-green mode may read tests '
+                       'and verification evidence and does not require alternative designs. '
+                       'If the handoff does not identify a mode, clarify before reviewing.\n\n'
+                       '## Pre-plan architecture consultation only\n\n')
+        if file.stem == 'test-author':
+            body = body.replace('do NOT run existing tests to confirm state',
+                                'before authoring, do NOT run existing tests to discover implementation behavior')
+            body = body.replace('4. Run the test suite. Your tests should fail if the implementation is not yet written, and pass if it is correct. Both outcomes are acceptable; an error that is not a failure is not.',
+                                '4. After writing Spec-derived tests, run the prescribed suite and report the observed results. Do not inspect implementation files or change assertions to match behavior. RED may consist of assertion failures or runtime errors directly attributable to an explicitly promised but unimplemented behavior (for example, a promised function raises NotImplementedError instead of returning its specified result, or an explicitly promised unbuilt module cannot be imported). Identify the affected requirement and preserve actual failure/error counts separately. Syntax errors, broken fixtures, missing unrelated dependencies, configuration problems and unrelated runtime errors are blocked verification, not expected RED. If attribution requires guessing or inspecting implementation, return the evidence to Mordain for classification.')
         if file.stem == 'ui-test-author':
             body = body.replace('You are the only adventurer permitted to read implementation code', 'Unlike Seraphine, you may read UI implementation code')
-            body = body.replace('IDD `tech-lead-reviewer`', 'the closing IDD review capability resolved during preflight')
+            body = body.replace('IDD `tech-lead-reviewer`', 'the closing Guildhall technical review resolved during preflight')
         if file.stem == 'ops-readiness-reviewer':
             for heading in ['Deploy plan','What to watch (first hour)','Rollback plan','On-call notes','Open ops questions']:
                 body = body.replace('`## '+heading+'`', '`### '+heading+'`')

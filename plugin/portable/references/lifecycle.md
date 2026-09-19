@@ -7,7 +7,7 @@ approval decisions. This is a protocol using the host's ordinary tools, not a
 new sandbox or a deterministic execution controller.
 
 Before plan creation, Mordain resolves the selected Spec, all required inputs,
-its human readiness approval, current clean gap-check and closing IDD review
+its human readiness approval, current clean gap-check and bundled closing Guildhall technical review
 capability. Confirm no other runner/controller owns this execution. Confirm a
 safe YAML parser and output scopes are available. If required bookkeeping would
 cross a Boundary, no safe status-only edit is possible, or ownership conflicts,
@@ -22,6 +22,30 @@ write and stops on any mismatch. Do not reserialize YAML in a way that rewrites
 unrelated bytes, comments or formatting. If a scalar-only replacement is
 ambiguous, stop. Use the safe parser before and after and compare all other
 fields and original bytes. An interruption never causes an automatic reset.
+
+## Readiness checklist
+
+For the standard IDD Spec schema, check all eleven items below. Resolve inherited
+context and linked Expectations from the consuming project's actual artifacts
+when needed; do not fill gaps by guessing. Follow any stricter applicable project
+contract. These criteria are bundled so an installed skill need not discover an
+unrelated personal IDD installation merely to know the checklist.
+
+1. Context has a nonempty stack.
+2. Context has nonempty architectural patterns.
+3. Context has at least one convention.
+4. Context has a nonempty authentication/authorization description (including an
+   explicit statement when none is needed).
+5. At least one Expectation is linked.
+6. Every linked Expectation has validation criteria and corresponding detail.
+7. Each Expectation has at least two edge cases.
+8. Boundaries has at least one entry.
+9. Deliverables has at least one entry.
+10. Validation includes at least one automated and one human-review item.
+11. Actual recorded human peer-review approval exists; an AI review is not this fact.
+
+Presence alone does not establish quality or substitute for the current clean
+gap-check and its reviewed-content evidence.
 
 ## Begin, before test-author or implementation writes
 

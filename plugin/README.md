@@ -135,7 +135,7 @@ The orchestrator runs on the parent session model for reasoning-heavy planning â
 
 ## Portable quest candidate
 
-Version 0.9.0 additionally ships `skills/guildhall-quest/SKILL.md` for capable
+Version 0.9.1 additionally ships `skills/guildhall-quest/SKILL.md` for capable
 non-Claude hosts. It bundles its role references and uses host-native independent
 workers. The Claude command/agent/hook route documented above is preserved;
 standalone installation does not register those native Claude components.

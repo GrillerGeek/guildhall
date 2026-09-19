@@ -80,3 +80,30 @@ than they are or silently promise their enforcement on another host.
 - A prompt excerpt must not carry implementation findings into test-author.
 - Do not advertise remote install, native alias execution or hook parity from
   a successful local manifest check.
+
+## Follow-up decisions: execution verification, candidate 0.9.1
+
+- Use ordinary persisted Codex session records for behavioral observations. The
+  earlier ephemeral prototype run did not expose a complete spawn trace. Preserve
+  that limited observation; do not retroactively upgrade it.
+- Keep model/authentication configuration inherited. Disposable model runs use
+  existing credentials; install-only probes retain separate credential-free homes.
+- Fix the portable closing review integration: installed IDD technical review
+  requires its main conversation to write Spec annotations, conflicting with
+  Mordain's plan-only rule. Use Aldric's bundled post-green, read-only Guildhall
+  technical review; formal IDD review remains separate. Native Claude is unchanged.
+- Explicitly order technical review before report assembly. The reviewer covers
+  underlying evidence and pending orchestration outputs; lifecycle finish then
+  verifies the actual saved report and every Deliverable before status review.
+- Use labeled synthetic readiness and gap-check inputs only in the disposable
+  feature evaluation. Do not claim actual human approval from these test inputs.
+- Increment all three manifests to 0.9.1 for installer-visible protocol changes.
+  Preserve historical 0.9.0 observations and reports.
+
+- Bundle the standard eleven IDD readiness checks instead of relying on discovery
+  of a separate personal installation. Stricter consuming-project rules still apply.
+- Clarify portable test-author RED classification: preserve runner failure/error
+  counts, accept errors directly witnessing absent promised behavior, reject
+  broken setup/unrelated dependency errors, and never inspect implementation to
+  guess. Running the suite after authoring is distinct from probing implementation
+  before writing tests. Native Claude wording stays unchanged.

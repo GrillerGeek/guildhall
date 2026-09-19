@@ -1,6 +1,6 @@
 # Guildhall installation and host support
 
-The 0.9.0 portability candidate adds one complete `guildhall-quest` skill and
+The 0.9.1 portability candidate adds one complete `guildhall-quest` skill and
 native Codex metadata. Claude's `/guildhall:quest`, nineteen agent definitions
 and hooks remain available. Choose one route per quest to avoid duplicate entry
 points. This branch is not yet published; use its built local checkout below.
@@ -68,6 +68,9 @@ parser available in the host and actual, recorded human readiness approval.
   If the host cannot do this, execution stops before feature writes.
 - Role write/read restrictions are instructions unless the host actually
   enforces them. Claude's narrow `Write` hook is not a portable sandbox.
+- Closing Guildhall technical review is a bundled, read-only review of completed
+  work and verification evidence. Formal IDD technical-review annotations use
+  their own separate workflow and writer contract.
 - Reviewers receive complete working-tree evidence, including untracked files.
   Uncommitted work does not disappear from a `base..HEAD` comparison.
 - IDD lifecycle decisions remain in orchestration. A bounded recorder performs
@@ -75,4 +78,5 @@ parser available in the host and actual, recorded human readiness approval.
   not replace an active IDD runner or fabricate human approval.
 
 See [the assessment](plans/2026-09-19-portability.md) and the
-[verification report](reviews/2026-09-19-portability.md) for evidence and limits.
+[initial verification report](reviews/2026-09-19-portability.md) and
+[execution follow-up](reviews/2026-09-19-portability-execution.md) for evidence and limits.

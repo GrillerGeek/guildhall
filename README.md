@@ -36,7 +36,7 @@ Guildhall doesn't replace that arc — it covers the back half of it with enforc
 
 ## Codex and portable skills candidate
 
-Version **0.9.0** adds native Codex packaging and a complete `guildhall-quest`
+Version **0.9.1** adds native Codex packaging and a complete `guildhall-quest`
 Agent Skill for hosts with independent worker contexts. The established Claude
 route described below is preserved. See [installation and host capabilities](docs/installation.md),
 [the portability assessment](docs/plans/2026-09-19-portability.md) and
@@ -128,7 +128,7 @@ guildhall/
 
 ## Status
 
-**Native Claude baseline: 0.8.1; portable candidate: 0.9.0.** The harness targets the **current Opus** as the default seat (Opus 5 today; the prompt style was tuned on Opus 4.8 and carries forward) and **Claude Fable 5** as the recommended seat for orchestrating the hardest quests. The roster is **18 adventurers + 1 diagnostic** (model-echo), tiered across Opus / Sonnet / Haiku. A feature quest runs Mordain through a three-phase dispatch: a sequential TDD build chain (optional architecture review → test-author → feature-implementer → optional refactor), a parallel post-green fan-out (two always-on reviewers — security, docs — plus six gated production-readiness reviewers and optional Playwright UI tests), and a sequential PR draft to close. Gated reviewers fire only when the diff matches their trigger; the bias on ambiguous triggers is **fire**, and Mordain records each gating decision in the plan file's `## Reviewers selected` section.
+**Native Claude baseline: 0.8.1; portable candidate: 0.9.1.** The harness targets the **current Opus** as the default seat (Opus 5 today; the prompt style was tuned on Opus 4.8 and carries forward) and **Claude Fable 5** as the recommended seat for orchestrating the hardest quests. The roster is **18 adventurers + 1 diagnostic** (model-echo), tiered across Opus / Sonnet / Haiku. A feature quest runs Mordain through a three-phase dispatch: a sequential TDD build chain (optional architecture review → test-author → feature-implementer → optional refactor), a parallel post-green fan-out (two always-on reviewers — security, docs — plus six gated production-readiness reviewers and optional Playwright UI tests), and a sequential PR draft to close. Gated reviewers fire only when the diff matches their trigger; the bias on ambiguous triggers is **fire**, and Mordain records each gating decision in the plan file's `## Reviewers selected` section.
 
 **Version history since v0.4.0:**
 

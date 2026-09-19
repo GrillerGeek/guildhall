@@ -5,6 +5,10 @@ Tool names in examples describe operations; use tools actually available.
 Role restrictions are instructions, not an enforced permission sandbox.
 Do not infer a model override from the original role tier.
 
+Select exactly one mode from the handoff. For post-green technical review, follow [the closing review contract](../technical-review.md) exclusively; the pre-plan contract below does not apply. Post-green mode may read tests and verification evidence and does not require alternative designs. If the handoff does not identify a mode, clarify before reviewing.
+
+## Pre-plan architecture consultation only
+
 
 > *"Three paths lie open. Only one leads forward without debt."*
 > — Aldric Stonemap, Diviner of the Guildhall

@@ -66,9 +66,46 @@ inspect dispatch/transcript and actual file changes, and independently verify
 RED/GREEN counts, worker separation, scope preservation, review gating and IDD
 lifecycle/report evidence. Missing capabilities must refuse truthfully.
 
+## Opt-in model observations
+
+These probes use the existing Codex CLI, authentication and configured model.
+They consume model usage and write ordinary Codex session records plus a retained
+temporary fixture. They never install into a personal profile or edit client
+settings. Unlike the install probes, they are not credential-free processes.
+Do not run them in CI or assume a zero exit certifies behavior.
+
+```bash
+python3 scripts/evaluate_portable.py --scenario prototype --timeout 420
+python3 scripts/evaluate_portable.py --scenario debug --timeout 420
+python3 scripts/evaluate_portable.py --scenario missing-gate --timeout 180
+python3 scripts/evaluate_portable.py --scenario red-runtime --timeout 420
+python3 scripts/evaluate_portable.py --scenario red-setup-error --timeout 420
+python3 scripts/evaluate_portable.py --scenario feature --timeout 1800 --yaml-python /absolute/path/to/python-with-pyyaml
+python3 scripts/evaluate_portable.py --scenario no-delegation --timeout 180 --yaml-python /absolute/path/to/python-with-pyyaml
+python3 scripts/evaluate_portable.py --scenario owner-conflict --timeout 180 --yaml-python /absolute/path/to/python-with-pyyaml
+```
+
+The feature scenario uses explicitly synthetic readiness and gap-check inputs;
+no human approval is asserted. It exercises real worker calls, files, checks and
+status transitions after those supplied fixture inputs. The no-delegation and owner-conflict scenarios reuse these labeled inputs;
+prototype, debug and missing-gate scenarios require no YAML dependency. Do not silently install PyYAML; point to an existing runtime.
+
+The two `red-*` scenarios evaluate the test-author role alone, with a fresh
+worker, without invoking a feature quest or its lifecycle. They distinguish
+promised-but-unimplemented behavior from unrelated broken test setup; no approval
+is inferred and no implementation is performed.
+
+Receipts identify baseline changes, additions, process exits and available
+session hashes. Review the actual files and records independently. Protected
+worker payloads remain opaque; missing child records limit claims about reads
+and write attribution. Raw logs can contain project content: keep them local
+and publish only reviewed summaries. A timeout or interruption preserves partial
+state and does not authorize automatic lifecycle reset. On macOS a process-scoped
+sleep assertion lasts only for the child run; no persistent power settings change.
+
 ## Distribution and versioning
 
-This portability candidate is 0.9.0; increment all three manifests for further
+This portability candidate is 0.9.1; increment all three manifests for further
 installer-visible changes. Existing native Claude agents/commands/hooks remain
 preserved. Never rewrite historical plans to claim newer evidence. No repository
 change implicitly installs personally, publishes a release or edits the separate
