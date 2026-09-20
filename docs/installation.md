@@ -66,27 +66,78 @@ installing the standalone skill does not install its native agents or hooks.
 The portable entry point may also be visible in a native Claude install; select
 only one entry point for a given quest.
 
-## Standalone skill
+## Standalone skills
 
-In the consuming project, choose the host explicitly:
+Use Node.js **22.20.0+**, npm and Git. Start in the project where you want the
+skill available. For an interactive installation:
 
 ```bash
-npx --yes skills@1.5.25 add https://github.com/GrillerGeek/guildhall/tree/main --skill guildhall-quest --agent codex --copy --yes
+npx skills@1.5.25 add GrillerGeek/guildhall
 ```
 
-Repository-root discovery selects the complete generated bundle. Local development
-also supports `/absolute/path/to/guildhall` or the direct
-`/absolute/path/to/guildhall/plugin/skills/guildhall-quest` source. Repeat the
-original `add` command to refresh a copy. Published-ref installation was verified;
-remote update behavior is a separate check.
+Choose your app and scope in the installer. The steps below use **project scope**
+and an explicit copy for Codex. Substitute `claude-code` for `codex` when using
+Claude. For a global installation, add `--global` to install, list and remove;
+use `--global` instead of `--project` for updates.
 
-Use `--agent claude-code` for Claude. Other agent targets may install Agent
-Skills; consult the installer's offered targets. Installability does not certify
-that an app has fresh worker contexts, browser tools or model-routing controls.
-The bundle includes its role references, workflow and MIT license; it does not
-need the source checkout after a copy install. There are no consumer npm or
-Python dependencies merely to load the skill. IDD execution requires a safe YAML
-parser available in the host and actual, recorded human readiness approval.
+### Install and verify
+
+```bash
+npx --yes skills@1.5.25 add GrillerGeek/guildhall --skill guildhall-quest --agent codex --copy --yes
+npx skills@1.5.25 list --agent codex
+```
+
+Look for `guildhall-quest` in the listing. Restart your coding app, then ask it
+to use `guildhall-quest` for a small prototype.
+This verifies discovery; executing a workflow still depends on the host's tools
+and the workflow's own prerequisites.
+
+### Update
+
+To refresh this named skill from its recorded GitHub source:
+
+```bash
+npx skills@1.5.25 update guildhall-quest --project --yes
+```
+
+This command uses the installer lockfile and detected project destinations.
+To retain an explicit target app and copy method, or repair an installed copy,
+repeat the full `add` command above instead. Restart the app afterward. Updates
+replace installed resources; keep project instructions in your project rather
+than editing the installed bundle.
+
+Both installer 1.5.25 and 1.7.0 were exercised against the current published source:
+refresh retained the expected bytes and reinstallation repaired a deliberately
+modified fixture. This is not evidence of an upgrade between two published
+releases. Local-path sources are skipped by `skills update`; repeat their `add`
+command after updating the source instead.
+
+### Remove
+
+```bash
+npx skills@1.5.25 remove guildhall-quest --agent codex --yes
+npx skills@1.5.25 list --agent codex
+```
+
+Removal was verified in single-host copy fixtures, preserving an unrelated
+skill. In projects sharing `.agents/skills` across hosts, a copy may remain for
+another host; inspect the listing and selected path rather than assuming success
+means every shared copy was deleted. Avoid `--all` when keeping other skills.
+
+### Local sources and advanced discovery
+
+Replace `GrillerGeek/guildhall` with `/absolute/path/to/guildhall` or the direct
+`plugin/skills/guildhall-quest` directory to install local development files.
+To inspect available skills without installing:
+
+```bash
+npx skills@1.5.25 add GrillerGeek/guildhall --list
+```
+
+The complete bundle includes its MIT license and role references. Loading it
+needs no consumer Python dependencies. Executing an IDD Spec requires a safe YAML
+parser and actual recorded readiness approval. Native agents, model aliases and
+hooks are not installed by this route.
 
 ## Published installation check
 

@@ -56,8 +56,8 @@ python3 scripts/test_install.py --native-claude
 python3 scripts/test_install.py --skills-cli /absolute/path/to/skills-1.5.25/bin/cli.mjs
 ```
 
-The skills CLI path must resolve into an already acquired `skills@1.5.25` package;
-the probe checks its package version. It exercises both an explicit complete
+The skills CLI path must resolve into an already acquired `skills` package;
+the probe checks its identity and version (1.5.25 by default). It exercises both an explicit complete
 bundle path and repository-root discovery for Codex and Claude, ensuring the
 canonical authoring source cannot accidentally replace the generated bundle. Acquire development dependencies explicitly;
 no network/install step is hidden in normal validation. Consumer projects do not
@@ -113,3 +113,31 @@ installer-visible changes. Existing native Claude agents/commands/hooks remain
 preserved. Never rewrite historical plans to claim newer evidence. No repository
 change implicitly installs personally, publishes a release or edits the separate
 `GrillerGeek/skills` marketplace. All new files follow the repository's MIT license.
+
+## Skills installer compatibility
+
+The documented installer remains `skills@1.5.25`. CI tests that pin and runs a
+separate, advisory `latest` check in `skills-compatibility.yml`; a future upstream
+failure does not silently change the supported pin or block unrelated work.
+The workflow records the resolved version and disables acquisition lifecycle
+scripts and installer telemetry. It can also be run through workflow_dispatch.
+These are package installation checks, not model execution certification.
+
+Acquire a candidate installer explicitly into a disposable directory:
+
+```bash
+npm install --prefix /tmp/skills-candidate --ignore-scripts --no-audit --no-fund --package-lock=false skills@1.7.0
+```
+
+Test it without changing the documented default:
+
+```bash
+python3 scripts/test_install.py --skills-cli /tmp/skills-candidate/node_modules/skills/bin/cli.mjs --skills-version 1.7.0
+```
+
+Omitting `--skills-version` still requires 1.5.25. The supplied CLI must match
+both the package name and requested version. CI exercises explicit-bundle and
+repository-root copy installs for Codex and Claude without native clients.
+
+See [the onboarding verification](reviews/2026-09-20-skills-onboarding.md) for
+remote refresh/removal evidence and the separate directory-discovery limitation.

@@ -17,7 +17,8 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--native-codex', action='store_true')
     p.add_argument('--native-claude', action='store_true')
-    p.add_argument('--skills-cli', help='Path to an already installed skills@1.5.25 CLI')
+    p.add_argument('--skills-cli', help='Path to an already acquired skills CLI')
+    p.add_argument('--skills-version', default='1.5.25', help='Exact expected installer version (default: 1.5.25)')
     args=p.parse_args()
     if not args.native_codex and not args.native_claude and not args.skills_cli:
         p.error('select --native-codex, --native-claude and/or --skills-cli; no personal installs are performed')
@@ -26,11 +27,16 @@ def main():
         package=cli.parent/'package.json'
         if not package.is_file():
             package=cli.parent.parent/'package.json'
-        if not package.is_file() or json.loads(package.read_text()).get('version')!='1.5.25':
-            p.error('--skills-cli must resolve to the pinned skills@1.5.25 package')
+        if not package.is_file():
+            p.error('--skills-cli must resolve to a skills package')
+        metadata=json.loads(package.read_text())
+        if metadata.get('name')!='skills' or metadata.get('version')!=args.skills_version:
+            p.error('--skills-cli must match the exact --skills-version')
     temp=Path(tempfile.mkdtemp(prefix='guildhall-install-')).resolve()
     receipts=[]
     report={'directory':str(temp),'status':'running','receipts':receipts}
+    if args.skills_cli:
+        report['skills_version']=args.skills_version
     print(temp,flush=True)
     def run(argv,env,cwd):
         r=subprocess.run(list(map(str,argv)),cwd=cwd,env=env,text=True,capture_output=True,timeout=120)

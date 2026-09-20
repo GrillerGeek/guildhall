@@ -49,22 +49,29 @@ project using the catalog maintained in this repository.
 
 ### Alternative: `npx skills`
 
-For a skill-only installation, run this in your project with Node.js and npm
-available:
+With **Node.js 22.20.0+**, npm and Git available, run this in your project:
 
 ```bash
-npx --yes skills@1.5.25 add https://github.com/GrillerGeek/guildhall/tree/main --skill guildhall-quest --agent codex --copy --yes
+npx skills@1.5.25 add GrillerGeek/guildhall
 ```
 
-Replace `--agent codex` with `--agent claude-code` for Claude. Other installer
-targets may support skills, but Guildhall execution also needs independent worker
-contexts and shell tools. Standalone skills do not install Claude's native agents
-or hooks. Choose either the native plugin or standalone skill in a client to
-avoid duplicate entry points. After restarting your app, ask it to use
-`guildhall-quest` to prototype a small task. The `/guildhall:quest` examples below
-are native Claude plugin commands; skill-only installs use `guildhall-quest` instead.
+The interactive installer lets you choose your coding app and installation scope.
+Choose **project** to keep the skill with this project; choose **global** if you
+want it available across projects. Version `1.5.25` is the tested installer pin,
+not the Guildhall version.
 
-See [installation, updates and host support](docs/installation.md) for details.
+The repository contains one installable skill: `guildhall-quest`, including its
+workflow and role references. Standalone skills do not install Claude's native
+agents or hooks. After restarting your app, ask it to use `guildhall-quest` to
+prototype a small task. The `/guildhall:quest` examples below are native Claude
+plugin commands; skill-only installs use `guildhall-quest` instead.
+
+Guildhall execution needs independent worker contexts and shell tools. Being
+listed as an installer target does not establish that an app supports a quest.
+
+Choose the native plugin or standalone skill route in a client to avoid duplicate
+entry points. The [installation guide](docs/installation.md#standalone-skills)
+covers explicit app selection, verification, updates and removal.
 
 ## Your first quest
 
