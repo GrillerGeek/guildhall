@@ -34,6 +34,18 @@ Guildhall doesn't replace that arc — it covers the back half of it with enforc
 
 **What's different.** Pocock's seven stages are *skills you invoke in order* — the discipline lives in remembering to run the next one. Guildhall takes the two stages that are hardest to get right — **Implement** and **Review** — and turns them from single skills into a **guild of narrow specialists with independence guardrails**. "Let the AI run" becomes a disciplined red → green → refactor handoff in which the test author *never sees the implementation*. "Review" stops being one QA pass and becomes eight reviewers (security, docs, observability, reliability, performance, ops-readiness, migration-safety, accessibility) that fire only when the diff matches their trigger. The arc is the same; the discipline is enforced by *who is allowed to do what*, not by remembering to invoke the next skill.
 
+## Codex and portable skills candidate
+
+Version **0.9.1** adds native Codex packaging and a complete `guildhall-quest`
+Agent Skill for hosts with independent worker contexts. The established Claude
+route described below is preserved. See [installation and host capabilities](docs/installation.md),
+[the portability assessment](docs/plans/2026-09-19-portability.md) and
+[verification evidence](docs/reviews/2026-09-19-portability.md). Installation and
+structural checks are distinct from actual quest execution certification.
+
+Contributors using Codex or another app should start with [AGENTS.md](AGENTS.md)
+and the [shared contributor guide](docs/contributing-agents.md).
+
 ## Installation
 
 ### From the marketplace (recommended)
@@ -116,7 +128,7 @@ guildhall/
 
 ## Status
 
-**Version 0.8.1.** The harness targets the **current Opus** as the default seat (Opus 5 today; the prompt style was tuned on Opus 4.8 and carries forward) and **Claude Fable 5** as the recommended seat for orchestrating the hardest quests. The roster is **18 adventurers + 1 diagnostic** (model-echo), tiered across Opus / Sonnet / Haiku. A feature quest runs Mordain through a three-phase dispatch: a sequential TDD build chain (optional architecture review → test-author → feature-implementer → optional refactor), a parallel post-green fan-out (two always-on reviewers — security, docs — plus six gated production-readiness reviewers and optional Playwright UI tests), and a sequential PR draft to close. Gated reviewers fire only when the diff matches their trigger; the bias on ambiguous triggers is **fire**, and Mordain records each gating decision in the plan file's `## Reviewers selected` section.
+**Native Claude baseline: 0.8.1; portable candidate: 0.9.1.** The harness targets the **current Opus** as the default seat (Opus 5 today; the prompt style was tuned on Opus 4.8 and carries forward) and **Claude Fable 5** as the recommended seat for orchestrating the hardest quests. The roster is **18 adventurers + 1 diagnostic** (model-echo), tiered across Opus / Sonnet / Haiku. A feature quest runs Mordain through a three-phase dispatch: a sequential TDD build chain (optional architecture review → test-author → feature-implementer → optional refactor), a parallel post-green fan-out (two always-on reviewers — security, docs — plus six gated production-readiness reviewers and optional Playwright UI tests), and a sequential PR draft to close. Gated reviewers fire only when the diff matches their trigger; the bias on ambiguous triggers is **fire**, and Mordain records each gating decision in the plan file's `## Reviewers selected` section.
 
 **Version history since v0.4.0:**
 

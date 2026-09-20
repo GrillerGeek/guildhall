@@ -1,10 +1,17 @@
 # CLAUDE.md
 
+Shared maintenance guidance is in [AGENTS.md](AGENTS.md) and
+[the contributor guide](docs/contributing-agents.md). The native Claude
+architecture below remains the established route; the 0.9.0 portable candidate
+is documented separately in [installation](docs/installation.md).
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## What this repo is
 
-Guildhall is a **Claude Code plugin**. As of v0.8.1 it ships one slash command (`/quest`), 19 agent definitions (18 adventurers tiered across Opus / Sonnet / Haiku, plus the `model-echo` diagnostic), and two hooks (`plugin/hooks/` — a UserPromptSubmit quest-flag and a PreToolUse write guard that deterministically enforce Mordain's plan-file-only `Write` rule during quests). There is no application code and no build step; automation is `scripts/validate_plugin.py` — a mechanical implementation of plugin-validator's nine checks — which CI (`.github/workflows/validate.yml`) runs on every push and PR, and which a repo-local PostToolUse hook (`.claude/settings.json` → `scripts/validate_plugin_hook.py`) also runs at edit time on any change under `plugin/`. Hooks (both the plugin's and the repo's) load at session start — editing them requires a fresh session to take effect, like commands. "Running" the plugin means installing it into Claude Code and issuing `/quest`; "testing" a change means dogfooding a quest against a real task — **from a freshly started session**: Claude Code snapshots command/skill content at session start, so a `/quest` issued in the session that edited `quest.md` exercises the stale snapshot, not your change (verified 2026-06-10). Agent files are read at dispatch time and don't have this constraint.
+Guildhall is a **Claude Code plugin**. As of v0.8.1 it ships one slash command (`/quest`), 19 agent definitions (18 adventurers tiered across Opus / Sonnet / Haiku, plus the `model-echo` diagnostic), and two hooks (`plugin/hooks/` — a UserPromptSubmit quest-flag and a PreToolUse write guard that deterministically enforce Mordain's plan-file-only `Write` rule during quests). The native Claude route has no application build step. The portable candidate
+adds deterministic skill assembly and packaging tests (see the contributor guide).
+Existing native automation is `scripts/validate_plugin.py` — a mechanical implementation of plugin-validator's nine checks — which CI (`.github/workflows/validate.yml`) runs on every push and PR, and which a repo-local PostToolUse hook (`.claude/settings.json` → `scripts/validate_plugin_hook.py`) also runs at edit time on any change under `plugin/`. Hooks (both the plugin's and the repo's) load at session start — editing them requires a fresh session to take effect, like commands. "Running" the plugin means installing it into Claude Code and issuing `/quest`; "testing" a change means dogfooding a quest against a real task — **from a freshly started session**: Claude Code snapshots command/skill content at session start, so a `/quest` issued in the session that edited `quest.md` exercises the stale snapshot, not your change (verified 2026-06-10). Agent files are read at dispatch time and don't have this constraint.
 
 Install for local development:
 
@@ -12,7 +19,8 @@ Install for local development:
 claude --plugin-dir <repo>/plugin
 ```
 
-Version is bumped in `plugin/.claude-plugin/plugin.json`. Recent commit messages follow `type(scope): summary (vX.Y.Z)` — see `git log` for the established style before writing a new one.
+Keep the version synchronized in `plugin/.claude-plugin/plugin.json`,
+`plugin/.codex-plugin/plugin.json` and `plugin/plugin.json`. Recent commit messages follow `type(scope): summary (vX.Y.Z)` — see `git log` for the established style before writing a new one.
 
 ## Architecture — the load-bearing facts
 
