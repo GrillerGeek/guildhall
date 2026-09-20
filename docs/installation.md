@@ -3,7 +3,9 @@
 Version **0.9.1**, published on `main`, provides one complete `guildhall-quest` skill and
 native Codex metadata. Claude's `/guildhall:quest`, nineteen agent definitions
 and hooks remain available. Choose one route per quest to avoid duplicate entry
-points. For both tools together, use the [main README](../README.md#install).
+points. Guildhall works independently; IDD is optional. See
+[using Guildhall with IDD](../README.md#optional-use-with-idd) if you want to add
+structured planning and validation.
 Native installation requires the host CLI and Git; `npx skills` additionally
 requires Node.js and npm. No contributor build is needed. Catalog names ending
 in `-local` are stable identifiers, even when downloaded from GitHub.

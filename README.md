@@ -15,39 +15,24 @@ ceremony; debug mode investigates the cause before a fix is planned.
 Plans are saved under `docs/guildhall/plans/`. A completed feature quest produces
 code, tests, review evidence and a PR draft. Publishing a PR is a separate action.
 
-## Guildhall and IDD: which do I need?
-
-| Tool | What it provides | Start here when |
-|---|---|---|
-| **Guildhall** — this repository | A coordinated build with independent test authors, implementers and reviewers. | Your task is concrete enough to implement, prototype or investigate. |
-| **[Intent-Driven Development (IDD)](https://github.com/GrillerGeek/idd-framework)** | Guided discovery, linked requirements and reviewed Specs, followed by lifecycle tracking and validation. | The purpose, behavior or acceptance criteria still need definition. |
-
-They work independently or together: **define and review with IDD → build with
-Guildhall → validate with IDD**. A Guildhall quest does not require IDD for every
-task. When executing an IDD Spec, it honors readiness approval, gap-check evidence,
-Boundaries and human review gates. IDD also offers an implementation runner;
-choose one execution owner instead of running both on the same Spec.
+**Guildhall works on its own. IDD is an optional companion, not a dependency.**
 
 ## Install
 
-The following commands install **Guildhall 0.9.1 and IDD 1.7.1 from their published
-main branches**. Choose your coding app. If you only want Guildhall, run just its
-two commands. No repository clone or build is needed.
+Install **Guildhall 0.9.1 from its published main branch**. Choose one route below
+for your coding app. No repository clone, build or IDD installation is required.
 
 ### Codex
 
 Run in a terminal with the Codex CLI and Git installed:
 
 ```bash
-codex plugin marketplace add GrillerGeek/idd-framework --ref main --json
-codex plugin add idd-framework@idd-framework-local --json
-
 codex plugin marketplace add GrillerGeek/guildhall --ref main --json
 codex plugin add guildhall@guildhall-local --json
 ```
 
-Start a new Codex session in the project you want to work on. The catalog names
-end in `-local` for compatibility; these commands download from GitHub and do not
+Start a new Codex session in the project you want to work on. The catalog name
+ends in `-local` for compatibility; these commands download from GitHub and do not
 require a local clone.
 
 ### Claude Code
@@ -55,40 +40,31 @@ require a local clone.
 Run in a terminal from the project you want to work on, with Claude Code and Git installed:
 
 ```bash
-claude plugin marketplace add https://github.com/GrillerGeek/idd-framework.git --scope project
-claude plugin install idd-framework@idd-framework-local --scope project
-
 claude plugin marketplace add https://github.com/GrillerGeek/guildhall.git --scope project
 claude plugin install guildhall@guildhall-local --scope project
 ```
 
-Restart Claude Code in that project. These commands use project scope; omit the
-other tool's pair of commands if you only want one. The catalogs are maintained
-in the two source repositories.
+Restart Claude Code in that project. These commands install the plugin for that
+project using the catalog maintained in this repository.
 
 ### Alternative: `npx skills`
 
-For a skill-only installation, run these in your project with Node.js and npm
+For a skill-only installation, run this in your project with Node.js and npm
 available:
 
 ```bash
-npx --yes skills@1.5.25 add https://github.com/GrillerGeek/idd-framework/tree/main --skill idd-orchestration --agent codex --copy --yes
 npx --yes skills@1.5.25 add https://github.com/GrillerGeek/guildhall/tree/main --skill guildhall-quest --agent codex --copy --yes
 ```
 
-The IDD router includes all fifteen workflow stages. Replace `--agent codex` with
-`--agent claude-code` for Claude. Other installer targets may support skills, but
-Guildhall execution also needs independent worker contexts and shell tools.
-Standalone skills do not install Claude's native agents or hooks. Choose either
-the native plugin or standalone skills for each tool in a client to avoid duplicate
-entry points. After restarting your app, ask it to use `idd-orchestration` to
-interview you about your product, or `guildhall-quest` to prototype a small task.
-The `/idd-framework:*` and `/guildhall:quest` examples below are native Claude
-plugin commands; skill-only installs use the installed skill names instead.
+Replace `--agent codex` with `--agent claude-code` for Claude. Other installer
+targets may support skills, but Guildhall execution also needs independent worker
+contexts and shell tools. Standalone skills do not install Claude's native agents
+or hooks. Choose either the native plugin or standalone skill in a client to
+avoid duplicate entry points. After restarting your app, ask it to use
+`guildhall-quest` to prototype a small task. The `/guildhall:quest` examples below
+are native Claude plugin commands; skill-only installs use `guildhall-quest` instead.
 
-See [installation, updates and host support](docs/installation.md) for details,
-and the [IDD installation guide](https://github.com/GrillerGeek/idd-framework/blob/main/docs/installation.md)
-for IDD-specific requirements.
+See [installation, updates and host support](docs/installation.md) for details.
 
 ## Your first quest
 
@@ -107,21 +83,8 @@ Guildhall plans the work, dispatches a separate test author before the implement
 and selects reviews based on the change. It uses your host's configured model;
 Claude's native route also retains its role-specific model aliases.
 
-If you need help defining the feature first, start IDD:
-
-```text
-# Codex
-$idd-orchestration Interview me about a tool that helps volunteers schedule shifts.
-
-# Claude Code native plugin
-/idd-framework:interview I want to build a tool that helps volunteers schedule shifts.
-```
-
-After IDD produces a ready Spec with recorded human readiness approval and a
-current clean gap-check, use `$guildhall-quest Implement SPEC-<your-id>` in Codex
-or `/guildhall:quest Implement SPEC-<your-id>` in Claude, replacing the placeholder
-with your actual Spec ID. Guildhall's execution ends at `review`; human approval
-and subsequent validation remain required.
+A concrete task description is enough to start. You do not need IDD artifacts or
+an IDD plugin installation to use these prototype, feature or debug workflows.
 
 ## What happens during a feature quest?
 
@@ -133,8 +96,30 @@ and subsequent validation remain required.
 5. **Close:** verify the project, record the outcome and prepare a PR draft.
 
 The test → build → refactor sequence stays ordered. Independent reviews may run
-in parallel when the host supports it. For IDD work, a bounded recorder handles
-approved status/report edits while Mordain's own edits remain limited to the plan.
+in parallel when the host supports it. Mordain's own edits remain limited to the
+plan; specialists carry out the implementation and review work.
+
+## Optional: use with IDD
+
+[Intent-Driven Development (IDD)](https://github.com/GrillerGeek/idd-framework)
+helps define a product's purpose, expected behavior and acceptance criteria in
+reviewed Specs. Add it if you want that structured planning and validation
+workflow. Follow [IDD's installation instructions](https://github.com/GrillerGeek/idd-framework#install);
+Guildhall remains usable without it.
+
+With IDD installed, begin discovery with `$idd-orchestration` in Codex or
+`/idd-framework:interview` in the native Claude plugin. The paired workflow is
+**define and review with IDD → build with Guildhall → validate with IDD**.
+
+When an IDD Spec is ready, has recorded human readiness approval and a current
+clean gap-check, use `$guildhall-quest Implement SPEC-<your-id>` in Codex or
+`/guildhall:quest Implement SPEC-<your-id>` in Claude. Replace the placeholder with
+your actual Spec ID. Guildhall honors the Spec's Boundaries and uses a bounded
+recorder for status/report edits. Execution ends at `review`; human approval and
+subsequent validation remain required.
+
+IDD also has its own implementation runner. Choose one execution owner for a
+Spec instead of running both simultaneously.
 
 ## Host support and limits
 
