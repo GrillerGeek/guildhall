@@ -1,14 +1,17 @@
 # Guildhall installation and host support
 
-The 0.9.1 portability candidate adds one complete `guildhall-quest` skill and
+Version **0.9.1**, published on `main`, provides one complete `guildhall-quest` skill and
 native Codex metadata. Claude's `/guildhall:quest`, nineteen agent definitions
 and hooks remain available. Choose one route per quest to avoid duplicate entry
-points. This branch is not yet published; use its built local checkout below.
+points. For both tools together, use the [main README](../README.md#install).
+Native installation requires the host CLI and Git; `npx skills` additionally
+requires Node.js and npm. No contributor build is needed. Catalog names ending
+in `-local` are stable identifiers, even when downloaded from GitHub.
 
 ## Native Codex
 
 ```bash
-codex plugin marketplace add /absolute/path/to/guildhall --json
+codex plugin marketplace add GrillerGeek/guildhall --ref main --json
 codex plugin add guildhall@guildhall-local --json
 codex plugin list --marketplace guildhall-local --json
 ```
@@ -18,26 +21,43 @@ The repository catalog resolves `./plugin`. Start a new session and invoke
 independent worker contexts and shell verification. A host with only skill
 loading can read/plan but cannot provide Guildhall's independent execution.
 
-After a local source/version update, repeat the plugin add command to refresh
-the cached package. A Git-backed marketplace must be refreshed through its
-supported marketplace update before reinstalling. Published-main installation
-and external marketplace propagation require separate verification.
+For updates to a Git-backed installation:
+
+```bash
+codex plugin marketplace upgrade guildhall-local --json
+codex plugin add guildhall@guildhall-local --json
+```
+
+Start a new session after updating. To develop against a local clone, register
+`/absolute/path/to/guildhall` instead of the GitHub source. After updating the
+local source/version, repeat `codex plugin add`; Git marketplace upgrade does not
+refresh local-path catalogs.
 
 ## Native Claude Code
 
-The established marketplace route remains unchanged. For this local candidate:
+From the project you want to work on:
+
+```bash
+claude plugin marketplace add https://github.com/GrillerGeek/guildhall.git --scope project
+claude plugin install guildhall@guildhall-local --scope project
+```
+
+Restart Claude Code and use `/guildhall:quest`. To update:
+
+```bash
+claude plugin marketplace update guildhall-local
+claude plugin update guildhall@guildhall-local --scope project
+```
+
+Restart again after updates. For a session using local development files:
 
 ```bash
 claude --plugin-dir /absolute/path/to/guildhall/plugin
 ```
 
-Use `/guildhall:quest` in a fresh session. A repository-owned Claude catalog is
-also provided for project-scoped installation:
-
-```bash
-claude plugin marketplace add /absolute/path/to/guildhall --scope project
-claude plugin install guildhall@guildhall-local --scope project
-```
+The separate `GrillerGeek/skills` marketplace remains another distribution route;
+the commands above use this repository directly. Do not install both copies in
+the same client merely to update one.
 
 Claude's existing native model aliases and hooks belong to this native route;
 installing the standalone skill does not install its native agents or hooks.
@@ -49,17 +69,14 @@ only one entry point for a given quest.
 In the consuming project, choose the host explicitly:
 
 ```bash
-npx --yes skills@1.5.25 add /absolute/path/to/guildhall/plugin/skills/guildhall-quest --skill guildhall-quest --agent codex --copy --yes
+npx --yes skills@1.5.25 add https://github.com/GrillerGeek/guildhall/tree/main --skill guildhall-quest --agent codex --copy --yes
 ```
 
-Repository-root discovery is also verified with the pinned installer:
-
-```bash
-npx --yes skills@1.5.25 add /absolute/path/to/guildhall --skill guildhall-quest --agent codex --copy --yes
-```
-
-It selects the complete generated bundle. The published GitHub-ref equivalent
-still needs verification after this branch is published.
+Repository-root discovery selects the complete generated bundle. Local development
+also supports `/absolute/path/to/guildhall` or the direct
+`/absolute/path/to/guildhall/plugin/skills/guildhall-quest` source. Repeat the
+original `add` command to refresh a copy. Published-ref installation was verified;
+remote update behavior is a separate check.
 
 Use `--agent claude-code` for Claude. Other agent targets may install Agent
 Skills; consult the installer's offered targets. Installability does not certify
@@ -68,6 +85,14 @@ The bundle includes its role references, workflow and MIT license; it does not
 need the source checkout after a copy install. There are no consumer npm or
 Python dependencies merely to load the skill. IDD execution requires a safe YAML
 parser available in the host and actual, recorded human readiness approval.
+
+## Published installation check
+
+On 2026-09-20, all four GitHub installation routes above passed in isolated
+profiles: native Codex, native Claude, standalone Codex and standalone Claude.
+Installed bytes and modes matched version 0.9.1 from main `1cfef81`. These checks
+loaded no models and did not change personal plugin installations. The earlier
+local-source checks additionally verified source removal.
 
 ## Verified coverage
 

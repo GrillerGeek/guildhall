@@ -1,153 +1,170 @@
 # Guildhall
 
-*A gathering place for adventurers.*
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Plugin](https://img.shields.io/badge/plugin-v0.9.1-green.svg)](plugin/README.md)
 
-[![version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FGrillerGeek%2Fguildhall%2Fmain%2Fplugin%2F.claude-plugin%2Fplugin.json&query=%24.version&label=version&prefix=v&color=blue)](plugin/.claude-plugin/plugin.json)
-[![validate](https://github.com/GrillerGeek/guildhall/actions/workflows/validate.yml/badge.svg)](https://github.com/GrillerGeek/guildhall/actions/workflows/validate.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Claude Code plugin](https://img.shields.io/badge/Claude_Code-plugin-blueviolet.svg)](https://claude.com/claude-code)
-[![marketplace](https://img.shields.io/badge/marketplace-grillergeek--plugins-green.svg)](https://github.com/GrillerGeek/skills)
+**Give a coding task to a team of AI specialists that writes tests, implements the
+change, reviews it and prepares a PR draft.**
 
-A TDD-ordered coding agent harness for Claude Code, tuned for Opus-tier orchestration — Opus 5 is the recommended seat.
+Guildhall is a coding workflow for **Codex and Claude Code**, also distributed as
+a portable Agent Skill. Its coordinator, Mordain, maintains a durable plan and
+dispatches independent specialists. Feature work follows tests → implementation
+→ optional refactoring → reviews. Prototype mode explores an idea with less
+ceremony; debug mode investigates the cause before a fix is planned.
 
-Opus-tier models from 4.7 onward follow instructions literally and fill in fewer gaps than their predecessors — and Opus 4.8 is additionally conservative about reaching for subagents unless told exactly when to dispatch them. The remedy is the same as it ever was: a tuned harness with explicit contracts and dispatch triggers, not cleverer prompting.
+Plans are saved under `docs/guildhall/plans/`. A completed feature quest produces
+code, tests, review evidence and a PR draft. Publishing a PR is a separate action.
 
-Mordain (the `/quest` orchestrator) runs on whatever model your session is on. The current Opus (Opus 5) is the recommended default seat — Anthropic's own guidance is to start most agent workloads on Opus — and the harness prose, tuned on Opus 4.8, carries forward. For the hardest quests, **run `/quest` from a Claude Fable 5 session** — orchestration is the one seat where top-tier reasoning pays for itself, and the adventurers stay on their own cheaper tiers regardless (`fable` is never used for adventurer dispatch).
+## Guildhall and IDD: which do I need?
 
-The Guildhall provides the **`/quest` slash command** — inhabited by Mordain the Keeper, Guildmaster — that plans, writes a durable plan file, and dispatches, plus **eighteen adventurer agents tiered across Opus / Sonnet / Haiku** that each do one narrow job. Feature work follows a strict TDD red-green-refactor handoff for the build, then fans out post-green reviews (security, docs, optional Playwright UI tests) in parallel, and closes with a platform-agnostic PR draft. Prototype work skips the ceremony. Debug work starts with root-cause before any fix.
+| Tool | What it provides | Start here when |
+|---|---|---|
+| **Guildhall** — this repository | A coordinated build with independent test authors, implementers and reviewers. | Your task is concrete enough to implement, prototype or investigate. |
+| **[Intent-Driven Development (IDD)](https://github.com/GrillerGeek/idd-framework)** | Guided discovery, linked requirements and reviewed Specs, followed by lifecycle tracking and validation. | The purpose, behavior or acceptance criteria still need definition. |
 
-## How Guildhall fits the AI coding workflow
+They work independently or together: **define and review with IDD → build with
+Guildhall → validate with IDD**. A Guildhall quest does not require IDD for every
+task. When executing an IDD Spec, it honors readiness approval, gap-check evidence,
+Boundaries and human review gates. IDD also offers an implementation runner;
+choose one execution owner instead of running both on the same Spec.
 
-If you've watched how people build software with AI lately, you've probably seen the arc that's emerging as a shared best practice — Matt Pocock frames it as [seven labeled stages](https://github.com/mattpocock/skills), each backed by a Skill: **Grill → Research → Prototype → PRD/Plan → Issues/Tasks → Implement → Review**. It's a good summary of what the coding world is converging on: get clear, get grounded, decide the destination, break it down, *then* act, then check.
+## Install
 
-Guildhall doesn't replace that arc — it covers the back half of it with enforced discipline, and pairs with its sibling plugin [IDD-framework](https://github.com/grillergeek/idd-framework), which owns the front half:
+The following commands install **Guildhall 0.9.1 and IDD 1.7.1 from their published
+main branches**. Choose your coding app. If you only want Guildhall, run just its
+two commands. No repository clone or build is needed.
 
-| # | Stage | The question it answers | Where it lives |
-|---|---|---|---|
-| 1 | **Grill** | How do I brief the AI well? | **IDD-framework** — `/interview` has the AI interview *you* into a Product artifact |
-| 2 | **Research** *(opt)* | How do I stay grounded in current facts? | Your own sources / either plugin; not a formal Guildhall stage |
-| 3 | **Prototype** *(opt)* | How do I test an idea before I commit? | **Guildhall** — prototype mode (Pip): fast spikes, no tests, disposable code |
-| 4 | **PRD/Plan** | How do we end up at the right place? | **IDD** Intentions → Spec; **Guildhall** Mordain writes the durable plan file (+ optional architecture review) |
-| 5 | **Issues/Tasks** | How do I break a big job into pieces? | **IDD** Expectations decomposition; **Guildhall** Mordain sequences the dispatch |
-| 6 | **Implement** | When do I let the AI actually run? | **Guildhall** feature mode — enforced TDD: test-author → feature-implementer → refactorer |
-| 7 | **Review** | How do I know it got it right? | **Guildhall** post-green fan-out — eight role-separated reviewers (+ IDD's review gate) |
+### Codex
 
-**What's different.** Pocock's seven stages are *skills you invoke in order* — the discipline lives in remembering to run the next one. Guildhall takes the two stages that are hardest to get right — **Implement** and **Review** — and turns them from single skills into a **guild of narrow specialists with independence guardrails**. "Let the AI run" becomes a disciplined red → green → refactor handoff in which the test author *never sees the implementation*. "Review" stops being one QA pass and becomes eight reviewers (security, docs, observability, reliability, performance, ops-readiness, migration-safety, accessibility) that fire only when the diff matches their trigger. The arc is the same; the discipline is enforced by *who is allowed to do what*, not by remembering to invoke the next skill.
-
-## Codex and portable skills candidate
-
-Version **0.9.1** adds native Codex packaging and a complete `guildhall-quest`
-Agent Skill for hosts with independent worker contexts. The established Claude
-route described below is preserved. See [installation and host capabilities](docs/installation.md),
-[the portability assessment](docs/plans/2026-09-19-portability.md) and
-[verification evidence](docs/reviews/2026-09-19-portability.md). Installation and
-structural checks are distinct from actual quest execution certification.
-
-Contributors using Codex or another app should start with [AGENTS.md](AGENTS.md)
-and the [shared contributor guide](docs/contributing-agents.md).
-
-## Installation
-
-### From the marketplace (recommended)
-
-Guildhall is distributed through the [grillergeek-plugins marketplace](https://github.com/GrillerGeek/skills). Run these once inside any Claude Code session:
-
-```
-/plugin marketplace add GrillerGeek/skills
-/plugin install guildhall@grillergeek-plugins
-```
-
-No local clone required.
-
-### From a local clone
-
-If you've cloned the repo yourself:
+Run in a terminal with the Codex CLI and Git installed:
 
 ```bash
-# Replace <path-to-repo> with the directory where you cloned guildhall
-claude --plugin-dir <path-to-repo>/plugin
+codex plugin marketplace add GrillerGeek/idd-framework --ref main --json
+codex plugin add idd-framework@idd-framework-local --json
+
+codex plugin marketplace add GrillerGeek/guildhall --ref main --json
+codex plugin add guildhall@guildhall-local --json
 ```
 
-### Keeping up to date
+Start a new Codex session in the project you want to work on. The catalog names
+end in `-local` for compatibility; these commands download from GitHub and do not
+require a local clone.
 
-Plugin updates are picked up automatically when Claude Code is restarted. If you installed via `--plugin-dir`, pull the latest changes and restart:
+### Claude Code
+
+Run in a terminal from the project you want to work on, with Claude Code and Git installed:
 
 ```bash
-cd <path-to-repo>
-git pull
+claude plugin marketplace add https://github.com/GrillerGeek/idd-framework.git --scope project
+claude plugin install idd-framework@idd-framework-local --scope project
+
+claude plugin marketplace add https://github.com/GrillerGeek/guildhall.git --scope project
+claude plugin install guildhall@guildhall-local --scope project
 ```
 
-If you installed from the marketplace, Claude Code manages the copy for you — restart Claude Code to pick up the latest version.
+Restart Claude Code in that project. These commands use project scope; omit the
+other tool's pair of commands if you only want one. The catalogs are maintained
+in the two source repositories.
 
-## Quick start
+### Alternative: `npx skills`
 
-Once installed, issue a quest from any Claude Code session:
+For a skill-only installation, run these in your project with Node.js and npm
+available:
 
-```
-/quest Build a Python CLI that polls Recreation.gov availability for a campground ID.
-```
-
-See [`plugin/README.md`](plugin/README.md) for the full usage reference.
-
-## Repository layout
-
-```
-guildhall/
-├── plugin/                      # What gets installed
-│   ├── .claude-plugin/
-│   │   └── plugin.json
-│   ├── agents/                  # 19 adventurer/diagnostic definitions
-│   ├── commands/
-│   │   └── quest.md             # /quest slash command (Mordain lives here)
-│   ├── hooks/                   # Quest-flag + write-guard hooks (Mordain's plan-only Write rule)
-│   │   ├── hooks.json
-│   │   ├── quest_flag.py
-│   │   └── quest_write_guard.py
-│   ├── CHARACTERS.md            # Full character sheets for the cast
-│   └── README.md                # User-facing docs
-├── .claude/
-│   └── settings.json            # Repo-local PostToolUse hook: validator runs on every plugin/ edit
-├── scripts/
-│   ├── validate_plugin.py       # Mechanical validator (plugin-validator's checks) run by CI
-│   └── validate_plugin_hook.py  # PostToolUse wrapper that runs the validator at edit time
-├── .github/
-│   └── workflows/
-│       └── validate.yml         # Runs the validator on every push / PR
-├── README.md                    # This file
-├── LICENSE
-└── .gitignore
+```bash
+npx --yes skills@1.5.25 add https://github.com/GrillerGeek/idd-framework/tree/main --skill idd-orchestration --agent codex --copy --yes
+npx --yes skills@1.5.25 add https://github.com/GrillerGeek/guildhall/tree/main --skill guildhall-quest --agent codex --copy --yes
 ```
 
-## Design decisions
+The IDD router includes all fifteen workflow stages. Replace `--agent codex` with
+`--agent claude-code` for Claude. Other installer targets may support skills, but
+Guildhall execution also needs independent worker contexts and shell tools.
+Standalone skills do not install Claude's native agents or hooks. Choose either
+the native plugin or standalone skills for each tool in a client to avoid duplicate
+entry points. After restarting your app, ask it to use `idd-orchestration` to
+interview you about your product, or `guildhall-quest` to prototype a small task.
+The `/idd-framework:*` and `/guildhall:quest` examples below are native Claude
+plugin commands; skill-only installs use the installed skill names instead.
 
-- **Orchestration lives in the `/quest` command, not in a subagent.** Claude Code doesn't surface the `Agent` dispatch tool inside a subagent's tool context, so an "orchestrator agent that dispatches worker agents" can't actually dispatch. `/quest` runs at the top level where dispatch works. Mordain is the guildmaster inside the command.
-- **Sequential adventurer dispatch.** TDD order is enforced. `test-author` fires before `feature-implementer`; parallel dispatch would break independence.
-- **The `/quest` command has scoped `Write` access — plan files only.** Mordain can write the durable plan at `docs/guildhall/plans/*.md`. He cannot write anything else; that forcing function keeps him from doing the adventurers' code-writing work.
-- **Mordain absorbs the architect role.** No separate architect agent. The command-level session is already on Opus — design thinking lives there, not in a duplicate layer.
-- **Hybrid handoff.** Durable artifacts (specs, tests, code, commits) in the repo. Ephemeral context between adventurers via the `Agent` tool's `prompt` field. Files only when there's a reader other than the immediately-next adventurer.
+See [installation, updates and host support](docs/installation.md) for details,
+and the [IDD installation guide](https://github.com/GrillerGeek/idd-framework/blob/main/docs/installation.md)
+for IDD-specific requirements.
 
-## Status
+## Your first quest
 
-**Native Claude baseline: 0.8.1; portable candidate: 0.9.1.** The harness targets the **current Opus** as the default seat (Opus 5 today; the prompt style was tuned on Opus 4.8 and carries forward) and **Claude Fable 5** as the recommended seat for orchestrating the hardest quests. The roster is **18 adventurers + 1 diagnostic** (model-echo), tiered across Opus / Sonnet / Haiku. A feature quest runs Mordain through a three-phase dispatch: a sequential TDD build chain (optional architecture review → test-author → feature-implementer → optional refactor), a parallel post-green fan-out (two always-on reviewers — security, docs — plus six gated production-readiness reviewers and optional Playwright UI tests), and a sequential PR draft to close. Gated reviewers fire only when the diff matches their trigger; the bias on ambiguous triggers is **fire**, and Mordain records each gating decision in the plan file's `## Reviewers selected` section.
+Start a new session in the project you want to change. Try a small prototype:
 
-**Version history since v0.4.0:**
+```text
+# Codex
+$guildhall-quest Prototype a Python CLI that summarizes a local CSV file.
 
-- **v0.5.0** — re-baselined the harness premise from Opus 4.7 to **Opus 4.8**.
-- **v0.6.0** — **Fable 5-aware Mordain**: parent-model attribution recorded in each plan file's `parent_model` frontmatter, plus orchestration tuning for a top-tier parent session.
-- **v0.6.1** — **roster-table tier resolution**: Mordain resolves adventurer tiers from the roster table inside `quest.md` (a validator-enforced mirror of the canonical agent frontmatter) instead of reading every agent file per quest; model-echo's output contract hardened.
-- **v0.6.2** — `/quest` dispatches use **plugin-namespaced agent types** (`guildhall:<agent>`) for reliable resolution.
-- **v0.6.3** — feature-implementer marks deliberate shortcuts with `minimal:` comments so reviewers and the PR author can see them.
-- **v0.6.4** — corrected install docs (marketplace-based install, `claude --plugin-dir`); **discriminating model-echo self-check** (dispatched on `haiku`, deliberately ≠ its `sonnet` frontmatter, so param-honored and frontmatter-honored routing are distinguishable); **CI validation** (`scripts/validate_plugin.py` implements plugin-validator's checks on every PR); `quest.md` consistency fixes (pre-plan dispatch exceptions, IDD-framework dispatch guidance, step-number corrections).
-- **v0.6.5** — lessons ledger, project-verify gate, quantitative goals, loop docs.
-- **v0.7.1** — frontmatter fix: every agent `description:` is a block scalar, so Claude Code loads real descriptions instead of the `"Agent from guildhall plugin"` placeholder; validator check 9 guards it.
-- **v0.7.0** — fog-of-war: Not-yet-specified/Out-of-scope plan sections, fog triage lane, fog-cartographer (Wren) write-back to IDD Explorations.
-- **v0.8.0** — **deterministic write guard**: plugin hooks (`plugin/hooks/`) enforce Mordain's plan-file-only `Write` rule during quests; repo-local PostToolUse hook runs the validator on every `plugin/` edit; re-verified that current Claude Code allows nested subagent dispatch (Mordain stays in `/quest` by design).
-- **v0.8.1** — **model-seat refresh** per Anthropic's choosing-a-model guidance: Opus 5 documented as the recommended default seat (prompt style tuned on Opus 4.8 carries forward); cost posture reframed around cost per completed task.
+# Claude Code native plugin
+/guildhall:quest Prototype a Python CLI that summarizes a local CSV file.
+```
 
-Earlier milestones: **v0.4.0** added the six gated production-readiness reviewers (observability, reliability, performance, ops-readiness, migration-safety, accessibility); **v0.3.x** added the security/architecture/docs/pr/validator roster, durable plan files, the parallel review fan-out, and the explicit-`model`-param routing workaround. See `docs/superpowers/specs/` for the v0.3 and model-refresh design docs, and [`plugin/CHARACTERS.md`](plugin/CHARACTERS.md) for the full cast.
+For feature work, describe the desired behavior and how it should be tested.
+Guildhall plans the work, dispatches a separate test author before the implementer,
+and selects reviews based on the change. It uses your host's configured model;
+Claude's native route also retains its role-specific model aliases.
 
-The Guildhall is a living system. Expect prompt iterations as real usage reveals friction. Changes to agents in `plugin/agents/` are the primary axis of iteration.
+If you need help defining the feature first, start IDD:
+
+```text
+# Codex
+$idd-orchestration Interview me about a tool that helps volunteers schedule shifts.
+
+# Claude Code native plugin
+/idd-framework:interview I want to build a tool that helps volunteers schedule shifts.
+```
+
+After IDD produces a ready Spec with recorded human readiness approval and a
+current clean gap-check, use `$guildhall-quest Implement SPEC-<your-id>` in Codex
+or `/guildhall:quest Implement SPEC-<your-id>` in Claude, replacing the placeholder
+with your actual Spec ID. Guildhall's execution ends at `review`; human approval
+and subsequent validation remain required.
+
+## What happens during a feature quest?
+
+1. **Plan:** clarify the task, inspect project guidance and save a durable plan.
+2. **Test:** a fresh worker writes the acceptance tests and observes expected RED.
+3. **Build:** an implementation worker makes those tests pass; refactor if needed.
+4. **Review:** independent reviewers assess the relevant security, documentation
+   and production concerns. Conditional reviews run when the change calls for them.
+5. **Close:** verify the project, record the outcome and prepare a PR draft.
+
+The test → build → refactor sequence stays ordered. Independent reviews may run
+in parallel when the host supports it. For IDD work, a bounded recorder handles
+approved status/report edits while Mordain's own edits remain limited to the plan.
+
+## Host support and limits
+
+| Route | What has been checked |
+|---|---|
+| Codex | Native and standalone installation; portable feature, prototype, debug and selected refusal workflows. |
+| Claude Code native plugin | Installation and native prototype execution; existing command, agents and hooks preserved. |
+| Claude Code standalone skill | Installation checked; portable quest execution in Claude remains unverified. |
+| Other Agent Skills apps | Require host-specific verification, especially independent workers and shell execution. |
+
+Skill loading alone is not enough to execute a quest. Missing required worker or
+verification capabilities must stop execution. Portable role scopes are
+instructions; they do not reproduce Claude's native hooks or create an OS sandbox.
+The feature evaluation used explicitly synthetic readiness inputs, not real human
+approval. See the [verification report](docs/reviews/2026-09-19-portability-execution.md)
+for evidence and remaining limits.
+
+## Reference and contributing
+
+- [Plugin reference](plugin/README.md): native Claude usage and detailed workflows.
+- [Character roster](plugin/CHARACTERS.md): eighteen specialists and one diagnostic agent.
+- [Portable workflow](plugin/portable/references/quest.md): host-neutral execution contract.
+- [Contributor guide](docs/contributing-agents.md) and [AGENTS.md](AGENTS.md): source ownership and checks.
+- [Design history](docs/superpowers/): previous architecture and model-routing decisions.
+
+Native Claude components live in `plugin/agents/`, `plugin/commands/` and
+`plugin/hooks/`. Portable sources live in `plugin/portable/`; the complete
+`plugin/skills/guildhall-quest/` bundle is generated by `scripts/build_portable.py`.
+Contributors use Python 3.12+; users do not need the build tooling to load the skill.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+[MIT](LICENSE).
