@@ -1,7 +1,8 @@
 # Guildhall installation and host support
 
-Version **0.9.1**, published on `main`, provides one complete `guildhall-quest` skill and
-native Codex metadata. Claude's `/guildhall:quest`, nineteen agent definitions
+Version **0.10.0 is a release candidate**, available through the `main` commands
+below after merge. It includes the optional Jev routing helper, one complete
+`guildhall-quest` skill and native Codex metadata. Claude's `/guildhall:quest`, nineteen agent definitions
 and hooks remain available. Choose one route per quest to avoid duplicate entry
 points. Guildhall works independently; IDD is optional. See
 [using Guildhall with IDD](../README.md#optional-use-with-idd) if you want to add
@@ -139,7 +140,33 @@ needs no consumer Python dependencies. Executing an IDD Spec requires a safe YAM
 parser and actual recorded readiness approval. Native agents, model aliases and
 hooks are not installed by this route.
 
+## Optional routing setup after installation
+
+Restart the host after installing or updating. Locate the installed
+`guildhall-quest` directory containing `SKILL.md`, `resources/` and `scripts/`.
+Native Claude uses `${CLAUDE_PLUGIN_ROOT}/skills/guildhall-quest`; standalone and
+Codex paths depend on the selected installation scope. Use the installed bundle,
+not `plugin/portable`, which is an authoring source.
+
+Follow [the routing guide](model-routing.md) to prepare `.guildhall/routing.json`
+before a quest. Python **3.12+** is required only for the optional routing helper;
+normal skill loading and off-mode dispatch do not need it. Native Claude's
+existing Python hooks retain their separate prerequisites. Set
+`TYPESAFE_API_KEY` in the environment of the terminal/process launching the host
+when external routing calls are wanted. Never put the key in the policy, prompt,
+receipt or command arguments. A GUI app may not inherit your terminal environment.
+
+Start with explicitly activated shadow mode. Shadow uses supported host profiles
+without adaptive qualification and preserves baseline dispatch. Adaptive is
+limited to reviewed docs/PR qualifications; no live-qualified profiles ship.
+Neither installation, a policy file nor an API key is activation. Ordinary
+Guildhall and IDD integration remain independent of Jev.
+
 ## Published installation check
+
+The following published checks describe **0.9.1**, not live qualification of the
+0.10.0 router. Current candidate checks and remaining limits are tracked in the
+[routing verification report](reviews/2026-09-21-jev-routing.md).
 
 On 2026-09-20, all four GitHub installation routes above passed in isolated
 profiles: native Codex, native Claude, standalone Codex and standalone Claude.

@@ -9,6 +9,24 @@ from build_portable import build, ROOT, DEST
 
 def validate(root: Path = ROOT) -> None:
     build(root, check=True)
+    # Execute the standalone module without importing it into the generated tree:
+    # packaging validation must not create an unknown __pycache__ output.
+    helper = root / DEST / 'scripts/route_model.py'
+    namespace = {'__name__': '_routing_validation', '__file__': str(helper)}
+    exec(compile(helper.read_bytes(), str(helper), 'exec'), namespace)
+    for name, constant in [('policy', 'POLICY_SCHEMA'), ('request', 'REQUEST_SCHEMA')]:
+        schema = json.loads((root / DEST / f'resources/schemas/{name}.schema.json').read_text())
+        schema.pop('$schema')
+        schema.pop('$comment')
+        if schema != namespace[constant]:
+            raise ValueError(f'routing schema drift: {name}')
+    example = json.loads((root / DEST / 'resources/examples/off-request.json').read_text())
+    policy_example = json.loads((root / DEST / 'resources/examples/off-policy.json').read_text())
+    namespace['validate_request'](example)
+    if example['policy'] != policy_example or policy_example['mode'] != 'off':
+        raise ValueError('routing examples must agree and remain off')
+    if any(c['qualification'] is not None for c in policy_example['candidates']):
+        raise ValueError('examples cannot ship qualified profiles')
     paths = ['plugin/plugin.json','plugin/.codex-plugin/plugin.json','plugin/.claude-plugin/plugin.json']
     manifests = [json.loads((root/p).read_text()) for p in paths]
     portable, codex, claude = manifests

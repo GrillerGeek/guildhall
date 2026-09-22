@@ -4,6 +4,12 @@ Every adventurer in the Guildhall has a calling. Their personality is their disc
 
 These are flavor, not agent names. The adventurers answer to `prototype-builder`, `test-author`, etc. Mordain is not an adventurer — he is the voice of the Guildhall itself, embodied in the `/quest` command.
 
+The Model rows below are native Claude frontmatter defaults, not observed
+execution identities or Codex quality tiers. Valid user selections take
+precedence; optional [Jev-assisted routing](../docs/model-routing.md) can apply
+qualified settings for docs and PR roles. It changes neither these characters
+nor the nineteen-definition inventory. The router is a helper, not an adventurer.
+
 ---
 
 ## Mordain the Keeper — *The Guildmaster*

@@ -46,6 +46,20 @@ writer contract. Author/reviewer ambiguity returns to the author; it is not an
 excuse to have a different worker guess. Wren uses existing Exploration lineage,
 never creates an absent map, and leaves decisions to `idd-resolve`.
 
+## Optional routing at every worker boundary
+
+Use [the shared routing contract](routing.md) for all Guildhall workers, including
+fast lanes and pre-plan consultations. Absent/off policy leaves ordinary dispatch
+unchanged and never invokes Python. Explicit user choice precedes role override,
+then active routing, then eligible baseline; invalid explicit choices hold.
+Before enabled calls, capture user activation and reviewed host/profile evidence,
+prepare permitted bounded facts, and carry returned routing state serially across
+all workers. Test-author routing sees only its permitted Spec/API/test handoff.
+Buffer pre-plan receipts, then record them in the plan; no-plan fast lanes include
+them in their final response. Append worker/outcome/retry and trustworthy model
+metadata after execution. Routing cannot alter this protocol's gates, independent
+contexts, permissions, retry limits, selected reviewers or lifecycle ownership.
+
 ## Plan and brief
 
 Read applicable project guidance (`AGENTS.md`, scoped rules and the active host's

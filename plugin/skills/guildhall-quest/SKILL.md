@@ -23,7 +23,10 @@ context does not contain implementation details. If the host cannot provide
 that separation, stop before feature writes and explain the missing capability.
 Never simulate independent adventurers by changing personas in one conversation.
 
-Use the user's configured model by default. Do not translate Claude model
+Use the user's configured model by default. Optional explicitly activated
+[model routing](references/routing.md) applies the same user-choice → role-choice
+→ routing → eligible-baseline precedence on every worker path. Absent/off policy
+skips the helper entirely: ordinary quests require no Python or API credential. Do not translate Claude model
 aliases into another provider's names. Report observed model metadata when the
 host supplies it; otherwise record `unknown`.
 
