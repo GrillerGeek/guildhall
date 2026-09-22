@@ -1,7 +1,7 @@
 # Jev routing implementation quest
 
 - Mode: feature, non-IDD prose specification.
-- Status: implementation and all reviews PASS; PR publication pending.
+- Status: implementation complete, all reviews PASS; PR #33 created.
 - Source specification: [approved implementation plan](../../plans/2026-09-21-jev-assisted-routing.md).
 - Human authorization: user requested Guildhall implementation of that plan,
   documentation and a PR. This is not IDD artifact/lifecycle approval.
@@ -432,9 +432,9 @@ GREEN acceptance or any post-green review; no completed build retry is consumed.
 
 ## Open items
 
-PR publication remains. All implementation, documentation, automated checks and
-selected reviews are complete. Live Jev and host qualification are an explicit
-follow-up, not a claim of this release.
+All requested implementation, documentation, local automated checks, selected
+reviews and PR publication are complete. Live Jev and host qualification remain
+an explicit follow-up, not a claim of this release.
 
 ## Review findings and correction cycle
 
@@ -683,3 +683,24 @@ The activating operator owns obtaining and independently reviewing that evidence
 before adaptive promotion. Observed worker models remain unknown without trusted
 host metadata. Any subsequent relevant implementation/evidence change requires
 re-review. No such change occurred after this PASS.
+
+## Publication and final deliverable verification
+
+Rook drafted the PR title/body from the full reviewed branch, carrying Garran's
+runbook verbatim and clearly distinguishing offline evidence from live follow-up.
+Mordain verified the saved documentation, complete 41-file implementation/evidence
+snapshot, plan coverage and all deliverables before publication. No relevant
+implementation/evidence bytes changed after Aldric's PASS; this final plan entry
+is the permitted closing orchestration output.
+
+Implementation commit: `271b854` (`feat: add optional Jev-assisted routing for
+Claude and Codex`). The prior `c73a887` planning commit is included. Mordain pushed
+`codex/jev-routing-plan` and created [GitHub PR #33](https://github.com/GrillerGeek/guildhall/pull/33)
+against `main`, as explicitly requested. Publication uses Rook's draft with its
+create-PR instruction/footer and pending-publication quote removed now that the
+PR exists; the operational runbook remains verbatim. GitHub check results live
+on that PR; local verification is recorded above.
+
+All requested outputs exist. No merge, release, tag, personal installation or
+external marketplace change was performed. Standalone IDD routing, live Jev
+compatibility and adaptive qualification remain the documented next phase.
