@@ -2,7 +2,8 @@
 
 *A gathering place for adventurers.*
 
-A TDD-ordered coding agent harness for Claude Code, tuned for Opus-tier orchestration — Opus 5 is the recommended seat.
+A TDD-ordered coding agent harness for Claude Code, with a portable skill for
+Claude and Codex. Mordain uses the model configured for the parent session.
 
 ## The guild
 
@@ -31,11 +32,22 @@ The eighteen adventurers:
 | **Kael the Tracker** | `debug-investigator` | Ranger. Finds root cause; does NOT fix. | Sonnet |
 | **Wren Mistwalker** *(gated: fog + exploration lineage)* | `fog-cartographer` | Wayfinder. Writes quest-discovered unknowns back to the linked IDD Exploration. | Haiku |
 
-Plus one diagnostic: **`model-echo`** — dispatched first in every quest, deliberately on a model different from its own frontmatter, to verify which routing mechanism (explicit dispatch parameter, frontmatter, or neither) is actually in effect.
+These Model entries mirror native Claude frontmatter defaults. Explicit user
+choices and qualified optional routing can override dispatch settings.
+
+Plus one diagnostic: **`model-echo`** — requested on a model different from its
+frontmatter to collect an unverified hint. Its self-report cannot establish
+which model executed or which routing mechanism took precedence. Trusted host
+metadata is required; otherwise observed identity stays `unknown`.
 
 Full character sheets in [`CHARACTERS.md`](CHARACTERS.md).
 
 ## Installation
+
+Version **0.10.0 is a release candidate**. The [installation guide](../docs/installation.md)
+covers this repository's Codex, Claude and standalone routes, updates and removal.
+The `main` route receives 0.10.0 after merge; the separate marketplace below is
+not updated by this change.
 
 ### From the marketplace (recommended)
 
@@ -64,7 +76,7 @@ git pull
 
 ## Flow at a glance
 
-For a feature quest, Mordain runs: **model-echo self-check → (optional Aldric) → Seraphine → Bruga → (optional Tink) → parallel fan-out (Oriana + Cassian always; Vance / Thalia / Cassia / Garran / Ysolde / Vera / Lior gated by trigger) → Rook** — with a committed `plan.md` opening the quest and a PR draft closing it. The plan file's `## Reviewers selected` section records which gated reviewers fired and why.
+For a feature quest, Mordain runs: **model-echo diagnostic → (optional Aldric) → Seraphine → Bruga → (optional Tink) → parallel fan-out (Oriana + Cassian always; Vance / Thalia / Cassia / Garran / Ysolde / Vera / Lior gated by trigger) → Rook** — with a committed `plan.md` opening the quest and a PR draft closing it. The plan file's `## Reviewers selected` section records which gated reviewers fired and why.
 
 Prototype mode skips to Pip. Debug mode starts with Kael.
 
@@ -127,15 +139,40 @@ Guildhall is the implementation-side complement to the [IDD-framework](https://g
 
 ## Cost posture
 
-The orchestrator runs on the parent session model for reasoning-heavy planning — the current Opus (Opus 5) by default, per Anthropic's guidance that most agent workloads should start on Opus; run `/quest` from a Claude Fable 5 session for the hardest quests (orchestration is the one seat where top-tier spend pays for itself; adventurers never dispatch on `fable`). Workers run on Sonnet for execution. If a worker proves overkill on Sonnet, downgrade to Haiku per-agent in its frontmatter — but judge the downgrade by **cost per completed task, not per token**: a cheaper model that breaks gates, burns Mordain's retry budget, or returns blocked costs more than the token savings. The plan files are the measurement instrument — gates held/broken and retries are recorded per quest, and a bad downgrade shows up as recurring entries in `## Lessons for the Guildhall`. Every quest's plan file also records the orchestrating model in its `parent_model` frontmatter, so cost and quality are attributable per quest.
+The orchestrator inherits the parent session model. The roster supplies native
+worker defaults; Fable remains forbidden for Claude adventurers. Assess model
+changes by completed-task quality, retries and measured usage, not token price
+alone. Plan records retain evidence, but requested settings and model self-reports
+do not establish execution identity or billing. Missing usage/cost stays unknown;
+subscription usage cannot be converted into an assumed API bill.
 
-**How routing works:** each adventurer declares its intended model in its `plugin/agents/<name>.md` frontmatter — the canonical tier source. At dispatch time Mordain resolves each tier from the roster table inside `quest.md` (a validator-enforced mirror of that frontmatter, since v0.6.1 — reading the agent file directly only as a fallback) and passes it explicitly as the `model` parameter on the `Agent(...)` dispatch call. This is a workaround for an upstream Claude Code issue where subagent frontmatter `model:` values were silently ignored — the explicit dispatch parameter is honored where the frontmatter alone was not. (Re-verified 2026-06-10: current Claude Code honors the frontmatter again when no parameter is given; the explicit parameter still takes precedence and is retained as a belt-and-braces measure.) The `model-echo` self-check at the start of every quest verifies routing is functioning — Mordain dispatches it with `model: "haiku"`, deliberately different from its `sonnet` frontmatter, so the reply reveals *which* mechanism routed it: `haiku` means the dispatch parameter is honored, `sonnet` means only the frontmatter is honored (cost posture intact, workaround inert), anything else means neither.
+**How routing works:** valid per-dispatch user selection precedes a role override,
+then activated routing, then the eligible roster/frontmatter baseline. Native
+Claude always receives the resolved literal model argument, including a full ID
+when actually supported. Frontmatter aliases remain defaults. Host settings may
+override or substitute the request; record trusted observed settings separately
+or `unknown`. Earlier model-echo observations were diagnostic history, not proof
+of precedence or cost.
 
-**What the `⚠️` banner means during a quest:** if Mordain emits a model-routing self-check warning at the start of your quest, neither the dispatch parameter nor the agent frontmatter was honored (environment variable, enterprise plan constraint, or deeper Claude Code issue). Investigate before trusting the cost posture for that quest. A softer note — "param ignored; frontmatter honored" — means tier routing still landed and cost posture holds, but the belt-and-braces parameter is inert on your Claude Code version.
+## Optional Jev-assisted routing
+
+The single bundled helper serves native Claude and portable Claude/Codex.
+`off` is the default and skips the helper; `shadow` records recommendations while
+preserving baseline dispatch; `adaptive` can apply reviewed qualifications only
+for `docs-writer` and `pr-author`. Shadow does not require qualified profiles.
+No live-qualified profiles ship, and no cost or quality improvement is claimed.
+
+Use [the setup and operations guide](../docs/model-routing.md) before a quest.
+Enabled routing needs Python 3.12+ and explicit policy activation; external calls
+read `TYPESAFE_API_KEY` from the host process environment. An API key alone enables
+nothing. Ordinary Guildhall needs neither Jev nor IDD. The
+[shared contract](skills/guildhall-quest/references/routing.md) defines data,
+qualification, fallback, receipts and serial per-quest state. The helper cannot
+change reviewers, permissions, lifecycle gates or retry budgets.
 
 ## Portable quest candidate
 
-Version 0.9.1 additionally ships `skills/guildhall-quest/SKILL.md` for capable
+Version 0.10.0 ships `skills/guildhall-quest/SKILL.md` for capable
 non-Claude hosts. It bundles its role references and uses host-native independent
 workers. The Claude command/agent/hook route documented above is preserved;
 standalone installation does not register those native Claude components.

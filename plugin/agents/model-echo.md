@@ -1,7 +1,7 @@
 ---
 name: model-echo
 description: |
-  Diagnostic probe. Dispatched by Mordain at the start of every quest to verify that subagent model routing is working. Declares `model: sonnet` in its own frontmatter while Mordain dispatches it with an explicit `model: "haiku"` parameter — the deliberate disagreement makes the reply discriminating. A report of haiku means the dispatch parameter is honored; sonnet means only the frontmatter is honored; anything else means neither mechanism routed the dispatch. Not a roleplay adventurer.
+  Nonblocking diagnostic context. Dispatched with an explicit haiku request against sonnet frontmatter. Reports an environment hint or unknown; worker prose never proves actual model identity or that a dispatch override was honored. Trusted host metadata is required for attribution. Not a roleplay adventurer.
 model: sonnet
 color: gray
 tools: ["Bash"]
@@ -21,14 +21,14 @@ Your ENTIRE reply is a single line of the form `model: <string>` — the first c
 Try these in order until you have a non-empty answer:
 
 1. Run `echo "$ANTHROPIC_MODEL"` via Bash. If the output is a non-empty string, that is your answer.
-2. If `$ANTHROPIC_MODEL` is unset or empty, fall back to self-introspection: state your best estimate of the model you are running on based on what your harness has exposed to you. Prefer the short alias (`sonnet`, `opus`, `haiku`) if you can tell; otherwise include whatever identifier you have. If you genuinely cannot tell, return `model: unknown`.
+2. If `$ANTHROPIC_MODEL` is unset or empty, return `model: unknown`. Do not infer identity from prose, capabilities or introspection. Even a nonempty environment value is only a configuration hint, not observed execution identity.
 
 ## Hard rules
 
 - Your reply MUST end with a line starting `model: ` (literal, including the space after the colon). Aim for that being your only line.
-- If `$ANTHROPIC_MODEL` is empty, do NOT say so — emit nothing about the fallback. Go straight to introspection and output only the single `model: <string>` line.
+- If `$ANTHROPIC_MODEL` is empty, do NOT say so — emit nothing about the fallback. Output only `model: unknown`.
 - No preamble of any kind. Your reply's first characters are `model: `. Never describe how you determined the answer.
 - Do NOT explain your reasoning.
-- Do NOT run any Bash command other than `echo "$ANTHROPIC_MODEL"`. (Self-introspection requires no command at all and remains allowed per the fallback above.)
+- Do NOT run any Bash command other than `echo "$ANTHROPIC_MODEL"`. Do not run another probe or paid model request.
 - Do NOT write any file.
 - Do NOT attempt to dispatch other agents.

@@ -15,7 +15,9 @@ Use the host's wait/message interfaces to collect results. Do not create
 user-visible tasks as a substitute for workers unless the user requests them.
 
 Leave model/effort overrides unset to inherit user configuration unless the user
-has selected an available override for this role. A role's Claude tier is not an
+has selected an available override for this role or has explicitly activated
+the [routing contract](routing.md) with reviewed qualification. Apply its validated
+nonnull dispatch settings only when the actual callable interface supports them. A role's Claude tier is not an
 instruction to pick a Codex model. The role's effort description explains the
 work; it is not evidence that any requested effort level was actually applied.
 
@@ -31,7 +33,8 @@ using this standalone portable skill instead, use fresh native worker contexts
 and the bundled role body; do not assume the named Guildhall agents or plugin
 hooks are installed. A standalone skill does not register them.
 
-Retain native routing when actually using native agents. Do not infer that a
+When actually using native agents, retain explicit model arguments and roster
+baselines, subject to the shared user → role → routing → baseline precedence. Do not infer that a
 model override worked from the worker guessing its own identity. Use actual host
 metadata if exposed; otherwise record requested model separately from observed
 model, with observed `unknown`.
@@ -69,3 +72,22 @@ Browser tools vary by host. Discover a supported browser tool/skill; retain
 Vera's requirement for an existing Playwright setup and reachable app. Missing
 browser access makes the UI check blocked, not passed. Do not install a browser
 plugin or modify user configuration just to make the report green.
+
+## Shared optional routing adapter
+
+For all three routes, follow [routing](routing.md) before each new worker,
+including fast lanes, pre-plan consultation, prototype/debug workers, review
+fan-out and PR drafting. Serialize helper decisions and carry its returned quest
+state forward before dispatching concurrent workers. A policy file or API key
+is not consent: capture explicit activation, exact summary preview consent when
+used, and hashes of reviewed baseline/qualification evidence. Only actual host
+metadata can establish observed identity. Keep requested, recommended and observed
+settings separate; lost attribution or substitution suspends further adaptive
+choices while preserving in-flight work. The model-echo diagnostic and external
+IDD assignments remain outside adaptive routing.
+
+Use the helper at this installed skill's `scripts/route_model.py`; native Claude
+uses the same generated helper through its plugin root. Never select a different
+skill or modify host configuration to obtain controls. Unknown runtime/credential
+or unsupported controls uses an eligible baseline or holds, according to the
+shared contract. Absent/off policy skips Python entirely.
