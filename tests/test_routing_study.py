@@ -138,6 +138,26 @@ class RunnerTests(unittest.TestCase):
         decision['study_recommendation']['receipt']['input_fingerprint']='task'
         self.assertEqual(self.r['select'](self.directory,run['id'],decision)['candidate'],'b')
 
+    def test_live_outcome_usage_and_effort_must_match_capture(self):
+        self.m['synthetic']=False;self.m['host']['evidence_requirement']='execution_observed'
+        for c in self.m['candidates']:c['effort']='high'
+        state=self.prepare()
+        for run,change in zip(state['runs'],['usage','effort','valid']):
+            packet=self.r['claim'](self.directory,run['id'])
+            out=self.outcome()
+            out['host_report']=dict(synthetic=False,complete=True,worker_id=out['worker_id'],
+                scope=dict(host='codex-skill',role='docs-writer',category='docs'),requested=packet['settings'],
+                host=dict(version='synthetic',configuration_revision='synthetic'),evidence_level='execution_observed',
+                observed=dict(model='concrete-fixture',effort='high'),
+                usage=dict(meters=dict(host=dict(usage_tokens=100))))
+            if change=='usage':out['host_report']['usage']['meters']['host']['usage_tokens']=500
+            if change=='effort':out['host_report']['observed']['effort']=None
+            if change=='usage':
+                with self.assertRaises(ValueError):self.r['record'](self.directory,run['id'],out)
+                out['usage_tokens']=500
+            result=self.r['record'](self.directory,run['id'],out)
+            self.assertEqual('<host-evidence>' in result['violations'],change=='effort')
+
     def test_complete_offline_study_exports_evaluator_input(self):
         state=self.prepare(full=True)
         def finish(directory,state,development):

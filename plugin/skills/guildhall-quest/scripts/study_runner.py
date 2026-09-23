@@ -192,6 +192,17 @@ def record(directory,run_id,outcome):
                 and report.get('host',{}).get('configuration_revision')==host['configuration_revision']
                 and report.get('evidence_level') in levels
                 and levels.index(report['evidence_level'])>=levels.index(host['evidence_requirement']))
+            if matches:
+                usage=report.get('usage');need(type(usage) is dict)
+                meters=usage.get('meters');need(type(meters) is dict)
+                host_usage=meters.get('host');need(type(host_usage) is dict and 'usage_tokens' in host_usage)
+                # A mismatched total must be corrected before recording; otherwise
+                # the next claim could undercount the study's consumed budget.
+                need(outcome['usage_tokens']==host_usage['usage_tokens'])
+                if host['evidence_requirement']=='execution_observed':
+                    observed=report.get('observed',{})
+                    matches=(type(observed) is dict and observed.get('model') is not None
+                        and (candidate['effort'] is None or observed.get('effort')==candidate['effort']))
             if not matches:violations.append('<host-evidence>')
         if time.time()-run['started_at']>state['manifest']['timeout_seconds'] or (outcome['elapsed_ms'] or 0)>state['manifest']['timeout_seconds']*1000:
             violations.append('<time-budget>')

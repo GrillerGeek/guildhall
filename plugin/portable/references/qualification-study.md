@@ -72,7 +72,10 @@ Save a reviewed outcome object with exactly these fields:
 
 Live records with missing/mismatched host evidence receive a violation. The report
 must match the worker, role/category, requested settings, host revision/build and
-required evidence level. Evidence hashes still require independent review; they
+required evidence level, including selected effort when execution observation is
+required. A reported usage total that conflicts with the normalized host capture
+is refused before recording so it cannot undercount the next run's budget.
+Evidence hashes still require independent review; they
 are not authentication. Use fully correlated records, not the final response's
 usage or a worker's claim about its model. Do not count first-to-last assistant
 message time as whole-assignment elapsed time when it omits the initial request.
