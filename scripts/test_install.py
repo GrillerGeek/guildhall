@@ -8,6 +8,8 @@ from pathlib import Path
 import shutil
 import subprocess
 import tempfile
+import sys
+import re
 from evaluate_portable import snapshot
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -38,8 +40,8 @@ def main():
     if args.skills_cli:
         report['skills_version']=args.skills_version
     print(temp,flush=True)
-    def run(argv,env,cwd):
-        r=subprocess.run(list(map(str,argv)),cwd=cwd,env=env,text=True,capture_output=True,timeout=120)
+    def run(argv,env,cwd,input_text=None):
+        r=subprocess.run(list(map(str,argv)),cwd=cwd,env=env,text=True,capture_output=True,timeout=120,input=input_text)
         receipts.append({'argv':list(map(str,argv)),'cwd':str(cwd),'code':r.returncode,'stdout':r.stdout,'stderr':r.stderr})
         if r.returncode:
             raise RuntimeError(f'{argv[0]} failed: {r.stderr[-1000:]}')
@@ -55,6 +57,33 @@ def main():
                 'XDG_STATE_HOME':str(home/'.state'),'GIT_CONFIG_NOSYSTEM':'1',
                 'GIT_CONFIG_GLOBAL':os.devnull,'DISABLE_TELEMETRY':'1','DO_NOT_TRACK':'1',
                 'CI':'1','NO_COLOR':'1'}
+    def installed_tools(bundle, env, cwd):
+        guide=bundle/'references/model-routing.md'
+        assert 'Credentials and activation' in guide.read_text(), 'Missing installed guide'
+        for target in re.findall(r'\]\(([^)]+)\)',guide.read_text()):
+            if '://' in target or target.startswith('#'):
+                continue
+            path=(guide.parent/target.split('#')[0]).resolve()
+            assert path.is_relative_to(bundle.resolve()) and path.is_file(), 'Broken installed guide link'
+        result=json.loads(run([sys.executable,'-I','-B',bundle/'scripts/route_model.py'],env,cwd,
+                              (bundle/'resources/examples/off-request.json').read_text()))
+        assert result['reason']=='router_disabled' and result['state']['calls_used']==0
+        current=json.loads(run([sys.executable,'-I','-B',bundle/'scripts/route_model.py'],env,cwd,
+                               (bundle/'resources/examples/off-request-v4.json').read_text()))
+        assert current['schema_version']==4 and current['reason']=='router_disabled' and current['state']['calls_used']==0
+        evaluation=json.loads(run([sys.executable,'-I','-B',bundle/'scripts/evaluate_routing.py','--demo'],env,cwd))
+        assert evaluation['synthetic'] and evaluation['qualification'] is False
+        headroom=json.loads(run([sys.executable,'-I','-B',bundle/'scripts/routing_study.py'],env,cwd,
+                                (bundle/'resources/examples/headroom-packet.json').read_text()))
+        assert headroom['status']=='headroom_observed' and headroom['qualification'] is False
+        run([sys.executable,'-I','-B',bundle/'scripts/study_runner.py','--help'],env,cwd)
+        usage=json.loads(run([sys.executable,'-I','-B',bundle/'scripts/routing_usage.py'],env,cwd,
+                             (bundle/'resources/examples/usage-records.json').read_text()))
+        assert usage['meters']['host']['usage_tokens']==120 and usage['meters']['host']['cost_usd'] is None
+        for source,level in [('claude','execution_observed'),('codex','configuration_verified')]:
+            evidence=json.loads(run([sys.executable,'-I','-B',bundle/'scripts/routing_evidence.py'],env,cwd,
+                (bundle/f'resources/examples/{source}-capture.json').read_text()))
+            assert evidence['evidence_level']==level and evidence['qualification'] is False
     try:
         if args.native_codex:
             case=temp/'native-codex';env=environment(case);source=case/'source';source.mkdir()
@@ -69,6 +98,7 @@ def main():
             assert any(x['name']=='guildhall' and x['enabled'] and x['version']==json.loads((ROOT/'plugin/.codex-plugin/plugin.json').read_text())['version'] for x in listing['installed'])
             shutil.rmtree(source)
             assert snapshot(installed)==expected,'Native cache depends on removed source'
+            installed_tools(installed/'skills/guildhall-quest',env,case)
             report['native_codex']='passed: installed/enabled, exact bytes/modes, source removal'
         if args.native_claude:
             case=temp/'native-claude';env=environment(case);source=case/'source';source.mkdir()
@@ -89,6 +119,7 @@ def main():
             assert snapshot(installed)==expected,'Native Claude cached contents/modes differ'
             shutil.rmtree(source)
             assert snapshot(installed)==expected,'Native Claude cache depends on removed source'
+            installed_tools(installed/'skills/guildhall-quest',env,project)
             report['native_claude']='passed: project installation/enabled, exact bytes/modes, source removal'
         if args.skills_cli:
             for host in ['codex','claude-code']:
@@ -101,6 +132,7 @@ def main():
                 assert snapshot(installed)==expected,'Standalone installed bytes/modes differ'
                 shutil.rmtree(source)
                 assert snapshot(installed)==expected,'Standalone copy depends on removed source'
+                installed_tools(installed,env,project)
                 report[host]='passed: exact copied bytes/modes and source removal'
             # Repository-root discovery must select the complete generated
             # bundle, not the similarly named canonical authoring source.
@@ -116,6 +148,7 @@ def main():
                 assert snapshot(installed)==expected,'Repository discovery selected an incomplete/different bundle'
                 shutil.rmtree(source)
                 assert snapshot(installed)==expected,'Repository-root copy depends on removed source'
+                installed_tools(installed,env,project)
                 report[f'repository_{host}']='passed: repository discovery selects exact complete bundle; source removal'
         report['status']='passed'
     except Exception as exc:

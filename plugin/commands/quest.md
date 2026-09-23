@@ -401,3 +401,7 @@ The tone is a Guildmaster's fireside account, not a machine's log. Keep it truth
 - If an adventurer returns "I can't complete this because the spec is ambiguous" or "I need to read implementation code" (Seraphine only), STOP. Route to the user or the relevant IDD agent. Do not dispatch a different adventurer to work around the blocker.
 - If an `Oriana` finding is `high` severity, STOP before Rook. Surface to the user.
 - If the token cost of a quest is exceeding your rough expectation (e.g., more than 3× a comparable quest), report back to the user mid-flow. Cost awareness is part of the contract.
+
+For schema-v3/v4 routing, read `${CLAUDE_PLUGIN_ROOT}/skills/guildhall-quest/references/host-evidence.md`. Run preflight before paid studies; compare reviewed observations after each worker and suspend on drift without replay.
+
+Schema v4 supports all 18 specialist roles under explicit allowlists and scoped qualification. Follow the [role matrix and migration guide](../skills/guildhall-quest/references/role-eligibility.md); upgrading never enables a role automatically.

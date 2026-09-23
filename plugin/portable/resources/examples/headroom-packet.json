@@ -1,0 +1,222 @@
+{
+  "manifest": {
+    "schema_version": 1,
+    "study_id": "synthetic-study",
+    "synthetic": true,
+    "objective": "latency",
+    "seed": 5,
+    "repeats": 2,
+    "baseline_candidate": "a",
+    "candidates": [
+      {
+        "id": "a",
+        "model": "synthetic-alpha",
+        "effort": null
+      },
+      {
+        "id": "b",
+        "model": "synthetic-beta",
+        "effort": null
+      }
+    ],
+    "fixtures": [
+      {
+        "id": "f0",
+        "split": "development",
+        "role": "docs-writer",
+        "category": "docs",
+        "prompt": "Update task.txt with ready.",
+        "rubric": "The requested file contains ready.",
+        "allowed_files": [
+          "task.txt"
+        ],
+        "deterministic_candidate": "a"
+      },
+      {
+        "id": "f1",
+        "split": "development",
+        "role": "docs-writer",
+        "category": "docs",
+        "prompt": "Update task.txt with ready.",
+        "rubric": "The requested file contains ready.",
+        "allowed_files": [
+          "task.txt"
+        ],
+        "deterministic_candidate": "a"
+      },
+      {
+        "id": "f2",
+        "split": "development",
+        "role": "docs-writer",
+        "category": "docs",
+        "prompt": "Update task.txt with ready.",
+        "rubric": "The requested file contains ready.",
+        "allowed_files": [
+          "task.txt"
+        ],
+        "deterministic_candidate": "a"
+      },
+      {
+        "id": "f3",
+        "split": "holdout",
+        "role": "docs-writer",
+        "category": "docs",
+        "prompt": "Update task.txt with ready.",
+        "rubric": "The requested file contains ready.",
+        "allowed_files": [
+          "task.txt"
+        ],
+        "deterministic_candidate": "a"
+      }
+    ],
+    "router_overhead": {
+      "elapsed_ms": 5,
+      "usage_tokens": 0,
+      "cost_usd": null
+    },
+    "max_relative_spread": 0.25,
+    "max_runs": 100,
+    "timeout_seconds": 60,
+    "usage_budget_tokens": 100000,
+    "host": {
+      "route": "codex-skill",
+      "evidence_requirement": "configuration_verified",
+      "client_version": "synthetic",
+      "configuration_revision": "synthetic"
+    }
+  },
+  "observations": [
+    {
+      "fixture_id": "f0",
+      "repeat": 0,
+      "candidate": "a",
+      "accepted": true,
+      "critical_misses": 0,
+      "violations": 0,
+      "elapsed_ms": 100,
+      "usage_tokens": 100,
+      "cost_usd": null
+    },
+    {
+      "fixture_id": "f0",
+      "repeat": 0,
+      "candidate": "b",
+      "accepted": true,
+      "critical_misses": 0,
+      "violations": 0,
+      "elapsed_ms": 50,
+      "usage_tokens": 100,
+      "cost_usd": null
+    },
+    {
+      "fixture_id": "f0",
+      "repeat": 1,
+      "candidate": "a",
+      "accepted": true,
+      "critical_misses": 0,
+      "violations": 0,
+      "elapsed_ms": 100,
+      "usage_tokens": 100,
+      "cost_usd": null
+    },
+    {
+      "fixture_id": "f0",
+      "repeat": 1,
+      "candidate": "b",
+      "accepted": true,
+      "critical_misses": 0,
+      "violations": 0,
+      "elapsed_ms": 50,
+      "usage_tokens": 100,
+      "cost_usd": null
+    },
+    {
+      "fixture_id": "f1",
+      "repeat": 0,
+      "candidate": "a",
+      "accepted": true,
+      "critical_misses": 0,
+      "violations": 0,
+      "elapsed_ms": 100,
+      "usage_tokens": 100,
+      "cost_usd": null
+    },
+    {
+      "fixture_id": "f1",
+      "repeat": 0,
+      "candidate": "b",
+      "accepted": true,
+      "critical_misses": 0,
+      "violations": 0,
+      "elapsed_ms": 50,
+      "usage_tokens": 100,
+      "cost_usd": null
+    },
+    {
+      "fixture_id": "f1",
+      "repeat": 1,
+      "candidate": "a",
+      "accepted": true,
+      "critical_misses": 0,
+      "violations": 0,
+      "elapsed_ms": 100,
+      "usage_tokens": 100,
+      "cost_usd": null
+    },
+    {
+      "fixture_id": "f1",
+      "repeat": 1,
+      "candidate": "b",
+      "accepted": true,
+      "critical_misses": 0,
+      "violations": 0,
+      "elapsed_ms": 50,
+      "usage_tokens": 100,
+      "cost_usd": null
+    },
+    {
+      "fixture_id": "f2",
+      "repeat": 0,
+      "candidate": "a",
+      "accepted": true,
+      "critical_misses": 0,
+      "violations": 0,
+      "elapsed_ms": 100,
+      "usage_tokens": 100,
+      "cost_usd": null
+    },
+    {
+      "fixture_id": "f2",
+      "repeat": 0,
+      "candidate": "b",
+      "accepted": true,
+      "critical_misses": 0,
+      "violations": 0,
+      "elapsed_ms": 50,
+      "usage_tokens": 100,
+      "cost_usd": null
+    },
+    {
+      "fixture_id": "f2",
+      "repeat": 1,
+      "candidate": "a",
+      "accepted": true,
+      "critical_misses": 0,
+      "violations": 0,
+      "elapsed_ms": 100,
+      "usage_tokens": 100,
+      "cost_usd": null
+    },
+    {
+      "fixture_id": "f2",
+      "repeat": 1,
+      "candidate": "b",
+      "accepted": true,
+      "critical_misses": 0,
+      "violations": 0,
+      "elapsed_ms": 50,
+      "usage_tokens": 100,
+      "cost_usd": null
+    }
+  ]
+}

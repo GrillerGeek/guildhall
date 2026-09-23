@@ -1,5 +1,37 @@
 # Changelog
 
+## 0.14.0 — Unreleased
+
+- Make all 18 specialists eligible through explicit schema-v4 role allowlists.
+- Preserve legacy schemas, qualification gates, role contracts and off defaults.
+- Add installed role matrix, migration instructions and synthetic study fixture seeds.
+
+## 0.13.0 — Unreleased
+
+- Add development headroom diagnostics before paid holdout work.
+- Add isolated study worktrees, non-replaying claims, actual artifact grading and frozen exports.
+- Separate quality, missing-evidence and efficiency outcomes without relaxing qualification.
+
+## 0.12.0 — Unreleased
+
+- Add read-only preflight and task-owned Claude/Codex capture inspection.
+- Separate configuration and execution evidence in explicit routing schema v3.
+- Bind qualification to objective and detect host/alias/evidence drift.
+- Document desktop capture limitations without treating requests as observation.
+
+## 0.11.0 — Unreleased
+
+- Add offline, scoped subscription-usage normalization with replay and retry accounting.
+- Add explicit routing schema v2 for role/category measurement facts; retain v1.
+- Ship subscription setup and unknown-cost examples without fabricated billing.
+
+## 0.10.1 — Unreleased
+
+- Bundle the routing guide and evaluator for standalone installations.
+- Enforce Python 3.12 before routing requests, preserving trusted quest state.
+- Replace policy candidate IDs with opaque transport labels.
+- Verify installed tools and links after source removal.
+
 ## 0.10.0 — Unreleased
 
 - Add optional Jev-assisted specialist model routing through one bundled helper

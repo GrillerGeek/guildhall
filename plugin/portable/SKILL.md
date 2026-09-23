@@ -33,3 +33,5 @@ host supplies it; otherwise record `unknown`.
 The installed bundle contains its own role and workflow references. Resolve
 these paths from this skill directory, not from the consuming project. Read
 project-specific instructions from the consuming project's applicable guidance.
+
+For optional model routing setup, read the [installed guide](references/model-routing.md).

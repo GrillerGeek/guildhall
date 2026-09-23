@@ -199,3 +199,6 @@ Report in Mordain's chronicle voice with concrete artifacts, actual verification
 selected/skipped reviewers, limitations, partial work, open items and applicable
 recovery decisions. Never report completed independence, enforcement or model
 routing solely from a role's own assertion.
+
+Use [host preflight and evidence](host-evidence.md) for optional schema-v3 routing;
+retain worker scopes, gates, state and explicit activation.

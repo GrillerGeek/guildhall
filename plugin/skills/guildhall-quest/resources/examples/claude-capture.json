@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "synthetic": true,
+  "format": "claude-transcript-v1",
+  "host": {
+    "application": "synthetic desktop",
+    "executable": "/synthetic/codex",
+    "version": "fixture-v1",
+    "identity_source": "host_handshake",
+    "worker_tool": "synthetic-worker",
+    "configuration_revision": "revision-1",
+    "model_selection": true,
+    "effort_selection": true,
+    "independent_workers": true,
+    "fresh_context": true
+  },
+  "worker": {
+    "id": "w",
+    "session_id": "s",
+    "role": "docs-writer",
+    "category": "docs",
+    "requested": {
+      "model": "alias",
+      "effort": null
+    }
+  },
+  "turns": [
+    {
+      "id": "t",
+      "attempt_id": "a",
+      "response_ids": [
+        "r"
+      ],
+      "status": "completed"
+    }
+  ],
+  "inventory_complete": true,
+  "records": [
+    {
+      "type": "assistant",
+      "agentId": "w",
+      "sessionId": "s",
+      "message": {
+        "id": "r",
+        "model": "concrete-1",
+        "usage": {
+          "input_tokens": 100,
+          "output_tokens": 20,
+          "cache_read_input_tokens": 10,
+          "cache_creation_input_tokens": 0
+        }
+      }
+    }
+  ]
+}

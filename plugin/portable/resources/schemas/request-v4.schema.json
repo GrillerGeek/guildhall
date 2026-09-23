@@ -1,0 +1,1009 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "Generated contract snapshot; validate against runtime definitions.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "enum": [
+        4
+      ],
+      "type": "integer"
+    },
+    "policy": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "enum": [
+            4
+          ],
+          "type": "integer"
+        },
+        "mode": {
+          "enum": [
+            "off",
+            "shadow",
+            "adaptive"
+          ],
+          "type": "string"
+        },
+        "router_model": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "key_env": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "max_calls": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "data_mode": {
+          "enum": [
+            "categories",
+            "summary"
+          ],
+          "type": "string"
+        },
+        "objective": {
+          "enum": [
+            "latency",
+            "usage",
+            "cost"
+          ],
+          "type": "string"
+        },
+        "min_confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "allowed_candidates": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32,
+            "pattern": "^(?!defer$)[a-z][a-z0-9_-]{0,31}$"
+          },
+          "uniqueItems": true,
+          "maxItems": 16,
+          "minItems": 0
+        },
+        "adaptive_roles": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "accessibility-reviewer",
+              "architecture-reviewer",
+              "debug-investigator",
+              "docs-writer",
+              "feature-implementer",
+              "fog-cartographer",
+              "migration-safety-reviewer",
+              "observability-reviewer",
+              "ops-readiness-reviewer",
+              "performance-reviewer",
+              "plugin-validator",
+              "pr-author",
+              "prototype-builder",
+              "refactorer",
+              "reliability-reviewer",
+              "security-reviewer",
+              "test-author",
+              "ui-test-author"
+            ],
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "maxItems": 18,
+          "minItems": 0
+        },
+        "max_cost_usd": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "max_latency_ms": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 32,
+                "pattern": "^(?!defer$)[a-z][a-z0-9_-]{0,31}$"
+              },
+              "host": {
+                "enum": [
+                  "claude-native",
+                  "claude-skill",
+                  "codex-skill"
+                ],
+                "type": "string"
+              },
+              "model": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "effort": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "none",
+                      "minimal",
+                      "low",
+                      "medium",
+                      "high",
+                      "xhigh",
+                      "max",
+                      "ultra"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "roles": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "accessibility-reviewer",
+                    "architecture-reviewer",
+                    "debug-investigator",
+                    "docs-writer",
+                    "feature-implementer",
+                    "fog-cartographer",
+                    "migration-safety-reviewer",
+                    "observability-reviewer",
+                    "ops-readiness-reviewer",
+                    "performance-reviewer",
+                    "plugin-validator",
+                    "pr-author",
+                    "prototype-builder",
+                    "refactorer",
+                    "reliability-reviewer",
+                    "security-reviewer",
+                    "test-author",
+                    "ui-test-author"
+                  ],
+                  "type": "string"
+                },
+                "uniqueItems": true,
+                "maxItems": 18,
+                "minItems": 1
+              },
+              "categories": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "docs",
+                    "pr",
+                    "implementation",
+                    "tests",
+                    "debug",
+                    "review",
+                    "prototype",
+                    "refactor"
+                  ],
+                  "type": "string"
+                },
+                "uniqueItems": true,
+                "maxItems": 8,
+                "minItems": 1
+              },
+              "capabilities": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256,
+                  "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+                },
+                "uniqueItems": true,
+                "maxItems": 16,
+                "minItems": 0
+              },
+              "context_tokens": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10000000
+              },
+              "quality": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "latency_ms": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "cost_usd": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "usage_tokens": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "profile_revision": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "qualification": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "report_hash": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$",
+                        "minLength": 64,
+                        "maxLength": 64
+                      },
+                      "profile_hash": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$",
+                        "minLength": 64,
+                        "maxLength": 64
+                      },
+                      "expires_at": {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      },
+                      "host_revision": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      "router_request": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      "router_identity": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      "roles": {
+                        "type": "array",
+                        "items": {
+                          "enum": [
+                            "accessibility-reviewer",
+                            "architecture-reviewer",
+                            "debug-investigator",
+                            "docs-writer",
+                            "feature-implementer",
+                            "fog-cartographer",
+                            "migration-safety-reviewer",
+                            "observability-reviewer",
+                            "ops-readiness-reviewer",
+                            "performance-reviewer",
+                            "plugin-validator",
+                            "pr-author",
+                            "prototype-builder",
+                            "refactorer",
+                            "reliability-reviewer",
+                            "security-reviewer",
+                            "test-author",
+                            "ui-test-author"
+                          ],
+                          "type": "string"
+                        },
+                        "uniqueItems": true,
+                        "maxItems": 18,
+                        "minItems": 1
+                      },
+                      "categories": {
+                        "type": "array",
+                        "items": {
+                          "enum": [
+                            "docs",
+                            "pr",
+                            "implementation",
+                            "tests",
+                            "debug",
+                            "review",
+                            "prototype",
+                            "refactor"
+                          ],
+                          "type": "string"
+                        },
+                        "uniqueItems": true,
+                        "maxItems": 8,
+                        "minItems": 1
+                      },
+                      "evidence_level": {
+                        "enum": [
+                          "configuration_verified",
+                          "execution_observed"
+                        ],
+                        "type": "string"
+                      },
+                      "observed_model": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 256
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "observed_effort": {
+                        "anyOf": [
+                          {
+                            "enum": [
+                              "none",
+                              "minimal",
+                              "low",
+                              "medium",
+                              "high",
+                              "xhigh",
+                              "max",
+                              "ultra"
+                            ],
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "objective": {
+                        "enum": [
+                          "latency",
+                          "usage",
+                          "cost"
+                        ],
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "report_hash",
+                      "profile_hash",
+                      "expires_at",
+                      "host_revision",
+                      "router_request",
+                      "router_identity",
+                      "roles",
+                      "categories",
+                      "evidence_level",
+                      "observed_model",
+                      "observed_effort",
+                      "objective"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "measurements": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "role": {
+                      "enum": [
+                        "accessibility-reviewer",
+                        "architecture-reviewer",
+                        "debug-investigator",
+                        "docs-writer",
+                        "feature-implementer",
+                        "fog-cartographer",
+                        "migration-safety-reviewer",
+                        "observability-reviewer",
+                        "ops-readiness-reviewer",
+                        "performance-reviewer",
+                        "plugin-validator",
+                        "pr-author",
+                        "prototype-builder",
+                        "refactorer",
+                        "reliability-reviewer",
+                        "security-reviewer",
+                        "test-author",
+                        "ui-test-author"
+                      ],
+                      "type": "string"
+                    },
+                    "category": {
+                      "enum": [
+                        "docs",
+                        "pr",
+                        "implementation",
+                        "tests",
+                        "debug",
+                        "review",
+                        "prototype",
+                        "refactor"
+                      ],
+                      "type": "string"
+                    },
+                    "basis": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 256
+                    },
+                    "quality": {
+                      "anyOf": [
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "latency_ms": {
+                      "anyOf": [
+                        {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "cost_usd": {
+                      "anyOf": [
+                        {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "usage_tokens": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "role",
+                    "category",
+                    "basis",
+                    "quality",
+                    "latency_ms",
+                    "cost_usd",
+                    "usage_tokens"
+                  ],
+                  "additionalProperties": false
+                },
+                "uniqueItems": true,
+                "maxItems": 144,
+                "minItems": 0
+              }
+            },
+            "required": [
+              "id",
+              "host",
+              "model",
+              "effort",
+              "roles",
+              "categories",
+              "capabilities",
+              "context_tokens",
+              "quality",
+              "latency_ms",
+              "cost_usd",
+              "usage_tokens",
+              "profile_revision",
+              "qualification",
+              "measurements"
+            ],
+            "additionalProperties": false
+          },
+          "uniqueItems": true,
+          "maxItems": 16,
+          "minItems": 0
+        },
+        "required_evidence": {
+          "enum": [
+            "configuration_verified",
+            "execution_observed"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "mode",
+        "router_model",
+        "key_env",
+        "timeout_ms",
+        "max_calls",
+        "data_mode",
+        "objective",
+        "min_confidence",
+        "allowed_candidates",
+        "adaptive_roles",
+        "max_cost_usd",
+        "max_latency_ms",
+        "candidates",
+        "required_evidence"
+      ],
+      "additionalProperties": false
+    },
+    "activation": {
+      "type": "object",
+      "properties": {
+        "policy_hash": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$",
+              "minLength": 64,
+              "maxLength": 64
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "external_requests": {
+          "type": "boolean"
+        },
+        "summary_preview_hash": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$",
+              "minLength": 64,
+              "maxLength": 64
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "evidence_hashes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "minLength": 64,
+            "maxLength": 64
+          },
+          "uniqueItems": true,
+          "maxItems": 64,
+          "minItems": 0
+        }
+      },
+      "required": [
+        "policy_hash",
+        "external_requests",
+        "summary_preview_hash",
+        "evidence_hashes"
+      ],
+      "additionalProperties": false
+    },
+    "host": {
+      "type": "object",
+      "properties": {
+        "route": {
+          "enum": [
+            "claude-native",
+            "claude-skill",
+            "codex-skill"
+          ],
+          "type": "string"
+        },
+        "client_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "provider": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "worker_tool": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "independent_workers": {
+          "type": "boolean"
+        },
+        "fresh_context": {
+          "type": "boolean"
+        },
+        "model_selection": {
+          "type": "boolean"
+        },
+        "effort_selection": {
+          "type": "boolean"
+        },
+        "attribution": {
+          "enum": [
+            "verified",
+            "unknown"
+          ],
+          "type": "string"
+        },
+        "configuration_revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "evidence_hash": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$",
+              "minLength": 64,
+              "maxLength": 64
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "baseline_candidate": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 32,
+              "pattern": "^(?!defer$)[a-z][a-z0-9_-]{0,31}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "allowed_settings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "effort": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "none",
+                      "minimal",
+                      "low",
+                      "medium",
+                      "high",
+                      "xhigh",
+                      "max",
+                      "ultra"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "model",
+              "effort"
+            ],
+            "additionalProperties": false
+          },
+          "uniqueItems": true,
+          "maxItems": 64,
+          "minItems": 0
+        },
+        "evidence_level": {
+          "enum": [
+            "unknown",
+            "configuration_verified",
+            "execution_observed"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "route",
+        "client_version",
+        "provider",
+        "worker_tool",
+        "independent_workers",
+        "fresh_context",
+        "model_selection",
+        "effort_selection",
+        "attribution",
+        "configuration_revision",
+        "evidence_hash",
+        "baseline_candidate",
+        "allowed_settings",
+        "evidence_level"
+      ],
+      "additionalProperties": false
+    },
+    "task": {
+      "type": "object",
+      "properties": {
+        "role": {
+          "enum": [
+            "accessibility-reviewer",
+            "architecture-reviewer",
+            "debug-investigator",
+            "docs-writer",
+            "feature-implementer",
+            "fog-cartographer",
+            "migration-safety-reviewer",
+            "observability-reviewer",
+            "ops-readiness-reviewer",
+            "performance-reviewer",
+            "plugin-validator",
+            "pr-author",
+            "prototype-builder",
+            "refactorer",
+            "reliability-reviewer",
+            "security-reviewer",
+            "test-author",
+            "ui-test-author"
+          ],
+          "type": "string"
+        },
+        "category": {
+          "enum": [
+            "docs",
+            "pr",
+            "implementation",
+            "tests",
+            "debug",
+            "review",
+            "prototype",
+            "refactor"
+          ],
+          "type": "string"
+        },
+        "ambiguity": {
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "type": "string"
+        },
+        "risk": {
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "type": "string"
+        },
+        "required_capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+          },
+          "uniqueItems": true,
+          "maxItems": 16,
+          "minItems": 0
+        },
+        "context_bucket": {
+          "enum": [
+            "small",
+            "medium",
+            "large"
+          ],
+          "type": "string"
+        },
+        "summary": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 1000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "role",
+        "category",
+        "ambiguity",
+        "risk",
+        "required_capabilities",
+        "context_bucket",
+        "summary"
+      ],
+      "additionalProperties": false
+    },
+    "baseline": {
+      "type": "object",
+      "properties": {
+        "model": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "effort": {
+          "anyOf": [
+            {
+              "enum": [
+                "none",
+                "minimal",
+                "low",
+                "medium",
+                "high",
+                "xhigh",
+                "max",
+                "ultra"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "model",
+        "effort"
+      ],
+      "additionalProperties": false
+    },
+    "selection": {
+      "type": "object",
+      "properties": {
+        "user_candidate": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 32,
+              "pattern": "^(?!defer$)[a-z][a-z0-9_-]{0,31}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "role_candidate": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 32,
+              "pattern": "^(?!defer$)[a-z][a-z0-9_-]{0,31}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "user_candidate",
+        "role_candidate"
+      ],
+      "additionalProperties": false
+    },
+    "state": {
+      "type": "object",
+      "properties": {
+        "calls_used": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "provider_failed": {
+          "type": "boolean"
+        },
+        "adaptive_suspended": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "calls_used",
+        "provider_failed",
+        "adaptive_suspended"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "policy",
+    "activation",
+    "host",
+    "task",
+    "baseline",
+    "selection",
+    "state"
+  ],
+  "additionalProperties": false
+}

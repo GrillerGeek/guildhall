@@ -76,6 +76,9 @@ def qualify(req):
 
 
 def provider(choice='fast', confidence=0.95, ids=('base', 'fast')):
+    mapping = {cid: f'p{i}' for i, cid in enumerate(ids)}
+    choice = mapping.get(choice, choice)
+    ids = tuple(mapping.values())
     return dict(model='synthetic-jev-version-1', answers=dict(route=dict(type='choice',
         choice=choice, confidence=confidence,
         probabilities={cid: (1.0 if cid == choice else 0.0) for cid in (*ids, 'defer')})),
@@ -335,7 +338,7 @@ class RoutingTests(unittest.TestCase):
         question = payload['questions']['route']
         self.assertEqual(set(question), {'type', 'instructions', 'criteria'})
         self.assertEqual(question['type'], 'choice')
-        self.assertEqual(set(question['criteria']), {'base', 'fast', 'defer'})
+        self.assertEqual(set(question['criteria']), {'p0', 'p1', 'defer'})
         self.assertTrue(all(isinstance(v, str) for v in question['criteria'].values()))
         self.assertIsInstance(json.loads(payload['state']), dict)
         serialized = json.dumps(payload)
@@ -352,7 +355,7 @@ class RoutingTests(unittest.TestCase):
         result = self.invoke(activate(req))
         self.assertIn(req['task']['summary'], json.dumps(self.calls[0][0]))
         self.assertNotIn(req['task']['summary'], json.dumps(result))
-        self.assertEqual(set(self.calls[0][0]['questions']['route']['criteria']), {'base', 'fast', 'defer'})
+        self.assertEqual(set(self.calls[0][0]['questions']['route']['criteria']), {'p0', 'p1', 'defer'})
         self.calls.clear()
         req['activation']['summary_preview_hash'] = '0'*64
         result = self.invoke(req)
@@ -421,11 +424,11 @@ class RoutingTests(unittest.TestCase):
         bad = provider(); bad['answers']['route']['confidence'] = float('nan'); answers.append(bad)
         bad = provider(); bad['answers']['route']['confidence'] = True; answers.append(bad)
         bad = provider(); bad['answers']['route']['confidence'] = 1.01; answers.append(bad)
-        bad = provider(); bad['answers']['route']['probabilities']['base'] = 0.3; answers.append(bad)
+        bad = provider(); bad['answers']['route']['probabilities']['p0'] = 0.3; answers.append(bad)
         bad = provider(); del bad['answers']['route']['probabilities']['defer']; answers.append(bad)
         bad = provider(); bad['answers']['route']['probabilities']['extra'] = 0; answers.append(bad)
-        bad = provider(); bad['answers']['route']['probabilities']['base'] = -0.1; answers.append(bad)
-        bad = provider(); bad['answers']['route']['probabilities']['base'] = float('inf'); answers.append(bad)
+        bad = provider(); bad['answers']['route']['probabilities']['p0'] = -0.1; answers.append(bad)
+        bad = provider(); bad['answers']['route']['probabilities']['p0'] = float('inf'); answers.append(bad)
         bad = provider(); bad['usage']['input_tokens'] = True; answers.append(bad)
         bad = provider(); bad['usage']['output_tokens'] = -1; answers.append(bad)
         bad = provider(); bad['answers']['other'] = {}; answers.append(bad)

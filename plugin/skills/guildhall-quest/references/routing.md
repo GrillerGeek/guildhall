@@ -34,7 +34,7 @@ budgets. External IDD assignments remain outside this router.
    `ensure_ascii=False`. Any policy change needs renewed activation. Do not create
    consent by reading a repository file. Default category facts are role,
    category, risk, ambiguity, context bucket, required-capability count, objective,
-   opaque candidate IDs and numeric profile facts/compatibility booleans. No
+   request-local opaque labels and numeric profile facts/compatibility booleans. No
    paths, host versions, model names, evidence hashes, policy or transcript leave
    the host in `state`; the envelope necessarily names the requested Jev model.
 4. Optional `data_mode: summary` adds only the exact summary to those facts.
@@ -141,8 +141,9 @@ eligible baseline. No eligible profiles holds. Singleton choices avoid the API.
 A concrete baseline must exactly match an eligible profile. Applying any override
 requires model-selection support; nonnull effort also requires effort support.
 
-Adaptive is limited to `docs-writer` and `pr-author` in this release. Compute
-qualified choices after hard eligibility. Verified host attribution, approved
+Schema v4 permits all 18 specialist roles in the explicit `adaptive_roles`
+allowlist. Schemas v1–v3 retain their docs-writer/pr-author limit. Compute
+qualified choices after hard eligibility. Required host evidence, approved
 host/report evidence hashes, matching host revision, unexpired role/category
 scope and a matching requested router selector are required. Qualification's
 `profile_hash` binds canonical candidate JSON excluding `qualification`, covering
@@ -162,7 +163,8 @@ ships no live-qualified profile. Shadow arithmetic alone cannot qualify one.
 
 The fixed request is `{model, state, questions: {route: {type: "choice",
 instructions, criteria}}}`; `state` is an allowlisted-facts JSON string. Criteria
-contain only eligible IDs and `defer`. Adaptive sends only qualified IDs. Validate
+contain only request-local labels and `defer`; user policy IDs remain local.
+Validate the exact label set before mapping choices back to eligible policy IDs. Adaptive sends only qualified IDs. Validate
 `{model, answers: {route: {type: "choice", choice, confidence, probabilities}},
 usage?}`. Confidence/probabilities are finite 0..1, the distribution covers exactly
 requested IDs plus defer, and its sum is within 1e-6 of one. Optional usage has
@@ -203,6 +205,7 @@ Stable reason codes:
 | `shadow` | Recommendation recorded; eligible baseline dispatched |
 | `single_candidate` | One qualified adaptive choice, no call |
 | `adaptive_unqualified` | Qualification, controls, role or suspension prevents adaptation |
+| `unsupported_runtime` | Python is older than 3.12; hold without network and preserve valid incoming state; adapter retains eligible baseline or holds |
 | `provider_unavailable` | Credential/runtime unavailable; eligible fallback |
 | `provider_failed` | Provider failure/open circuit; eligible fallback |
 | `budget_exhausted` | Quest call budget consumed; eligible fallback |
@@ -219,3 +222,41 @@ requested fields; malformed requests have null unavailable receipt values.
 Disable by explicitly selecting off or removing the optional policy. This stops
 future routing calls and restores ordinary dispatch; it never cancels, replays
 or reassigns an in-flight worker. Keep partial records for review.
+
+The full [user guide](model-routing.md) and `../scripts/evaluate_routing.py` ship in this bundle.
+
+
+## Scoped measurement schema
+
+V1 remains supported without reinterpretation. V2 requires matching request and
+policy versions, a per-candidate `measurements` array and null legacy global
+metrics. Resolve quality, latency, cost and usage only for the current role and
+task category; absent observations remain unknown. Duplicate scopes are rejected.
+Changing policy version or measurements requires renewed activation and reviewed
+qualification. The installed [guide](model-routing.md#subscription-efficiency-0110)
+explains subscription setup and the bundled usage normalizer.
+
+
+## Host evidence schema v3
+
+Follow the [host evidence guide](host-evidence.md) and run preflight before any
+paid study. V3 keeps scoped metrics and adds explicit required/available evidence
+levels. Setup defaults to execution_observed; configuration_verified is a
+separately reviewed opt-in and never relabels requested values as observation.
+Before approval, inspect task-owned capture and quality reports, not just their
+hashes. After each completed worker, compare profile evidence with `drift()`;
+carry suspension forward on host/configuration or observed identity changes.
+Preserve partial work and never replay an uncertain dispatch. In the configuration
+lane, missing served identity is expected; loss of required configuration evidence
+still suspends routing. Do not fabricate observed model or effort in either lane.
+
+
+For bounded development/holdout evaluation, follow the bundled
+[qualification study workflow](qualification-study.md). No helper launches models
+or automatically promotes a profile.
+
+## All-role eligibility (schema v4)
+
+Follow the [role matrix and migration guide](role-eligibility.md). Eligibility
+never changes role contracts, test-author handoffs, review membership or lifecycle
+gates. Upgrading does not add roles to existing allowlists or qualify profiles.

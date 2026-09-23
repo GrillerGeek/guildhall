@@ -14,7 +14,7 @@ def validate(root: Path = ROOT) -> None:
     helper = root / DEST / 'scripts/route_model.py'
     namespace = {'__name__': '_routing_validation', '__file__': str(helper)}
     exec(compile(helper.read_bytes(), str(helper), 'exec'), namespace)
-    for name, constant in [('policy', 'POLICY_SCHEMA'), ('request', 'REQUEST_SCHEMA')]:
+    for name, constant in [('policy', 'POLICY_SCHEMA'), ('request', 'REQUEST_SCHEMA'), ('policy-v2', 'POLICY_SCHEMA_V2'), ('request-v2', 'REQUEST_SCHEMA_V2'), ('policy-v3', 'POLICY_SCHEMA_V3'), ('request-v3', 'REQUEST_SCHEMA_V3'), ('policy-v4', 'POLICY_SCHEMA_V4'), ('request-v4', 'REQUEST_SCHEMA_V4')]:
         schema = json.loads((root / DEST / f'resources/schemas/{name}.schema.json').read_text())
         schema.pop('$schema')
         schema.pop('$comment')
@@ -27,6 +27,12 @@ def validate(root: Path = ROOT) -> None:
         raise ValueError('routing examples must agree and remain off')
     if any(c['qualification'] is not None for c in policy_example['candidates']):
         raise ValueError('examples cannot ship qualified profiles')
+    v4 = json.loads((root / DEST / 'resources/examples/off-request-v4.json').read_text())
+    v4policy = json.loads((root / DEST / 'resources/examples/off-policy-v4.json').read_text())
+    namespace['validate_request'](v4)
+    if (v4['policy'] != v4policy or v4policy['mode'] != 'off' or v4policy['adaptive_roles']
+        or any(c['qualification'] is not None for c in v4policy['candidates'])):
+        raise ValueError('v4 examples must remain off with no roles activated or qualified')
     paths = ['plugin/plugin.json','plugin/.codex-plugin/plugin.json','plugin/.claude-plugin/plugin.json']
     manifests = [json.loads((root/p).read_text()) for p in paths]
     portable, codex, claude = manifests

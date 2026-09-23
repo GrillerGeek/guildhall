@@ -1,7 +1,7 @@
 # Guildhall installation and host support
 
-Version **0.10.0 is a release candidate**, available through the `main` commands
-below after merge. It includes the optional Jev routing helper, one complete
+Version **0.14.0 is a release candidate**, available through the `main` commands
+below after merge. It includes all-role routing eligibility, usage/evidence/study tools, one complete
 `guildhall-quest` skill and native Codex metadata. Claude's `/guildhall:quest`, nineteen agent definitions
 and hooks remain available. Choose one route per quest to avoid duplicate entry
 points. Guildhall works independently; IDD is optional. See
@@ -157,16 +157,18 @@ when external routing calls are wanted. Never put the key in the policy, prompt,
 receipt or command arguments. A GUI app may not inherit your terminal environment.
 
 Start with explicitly activated shadow mode. Shadow uses supported host profiles
-without adaptive qualification and preserves baseline dispatch. Adaptive is
-limited to reviewed docs/PR qualifications; no live-qualified profiles ship.
+without adaptive qualification and preserves baseline dispatch. Schema v4 makes all 18 specialists eligible for adaptive routing with explicit
+role allowlists and scoped qualification; no live-qualified profiles ship. Read
+the [role matrix and migration guide](../plugin/skills/guildhall-quest/references/role-eligibility.md)
+before expanding an existing policy.
 Neither installation, a policy file nor an API key is activation. Ordinary
 Guildhall and IDD integration remain independent of Jev.
 
 ## Published installation check
 
 The following published checks describe **0.9.1**, not live qualification of the
-0.10.0 router. Current candidate checks and remaining limits are tracked in the
-[routing verification report](reviews/2026-09-21-jev-routing.md).
+current router. Current candidate checks and remaining limits are tracked in the
+[routing issue implementation report](reviews/2026-09-22-routing-issues.md).
 
 On 2026-09-20, all four GitHub installation routes above passed in isolated
 profiles: native Codex, native Claude, standalone Codex and standalone Claude.
