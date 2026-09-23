@@ -116,6 +116,15 @@ class EvidenceTests(unittest.TestCase):
         p=capture_native();p['records'].insert(2,dict(type='turn_context',thread_id='w',turn_id='t',model='other',reasoning_effort=None))
         self.assertEqual(self.module.analyze(p)['evidence_level'],'unknown')
 
+    def test_native_codex_token_count_snapshots_normalize_without_double_counting(self):
+        p=capture_native()
+        p['records']=[r for r in p['records'] if r['type']!='token_usage_record']
+        p['records'].insert(2,dict(type='event_msg',event='token_count',thread_id='w',turn_id='t',
+             totals=dict(input_tokens=60,output_tokens=10,cache_read_input_tokens=5,cache_creation_input_tokens=0,reasoning_tokens=2)))
+        result=self.module.analyze(p)
+        self.assertEqual(result['evidence_level'],'configuration_verified')
+        self.assertEqual(result['usage']['meters']['host']['usage_tokens'],120)
+
     def test_alias_drift_suspends_without_replay(self):
         previous=self.module.analyze(capture());p=capture();p['records'][0]['message']['model']='concrete-2'
         result=self.module.drift(previous,self.module.analyze(p))

@@ -242,18 +242,18 @@ def analyze(capture):
             usage=response_usage[(tid,rid)]
             sum_usage={k:sum_usage[k]+usage.get(k,0) for k in counter_map}
             events.append(token_event(w,turns[tid],rid,_,usage,'capture:'+digest))
-        if not events:
+        cumulative_only=not events
+        if cumulative_only:
             previous={key:0 for key in counter_map}
             all_sequences=[seq for tid in snapshot_order for seq,_ in snapshots[tid]]
             need(all_sequences==sorted(all_sequences))
             for tid in snapshot_order:
-                baseline=dict(previous)
                 for seq,totals in snapshots[tid]:
                     for key in counter_map:
                         value=totals.get(key)
                         need(type(value) is int and value>=previous[key]);previous[key]=value
-                    delta={key:previous[key]-baseline[key] for key in counter_map}
-                    events.append(token_event(w,turns[tid],'turn-total',seq,delta,'capture:'+digest,'cumulative',True))
+                    events.append(token_event(w,turns[tid],'turn-total',seq,{key:previous[key] for key in counter_map},
+                        'capture:'+digest,'cumulative',True))
             sum_usage=dict(previous)
         else:
             previous={key:0 for key in counter_map}
@@ -274,7 +274,8 @@ def analyze(capture):
         for tid,t in turns.items():
             done=completed.get(tid)
             complete=complete and done is not None and done['status']==t['status'] and bool(t['response_ids']) and seen[tid]==set(t['response_ids'])
-            expected.append(dict(worker_id=w['id'],turn_id=tid,attempt_id=t['attempt_id'],meter='host',response_ids=t['response_ids'] or None))
+            expected.append(dict(worker_id=w['id'],turn_id=tid,attempt_id=t['attempt_id'],meter='host',
+                                 response_ids=None if cumulative_only else (t['response_ids'] or None)))
         configs=[contexts.get(tid) for tid in turns]
         consistent=complete and all(c is not None for c in configs) and len({json.dumps(c,sort_keys=True,separators=(',',':')) for c in configs})==1
         initial=configs[0] if configs and configs[0] is not None else None
