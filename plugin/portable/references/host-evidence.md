@@ -19,7 +19,8 @@ them or discover processes itself.
 python3 "$GUILDHALL_SKILL_ROOT/scripts/routing_evidence.py" < preflight.json
 ```
 
-`record_access` is `none`, `claude-owned-transcript` or `codex-owned-jsonrpc`.
+`record_access` is `none`, `claude-owned-transcript`, `codex-owned-jsonrpc` or
+`codex-native-session-records`.
 The report identifies missing runtime, controls, capture access, review and study
 requirements. A candidate evidence lane is a possible next step, not activation.
 The default available modes remain off and shadow pending evidence review.
@@ -27,10 +28,12 @@ Preflight works without an API key or live probe.
 
 ## Read a task-owned capture
 
-The examples are deliberately synthetic: [Claude](../resources/examples/claude-capture.json)
-and [Codex](../resources/examples/codex-capture.json). Supply actual host identity,
-worker/session IDs, requested settings, complete turn/attempt/response inventory,
-and records. Missing or incomplete inventory cannot establish attribution.
+The examples are deliberately synthetic: [Claude](../resources/examples/claude-capture.json),
+[Codex app-server](../resources/examples/codex-capture.json), and
+[Codex native session records](../resources/examples/codex-native-capture.json).
+Supply actual host identity, worker/session IDs, requested settings, complete
+turn/attempt/response inventory, and records. Missing or incomplete inventory
+cannot establish attribution.
 
 ```sh
 python3 "$GUILDHALL_SKILL_ROOT/scripts/routing_evidence.py" < capture.json
@@ -97,11 +100,17 @@ This is evidence about that inspected build, not certification of the different
 0.155.0-alpha.9.2 desktop build reported in issue #36.
 
 The current `collaboration.spawn_agent` result does not itself supply a complete
-app-server capture. If your desktop provides no supported task-owned capture,
-use `record_access: none`: adaptive qualification remains unavailable through
-this adapter. Do not silently replace desktop workers with CLI sessions. A future
-adapter may use reviewed native session records after their actual build-specific
-contract is established; this release does not infer one from private filenames.
+app-server capture. `codex-native-session-v1` now supports reviewed native
+session records for the weaker configuration lane when they include the required
+`session_meta`, `turn_context`, `token_usage_record` and `event_msg` correlation
+across worker/session/turn/response IDs. Missing parent/runtime identity,
+conflicting configuration, mismatched completion, substitutions or inconsistent
+usage counters fail closed to unknown evidence. Keep `record_access: none` when
+those records are unavailable.
+
+Native records still do not expose provider-observed executed model/effort.
+Observed identity remains unknown in this lane, and explicit study/review/activation
+requirements are unchanged.
 
 ## Explicit qualification lanes (routing schemas v3/v4)
 

@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "synthetic": true,
+  "format": "codex-native-session-v1",
+  "host": {
+    "application": "synthetic desktop",
+    "executable": "/synthetic/codex",
+    "version": "fixture-v1",
+    "identity_source": "host_handshake",
+    "worker_tool": "synthetic-worker",
+    "configuration_revision": "revision-1",
+    "model_selection": true,
+    "effort_selection": true,
+    "independent_workers": true,
+    "fresh_context": true
+  },
+  "worker": {
+    "id": "w",
+    "session_id": "s",
+    "role": "docs-writer",
+    "category": "docs",
+    "requested": {
+      "model": "alias",
+      "effort": null
+    }
+  },
+  "turns": [
+    {
+      "id": "t",
+      "attempt_id": "a",
+      "response_ids": [
+        "r"
+      ],
+      "status": "completed"
+    }
+  ],
+  "inventory_complete": true,
+  "records": [
+    {
+      "type": "session_meta",
+      "thread_id": "w",
+      "parent_thread_id": "parent-1",
+      "session_id": "s",
+      "runtime_version": "0.155.0-alpha.16.3"
+    },
+    {
+      "type": "turn_context",
+      "thread_id": "w",
+      "turn_id": "t",
+      "model": "alias",
+      "reasoning_effort": null
+    },
+    {
+      "type": "token_usage_record",
+      "thread_id": "w",
+      "turn_id": "t",
+      "response_id": "r",
+      "usage": {
+        "input_tokens": 100,
+        "output_tokens": 20,
+        "cache_read_input_tokens": 10,
+        "cache_creation_input_tokens": 0,
+        "reasoning_tokens": 5
+      }
+    },
+    {
+      "type": "event_msg",
+      "event": "token_count",
+      "thread_id": "w",
+      "turn_id": "t",
+      "totals": {
+        "input_tokens": 100,
+        "output_tokens": 20,
+        "cache_read_input_tokens": 10,
+        "cache_creation_input_tokens": 0,
+        "reasoning_tokens": 5
+      }
+    },
+    {
+      "type": "event_msg",
+      "event": "task_complete",
+      "thread_id": "w",
+      "turn_id": "t",
+      "status": "completed",
+      "response_ids": [
+        "r"
+      ]
+    }
+  ]
+}
