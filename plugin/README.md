@@ -44,9 +44,9 @@ Full character sheets in [`CHARACTERS.md`](CHARACTERS.md).
 
 ## Installation
 
-Version **0.13.0 includes the installed routing tools**. The [installation guide](https://github.com/GrillerGeek/guildhall/blob/main/docs/installation.md)
+Version **0.14.0 includes the installed routing tools**. The [installation guide](https://github.com/GrillerGeek/guildhall/blob/main/docs/installation.md)
 covers this repository's Codex, Claude and standalone routes, updates and removal.
-The `main` route receives 0.13.0 after merge; the separate marketplace below is
+The `main` route receives 0.14.0 after merge; the separate marketplace below is
 not updated by this change.
 
 ### From the marketplace (recommended)
@@ -159,7 +159,8 @@ of precedence or cost.
 The single bundled helper serves native Claude and portable Claude/Codex.
 `off` is the default and skips the helper; `shadow` records recommendations while
 preserving baseline dispatch; `adaptive` can apply reviewed qualifications only
-for `docs-writer` and `pr-author`. Shadow does not require qualified profiles.
+for explicitly enabled specialists across all 18 roles with schema v4. Shadow
+does not require qualified profiles. See the [role matrix and migration guide](skills/guildhall-quest/references/role-eligibility.md).
 No live-qualified profiles ship, and no cost or quality improvement is claimed.
 
 Use [the setup and operations guide](skills/guildhall-quest/references/model-routing.md) before a quest.
@@ -172,7 +173,7 @@ change reviewers, permissions, lifecycle gates or retry budgets.
 
 ## Portable quest candidate
 
-Version 0.13.0 ships `skills/guildhall-quest/SKILL.md` for capable
+Version 0.14.0 ships `skills/guildhall-quest/SKILL.md` for capable
 non-Claude hosts. It bundles its role references and uses host-native independent
 workers. The Claude command/agent/hook route documented above is preserved;
 standalone installation does not register those native Claude components.

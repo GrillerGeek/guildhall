@@ -103,7 +103,7 @@ this adapter. Do not silently replace desktop workers with CLI sessions. A futur
 adapter may use reviewed native session records after their actual build-specific
 contract is established; this release does not infer one from private filenames.
 
-## Explicit qualification lanes (routing schema v3)
+## Explicit qualification lanes (routing schemas v3/v4)
 
 V1 and V2 policies retain their existing attribution behavior. V3 adds
 `policy.required_evidence` and `host.evidence_level`; the required level defaults

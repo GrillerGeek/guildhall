@@ -2,7 +2,7 @@
 
 Shared maintenance guidance is in [AGENTS.md](AGENTS.md) and
 [the contributor guide](docs/contributing-agents.md). The native Claude
-architecture below remains the established route; the 0.10.0 portable bundle
+architecture below remains the established route; the portable bundle
 is documented separately in [installation](docs/installation.md).
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
@@ -72,9 +72,9 @@ The [routing guide](docs/model-routing.md) and
 [shared contract](plugin/skills/guildhall-quest/references/routing.md) govern the
 single helper used by native Claude and portable Claude/Codex. Absent/off policy
 skips Python and external calls. Shadow needs explicit activation, not adaptive
-qualification. Adaptive supports only evaluated docs/PR roles with reviewed
-host/profile evidence; no qualified profiles ship. Prepare project policy before
-the quest, outside Mordain's plan-only write scope. Any policy change requires
+qualification. Schema v4 makes all 18 specialists eligible for adaptive routing
+with an explicit role allowlist and reviewed role/category/host/profile evidence.
+No qualified profiles ship. Prepare project policy before the quest, outside Mordain's plan-only write scope. Any policy change requires
 renewed activation. Serialize helper decisions and carry returned state across
 workers, even when the workers run concurrently. Keep test-author routing facts
 within its permitted handoff. Routing never changes reviewers, permissions,

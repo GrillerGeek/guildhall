@@ -141,8 +141,9 @@ eligible baseline. No eligible profiles holds. Singleton choices avoid the API.
 A concrete baseline must exactly match an eligible profile. Applying any override
 requires model-selection support; nonnull effort also requires effort support.
 
-Adaptive is limited to `docs-writer` and `pr-author` in this release. Compute
-qualified choices after hard eligibility. Verified host attribution, approved
+Schema v4 permits all 18 specialist roles in the explicit `adaptive_roles`
+allowlist. Schemas v1–v3 retain their docs-writer/pr-author limit. Compute
+qualified choices after hard eligibility. Required host evidence, approved
 host/report evidence hashes, matching host revision, unexpired role/category
 scope and a matching requested router selector are required. Qualification's
 `profile_hash` binds canonical candidate JSON excluding `qualification`, covering
@@ -253,3 +254,9 @@ still suspends routing. Do not fabricate observed model or effort in either lane
 For bounded development/holdout evaluation, follow the bundled
 [qualification study workflow](qualification-study.md). No helper launches models
 or automatically promotes a profile.
+
+## All-role eligibility (schema v4)
+
+Follow the [role matrix and migration guide](role-eligibility.md). Eligibility
+never changes role contracts, test-author handoffs, review membership or lifecycle
+gates. Upgrading does not add roles to existing allowlists or qualify profiles.

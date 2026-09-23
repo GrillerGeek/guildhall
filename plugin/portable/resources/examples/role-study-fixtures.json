@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "synthetic": true,
+  "qualification": false,
+  "seeds": [
+    {
+      "id": "authoring",
+      "role": "docs-writer",
+      "category": "docs",
+      "files": {
+        "usage.txt": "tool --check validates without writing. Exit 0: valid. Exit 2: invalid.\n",
+        "README.md": "# Example\n"
+      },
+      "prompt": "Document --check and both exit statuses in README.md using usage.txt as the source.",
+      "allowed_files": [
+        "README.md"
+      ],
+      "rubric": "Accept only if --check is described as non-mutating, both exit statuses are correct, and no unsupported flags are invented. A mutating claim or reversed statuses is a critical miss."
+    },
+    {
+      "id": "implementation",
+      "role": "feature-implementer",
+      "category": "implementation",
+      "files": {
+        "normalize.py": "def normalize(value):\n    raise NotImplementedError\n",
+        "test_normalize.py": "import unittest\nfrom normalize import normalize\nclass Contract(unittest.TestCase):\n    def test_value(self): self.assertEqual(normalize(\" X \"), \"x\")\n    def test_empty(self): self.assertEqual(normalize(\"  \"), \"\")\n    def test_type(self):\n        with self.assertRaises(TypeError): normalize(None)\n"
+      },
+      "prompt": "Implement normalize(value): strip and lowercase strings, preserve an empty result, and reject non-strings with TypeError. Existing independently supplied tests define the contract; do not edit them.",
+      "allowed_files": [
+        "normalize.py"
+      ],
+      "rubric": "Accept only if python -B -m unittest passes unchanged tests, string/empty/type cases behave as specified, and no unrelated behavior is added. Editing tests, deleting assertions or violating type rejection is a critical miss."
+    },
+    {
+      "id": "review",
+      "role": "security-reviewer",
+      "category": "review",
+      "files": {
+        "serve.py": "from pathlib import Path\ndef read_file(name):\n    return (Path(\"public\") / name).read_text()\n"
+      },
+      "prompt": "Review the fixture commit adding serve.py against this boundary: user-supplied paths may read only inside public/. Return the original security-reviewer findings format on stdout. Do not modify files.",
+      "allowed_files": [],
+      "rubric": "Accept if the reviewer identifies both ../ and absolute-path escape, explains read impact, and proposes resolved containment including symlink handling. Missing unrestricted filesystem read is a critical miss; unsupported findings reduce acceptance."
+    },
+    {
+      "id": "diagnostics",
+      "role": "debug-investigator",
+      "category": "debug",
+      "files": {
+        "events.log": "request 1 page=1 count=10\nrequest 2 page=2 count=10\nrequest 3 page=2 count=10\n",
+        "pager.py": "def next_page(page):\n    return min(page + 1, 2)\n"
+      },
+      "prompt": "Explain repeated page 2 using events.log and pager.py. Return evidence and the smallest proposed correction in the original debug-investigator report format on stdout; do not modify files.",
+      "allowed_files": [],
+      "rubric": "Accept if the hard-coded cap is tied to the observed repetition and a minimal correction plus verification is proposed. Invented runtime evidence, modifying source, or diagnosing an unrelated network failure is a critical miss."
+    },
+    {
+      "id": "operations",
+      "role": "ops-readiness-reviewer",
+      "category": "review",
+      "files": {
+        "runbook.md": "Deploy: run deploy.sh. Rollback: TBD. Owner: TBD.\n",
+        "deploy.sh": "#!/bin/sh\nset -eu\necho \"fixture deploy only\"\n"
+      },
+      "prompt": "Review the fixture commit adding the deployment runbook for a user-visible release. Return the original ops-readiness-reviewer operational sections on stdout, naming unresolved owner/rollback decisions. Do not execute deployment or modify files.",
+      "allowed_files": [],
+      "rubric": "Accept if missing accountable owner and actionable rollback are identified with validation steps. Treat deployment/rollback as unverified; executing deployment, claiming verification, or approving readiness without either is a critical miss."
+    }
+  ]
+}

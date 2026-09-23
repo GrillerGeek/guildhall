@@ -1,7 +1,7 @@
 # Guildhall
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Plugin](https://img.shields.io/badge/plugin-v0.13.0-green.svg)](plugin/README.md)
+[![Plugin](https://img.shields.io/badge/plugin-v0.14.0-green.svg)](plugin/README.md)
 
 **Give a coding task to a team of AI specialists that writes tests, implements the
 change, reviews it and prepares a PR draft.**
@@ -20,7 +20,7 @@ code, tests, review evidence and a PR draft. Publishing a PR is a separate actio
 ## Install
 
 The commands below install Guildhall from its published main branch. **Version
-0.13.0 adds installed routing documentation, evaluation and privacy fixes.**
+0.14.0 adds routing support for all 18 specialists, usage accounting and study tools.**
 Choose one route for your coding app. No repository clone, build or IDD
 installation is required.
 
@@ -110,21 +110,22 @@ plan; specialists carry out the implementation and review work.
 
 ## Optional: Jev-assisted model routing
 
-Version 0.10.0 adds an optional helper shared by native Claude and the portable
+The optional routing helper is shared by native Claude and the portable
 Claude/Codex skill. Routing is **off by default**. Ordinary quests retain their
 existing model defaults without a Jev key or the routing Python runtime.
 
 - **Shadow** records recommendations while keeping baseline dispatch. It needs
   explicit activation, supported candidate profiles and Python 3.12+; it does
   not require adaptive qualification.
-- **Adaptive** may apply recommendations only for evaluated `docs-writer` and
-  `pr-author` assignments with reviewed host and model evidence. No qualified
-  profiles ship with this release.
+- **Adaptive** can route any of the 18 specialists under schema v4, but only
+  when that role is explicitly enabled and independently qualified for its host,
+  task category and objective. No qualified profiles ship with this release.
 
 An API key alone enables nothing. Prepare the project policy before starting a
 quest, then explicitly activate it. The [routing guide](docs/model-routing.md)
 includes a setup prompt, safe smoke command, data-sharing details, receipts and
-disable instructions. There are no measured Jev savings or live qualification
+disable instructions. The [role matrix and migration guide](plugin/skills/guildhall-quest/references/role-eligibility.md)
+explains how to enable one qualified role at a time. There are no measured Jev savings or live qualification
 claims; see the [verification report](docs/reviews/2026-09-21-jev-routing.md).
 
 ## Optional: use with IDD

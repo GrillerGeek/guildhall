@@ -68,6 +68,9 @@ def main():
         result=json.loads(run([sys.executable,'-I','-B',bundle/'scripts/route_model.py'],env,cwd,
                               (bundle/'resources/examples/off-request.json').read_text()))
         assert result['reason']=='router_disabled' and result['state']['calls_used']==0
+        current=json.loads(run([sys.executable,'-I','-B',bundle/'scripts/route_model.py'],env,cwd,
+                               (bundle/'resources/examples/off-request-v4.json').read_text()))
+        assert current['schema_version']==4 and current['reason']=='router_disabled' and current['state']['calls_used']==0
         evaluation=json.loads(run([sys.executable,'-I','-B',bundle/'scripts/evaluate_routing.py','--demo'],env,cwd))
         assert evaluation['synthetic'] and evaluation['qualification'] is False
         headroom=json.loads(run([sys.executable,'-I','-B',bundle/'scripts/routing_study.py'],env,cwd,

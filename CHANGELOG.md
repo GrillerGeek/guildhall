@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.14.0 — Unreleased
+
+- Make all 18 specialists eligible through explicit schema-v4 role allowlists.
+- Preserve legacy schemas, qualification gates, role contracts and off defaults.
+- Add installed role matrix, migration instructions and synthetic study fixture seeds.
+
 ## 0.13.0 — Unreleased
 
 - Add development headroom diagnostics before paid holdout work.

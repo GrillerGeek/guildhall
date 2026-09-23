@@ -88,3 +88,64 @@ Ten isolated installs pass; installed headroom/controller tools execute after
 source removal. Receipts: `guildhall-install-hgsinows/report.json` and
 `guildhall-install-e5n7_rkj/report.json`. PR #40's four hosted checks passed.
 No live provider call, paid study or real profile qualification was performed.
+
+## All specialist roles — 0.14.0
+
+Addresses #35. Schema v4 permits an explicit adaptive allowlist drawn from all
+18 operational roles. Schemas v1/v2/v3 retain their previous behavior and role
+limits. The v4 example starts off, with an empty adaptive allowlist, unknown host
+evidence and no qualifications. Migration changes the policy hash and therefore
+requires renewed activation. No role definitions, native model aliases or hooks
+were changed. Model-echo, parent coordination and external IDD remain excluded.
+
+New tests first failed because schema4 was unsupported (55 subtest failures and
+18 missing-dispatch errors). Final suite: 121 tests pass. Parameterized checks
+exercise all 18 roles across native Claude, standalone Claude and Codex routes,
+plus explicit overrides, absent qualifications/permissions/evidence/controls,
+wrong scope and unchanged legacy behavior. These are synthetic helper checks,
+not proof of host execution or model quality. Role inventory matches the existing
+19 native definitions minus model-echo. Fixture seeds cover authoring, build,
+review, diagnosis and operations; read-only roles retain stdout-only reporting.
+
+Ten isolated installations passed, including the installed v4 off-mode check;
+receipts `guildhall-install-vk9zbsp2/report.json` and
+`guildhall-install-3ib0lo4o/report.json` precede a fixture-prompt clarification
+preserving read-only contracts. All validators, generated checks and whitespace
+checks pass. PR #41's four hosted checks passed, including Python3.12.
+
+## Delivery and decisions
+
+The approved implementation is split into five ordered PRs. Merge in this order,
+retargeting dependent bases if required by GitHub after each merge:
+
+| Order | Change | Version | PR |
+|---|---|---|---|
+| 1 | Installed guide/evaluator, opaque labels, interpreter floor | 0.10.1 | [#38](https://github.com/GrillerGeek/guildhall/pull/38) |
+| 2 | Subscription usage and scoped measurements | 0.11.0 | [#39](https://github.com/GrillerGeek/guildhall/pull/39) |
+| 3 | Host evidence lanes, capture inspection and drift | 0.12.0 | [#40](https://github.com/GrillerGeek/guildhall/pull/40) |
+| 4 | Reproducible study controller and headroom | 0.13.0 | [#41](https://github.com/GrillerGeek/guildhall/pull/41) |
+| 5 | All-role eligibility, migration and fixture seeds | 0.14.0 | `codex/routing-all-roles` |
+
+All three installer manifests advance together at every step. The existing
+skills1.5.25 pin is retained; 1.7.0 was an explicitly tested candidate, not a
+silent dependency upgrade. Canonical portable resources were regenerated into
+complete installation bundles. The original checkout and personal installations
+were not changed. No changes to IDD were needed for these Guildhall issues.
+
+Decisions made within the approved plan: retain Python3.12; use request-local
+opaque labels rather than name filtering; keep subscription tokens separate from
+Jev and unknown dollars; use explicit schema revisions instead of reinterpreting
+old policy hashes; retain execution-observed as the default while documenting
+the approved weaker configuration lane; produce native-host dispatch packets
+instead of silently substituting CLI workers; keep first-time study selection
+explicit; preserve all role contracts and require scope-specific qualification.
+
+Remaining release/operation work is deliberately outside this implementation:
+review and merge the stack, update installations from main, and separately
+approve a project-specific live study if desired. This work neither merges nor
+publishes a release, activates routing, spends on models or certifies a model.
+The current desktop collaboration interface still lacks the task-owned capture
+required by this adapter; configuration-based eligibility is not evidence that
+this particular desktop worker interface can supply it. Incomplete evidence
+continues to prevent qualification. Controller packets cannot enforce OS-level
+isolation or kill native workers; actual hosts enforce permissions and budgets.

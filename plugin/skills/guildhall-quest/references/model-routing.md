@@ -1,6 +1,6 @@
 # Optional Jev-assisted model routing
 
-Guildhall 0.10.1 can ask Jev to recommend a model for a specialist assignment.
+Guildhall can ask Jev to recommend a model for a specialist assignment.
 One bundled Python helper serves native Claude, the standalone Claude skill and
 the Codex skill/plugin. Guildhall validates the result and dispatches through
 the host's actual worker tool. The helper does not launch agents or write files.
@@ -10,7 +10,7 @@ IDD is optional and its external agents are outside this router.
 |---|---|
 | `off` (default) | Ordinary host dispatch; absent/off policy skips the helper and makes no Jev calls. |
 | `shadow` | Records recommendations and dispatches the eligible baseline. Profiles need supported settings, not adaptive qualification. |
-| `adaptive` | Can change dispatch only for evaluated `docs-writer` and `pr-author` assignments with reviewed host/profile evidence. |
+| `adaptive` | Can change dispatch for any of the 18 specialists under schema v4, with explicit role enablement and scoped qualification. |
 
 **No live-qualified profiles ship.** There are no measured cost, latency or
 quality improvements claimed for this release. The [verification report](https://github.com/GrillerGeek/guildhall/blob/main/docs/reviews/2026-09-21-jev-routing.md)
@@ -41,14 +41,14 @@ my explicit activation before external requests. Do not print credentials or
 change host settings to manufacture model controls.
 ```
 
-Use the installed skill's `resources/examples/off-policy.json` as the complete
+Use the installed skill's `resources/examples/off-policy-v4.json` as the complete
 policy template; it contains placeholders, not a working model catalog. Source
 links to the bundled files:
 
-- [Off policy](../resources/examples/off-policy.json)
-- [Complete off request](../resources/examples/off-request.json)
-- [Policy schema](../resources/schemas/policy.schema.json)
-- [Request schema](../resources/schemas/request.schema.json)
+- [Off policy](../resources/examples/off-policy-v4.json)
+- [Complete off request](../resources/examples/off-request-v4.json)
+- [Policy schema](../resources/schemas/policy-v4.schema.json)
+- [Request schema](../resources/schemas/request-v4.schema.json)
 - [Host adapter and routing contract](routing.md)
 
 Profiles bind an opaque candidate ID to one actual host model/effort pair, roles,
@@ -85,7 +85,9 @@ Shadow can recommend without model-selection controls. It never changes the
 worker settings. A singleton eligible choice needs no API call; multiple eligible
 choices require the key unless routing falls back first. Other Guildhall roles
 can participate in shadow if their profiles cover the assignment. Adaptive is
-limited to the two roles above, and never activates automatically.
+available to all 18 specialists with schema v4, and never activates automatically.
+See the [role matrix, qualification and migration instructions](role-eligibility.md).
+Schemas v1–v3 retain their original docs/PR-only adaptive allowlists.
 
 ## Safe offline smoke check
 
@@ -100,7 +102,7 @@ GUILDHALL_SKILL_ROOT='/absolute/path/to/installed/guildhall-quest'
 GUILDHALL_SKILL_ROOT="$(realpath "$GUILDHALL_SKILL_ROOT")"
 python3 --version
 python3 "$GUILDHALL_SKILL_ROOT/scripts/route_model.py" \
-  < "$GUILDHALL_SKILL_ROOT/resources/examples/off-request.json"
+  < "$GUILDHALL_SKILL_ROOT/resources/examples/off-request-v4.json"
 ```
 
 Expect exit 0, `status: "dispatch"`, `reason: "router_disabled"`, null baseline

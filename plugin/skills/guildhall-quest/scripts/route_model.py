@@ -123,6 +123,15 @@ _h3['properties']['evidence_level'] = enum(EVIDENCE_LEVELS)
 _h3['required'].append('evidence_level')
 
 
+# V4 expands eligibility only; old schemas and explicit role allowlists stay intact.
+POLICY_SCHEMA_V4 = copy.deepcopy(POLICY_SCHEMA_V3)
+POLICY_SCHEMA_V4['properties']['schema_version'] = enum([4])
+POLICY_SCHEMA_V4['properties']['adaptive_roles'] = array(enum(ROLES), len(ROLES))
+REQUEST_SCHEMA_V4 = copy.deepcopy(REQUEST_SCHEMA_V3)
+REQUEST_SCHEMA_V4['properties']['schema_version'] = enum([4])
+REQUEST_SCHEMA_V4['properties']['policy'] = POLICY_SCHEMA_V4
+
+
 def metrics(candidate, request):
     if request['schema_version'] == 1:
         return {name: candidate[name] for name in METRIC_NAMES}
@@ -206,7 +215,7 @@ def validate_request(request):
     if len(canonical(request)) > LIMIT:
         raise ValueError('oversize')
     version = request.get('schema_version') if type(request) is dict else None
-    validate(request, {2: REQUEST_SCHEMA_V2, 3: REQUEST_SCHEMA_V3}.get(version, REQUEST_SCHEMA))
+    validate(request, {2: REQUEST_SCHEMA_V2, 3: REQUEST_SCHEMA_V3, 4: REQUEST_SCHEMA_V4}.get(version, REQUEST_SCHEMA))
     policy = request['policy']
     candidates = policy['candidates']
     if request['schema_version'] >= 2:
@@ -257,7 +266,7 @@ def qualified(candidate, request, now):
     q, h, p, t, a = (candidate['qualification'], request['host'], request['policy'],
                       request['task'], request['activation'])
     evidence_ok = h['attribution'] == 'verified'
-    if request['schema_version'] == 3:
+    if request['schema_version'] >= 3:
         required = p['required_evidence']
         evidence_ok = bool(q and EVIDENCE_LEVELS.index(h['evidence_level']) >= EVIDENCE_LEVELS.index(required)
             and EVIDENCE_LEVELS.index(q['evidence_level']) >= EVIDENCE_LEVELS.index(required)
@@ -404,7 +413,7 @@ def route(request, *, transport=None, now=None):
     p, h, t, a = (request[k] for k in ('policy', 'host', 'task', 'activation'))
     baseline = dict(request['baseline'])
     snapshot = {k: h[k] for k in ('route', 'client_version', 'provider', 'worker_tool', 'configuration_revision', 'attribution')}
-    if request['schema_version'] == 3:
+    if request['schema_version'] >= 3:
         snapshot['evidence_level'] = h['evidence_level']
     phash = policy_hash(p)
     receipt.update(policy_hash=phash, baseline=baseline, host_snapshot=snapshot,
