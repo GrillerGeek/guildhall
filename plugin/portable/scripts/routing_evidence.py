@@ -38,7 +38,7 @@ def analyze(capture):
     fields(capture,'schema_version synthetic format host worker turns records inventory_complete')
     need(type(capture['schema_version']) is int and capture['schema_version']==1)
     need(type(capture['synthetic']) is bool and type(capture['inventory_complete']) is bool)
-    need(capture['format'] in ('claude-transcript-v1','codex-app-server-v2'))
+    need(capture['format'] in ('claude-transcript-v1','codex-app-server-v2','codex-native-session-v1'))
     h,w=capture['host'],capture['worker']
     fields(h,'application executable version identity_source worker_tool configuration_revision model_selection effort_selection independent_workers fresh_context')
     for name in ('application','executable','version','identity_source','worker_tool','configuration_revision'):string(h[name])
@@ -90,7 +90,7 @@ def analyze(capture):
         configured={'model':None,'effort':None}
         observed={'model':next(iter(models)) if complete else None,'effort':None}
         route='claude-native'
-    else:
+    elif capture['format']=='codex-app-server-v2':
         # Pair actual app-server request/response IDs; thread configuration is not execution identity.
         requests={};initial=None;turn_config={};completed=set();last_usage={};usage_order=[];incoming=set()
         for seq,r in enumerate(capture['records']):
@@ -164,6 +164,127 @@ def analyze(capture):
         level='configuration_verified' if config_known else 'unknown'
         observed={'model':None,'effort':None};route='codex-skill'
         reasons.append('served_model_and_effort_not_exposed')
+    else:
+        # Native Codex session records can verify acknowledged configuration, not execution identity.
+        meta=[];contexts={};completed={};response_usage={};response_order=[];snapshots={};snapshot_order=[];incoming=set()
+        for seq,r in enumerate(capture['records']):
+            need(type(r) is dict and type(r.get('type')) is str)
+            key=json.dumps(r,sort_keys=True,separators=(',',':'))
+            if key in incoming:continue
+            incoming.add(key)
+            kind=r['type']
+            if kind=='session_meta':
+                for name in ('thread_id','session_id','runtime_version'):string(r.get(name))
+                need(r['thread_id']==w['id'] and r['session_id']==w['session_id'])
+                parent=r.get('parent_thread_id')
+                need(parent is None or type(parent) is str)
+                if type(parent) is str and parent:meta.append((seq,r))
+            elif kind=='turn_context':
+                for name in ('thread_id','turn_id','model'):string(r.get(name))
+                need(r['thread_id']==w['id'] and r['turn_id'] in turns)
+                effort=r.get('reasoning_effort')
+                need(effort is None or type(effort) is str)
+                current=dict(model=r['model'],effort=effort)
+                if r['turn_id'] in contexts and contexts[r['turn_id']]!=current:
+                    complete=False;reasons.append('conflicting_turn_context')
+                contexts[r['turn_id']]=current
+            elif kind=='token_usage_record':
+                for name in ('thread_id','turn_id','response_id'):string(r.get(name))
+                need(r['thread_id']==w['id'] and r['turn_id'] in turns)
+                usage=r.get('usage',{})
+                need(type(usage) is dict)
+                normalized={}
+                for source,target in [('input_tokens','input_tokens'),('output_tokens','output_tokens'),
+                                      ('cache_read_input_tokens','cache_read_input_tokens'),
+                                      ('cache_creation_input_tokens','cache_creation_input_tokens'),
+                                      ('reasoning_tokens','reasoning_tokens')]:
+                    value=usage.get(source)
+                    if value is None:continue
+                    need(type(value) is int and value>=0);normalized[target]=value
+                key=(r['turn_id'],r['response_id'])
+                if key in response_usage and response_usage[key]!=normalized:
+                    complete=False;reasons.append('conflicting_response_usage')
+                else:
+                    if key not in response_usage:response_order.append((seq,key))
+                    response_usage[key]=normalized
+            elif kind=='event_msg':
+                event=r.get('event')
+                need(type(event) is str)
+                if event=='task_complete':
+                    for name in ('thread_id','turn_id','status'):string(r.get(name))
+                    need(r['thread_id']==w['id'] and r['turn_id'] in turns)
+                    ids=r.get('response_ids',[])
+                    need(type(ids) is list and len(ids)<=10000)
+                    for rid in ids:string(rid)
+                    current=dict(status=r['status'],response_ids=ids)
+                    if r['turn_id'] in completed and completed[r['turn_id']]!=current:
+                        complete=False;reasons.append('conflicting_completion')
+                    completed[r['turn_id']]=current
+                    seen[r['turn_id']]=set(ids)
+                elif event=='token_count':
+                    for name in ('thread_id','turn_id'):string(r.get(name))
+                    need(r['thread_id']==w['id'] and r['turn_id'] in turns)
+                    totals=r.get('totals',{})
+                    need(type(totals) is dict)
+                    if r['turn_id'] not in snapshots:snapshot_order.append(r['turn_id'])
+                    snapshots.setdefault(r['turn_id'],[]).append((seq,totals))
+                elif event in ('model_rerouted','substitution_reported'):
+                    complete=False;reasons.append('substitution_reported')
+                else:
+                    need(False)
+            else:
+                need(False)
+        counter_map={'input_tokens':'input_tokens','output_tokens':'output_tokens',
+                     'cache_read_input_tokens':'cache_read_input_tokens','cache_creation_input_tokens':'cache_creation_input_tokens',
+                     'reasoning_tokens':'reasoning_tokens'}
+        sum_usage={key:0 for key in counter_map}
+        for _,(tid,rid) in sorted(response_order):
+            usage=response_usage[(tid,rid)]
+            sum_usage={k:sum_usage[k]+usage.get(k,0) for k in counter_map}
+            events.append(token_event(w,turns[tid],rid,_,usage,'capture:'+digest))
+        if not events:
+            previous={key:0 for key in counter_map}
+            all_sequences=[seq for tid in snapshot_order for seq,_ in snapshots[tid]]
+            need(all_sequences==sorted(all_sequences))
+            for tid in snapshot_order:
+                baseline=dict(previous)
+                for seq,totals in snapshots[tid]:
+                    for key in counter_map:
+                        value=totals.get(key)
+                        need(type(value) is int and value>=previous[key]);previous[key]=value
+                    delta={key:previous[key]-baseline[key] for key in counter_map}
+                    events.append(token_event(w,turns[tid],'turn-total',seq,delta,'capture:'+digest,'cumulative',True))
+            sum_usage=dict(previous)
+        else:
+            previous={key:0 for key in counter_map}
+            all_sequences=[seq for tid in snapshot_order for seq,_ in snapshots[tid]]
+            need(all_sequences==sorted(all_sequences))
+            for tid in snapshot_order:
+                for _,totals in snapshots[tid]:
+                    for key in counter_map:
+                        value=totals.get(key)
+                        need(type(value) is int and value>=previous[key]);previous[key]=value
+            for key in counter_map:
+                if previous[key] and previous[key] < sum_usage[key]:
+                    complete=False;reasons.append('token_count_below_response_usage')
+        parent_link=bool(meta)
+        if not parent_link:reasons.append('missing_parent_association')
+        runtime_known=bool(meta and len({m['runtime_version'] for _,m in meta})==1)
+        if not runtime_known:reasons.append('missing_or_mixed_runtime_version')
+        for tid,t in turns.items():
+            done=completed.get(tid)
+            complete=complete and done is not None and done['status']==t['status'] and bool(t['response_ids']) and seen[tid]==set(t['response_ids'])
+            expected.append(dict(worker_id=w['id'],turn_id=tid,attempt_id=t['attempt_id'],meter='host',response_ids=t['response_ids'] or None))
+        configs=[contexts.get(tid) for tid in turns]
+        consistent=complete and all(c is not None for c in configs) and len({json.dumps(c,sort_keys=True,separators=(',',':')) for c in configs})==1
+        initial=configs[0] if configs and configs[0] is not None else None
+        config_known=consistent and runtime_known and initial['model']==w['requested']['model'] and initial['effort']==w['requested']['effort']
+        configured=initial if config_known else {'model':None,'effort':None}
+        if consistent and initial and not config_known:
+            reasons.append('configured_settings_differ')
+        level='configuration_verified' if config_known else 'unknown'
+        observed={'model':None,'effort':None};route='codex-skill'
+        reasons.append('served_model_and_effort_not_exposed')
     if h['identity_source']=='unconfirmed':level='unknown';reasons.append('executing_host_unconfirmed')
     scope=dict(host=route,role=w['role'],category=w['category'])
     usage=_USAGE['normalize'](dict(schema_version=1,scope=scope,
@@ -200,13 +321,15 @@ def preflight(packet):
     for key in ('application','executable','version','identity_source','worker_tool','configuration_revision'):string(h[key])
     need(h['identity_source'] in ('host_handshake','active_process','unconfirmed'))
     for key in ('model_selection','effort_selection','independent_workers','fresh_context'):need(type(h[key]) is bool)
-    need(packet['record_access'] in ('none','claude-owned-transcript','codex-owned-jsonrpc'))
+    need(packet['record_access'] in ('none','claude-owned-transcript','codex-owned-jsonrpc','codex-native-session-records'))
     missing=[]
     if h['identity_source']=='unconfirmed':missing.append('confirm_executing_host_not_another_installed_binary')
     if sys.version_info<(3,12):missing.append('python_3_12_required')
     for key in ('model_selection','independent_workers','fresh_context'):
         if not h[key]:missing.append(key+'_required_for_adaptive')
-    lane={'none':None,'claude-owned-transcript':'execution_observed','codex-owned-jsonrpc':'configuration_verified'}[packet['record_access']]
+    lane={'none':None,'claude-owned-transcript':'execution_observed',
+          'codex-owned-jsonrpc':'configuration_verified',
+          'codex-native-session-records':'configuration_verified'}[packet['record_access']]
     if lane is None:missing.append('task_owned_supported_capture_unavailable')
     return dict(schema_version=1,host=h,python_version=list(sys.version_info[:3]),
         available_modes=['off','shadow'],candidate_evidence_lane=lane if not missing else None,

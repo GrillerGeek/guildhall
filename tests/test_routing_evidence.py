@@ -28,6 +28,19 @@ def capture(host='claude'):
     return p
 
 
+def capture_native():
+    p=capture('codex');p['format']='codex-native-session-v1'
+    p['records']=[
+        dict(type='session_meta',thread_id='w',parent_thread_id='parent-1',session_id='s',runtime_version='0.155.0-alpha.16.3'),
+        dict(type='turn_context',thread_id='w',turn_id='t',model='alias',reasoning_effort=None),
+        dict(type='token_usage_record',thread_id='w',turn_id='t',response_id='r',
+             usage=dict(input_tokens=100,output_tokens=20,cache_read_input_tokens=10,cache_creation_input_tokens=0,reasoning_tokens=5)),
+        dict(type='event_msg',event='token_count',thread_id='w',turn_id='t',
+             totals=dict(input_tokens=100,output_tokens=20,cache_read_input_tokens=10,cache_creation_input_tokens=0,reasoning_tokens=5)),
+        dict(type='event_msg',event='task_complete',thread_id='w',turn_id='t',status='completed',response_ids=['r'])]
+    return p
+
+
 class EvidenceTests(unittest.TestCase):
     def setUp(self):
         spec=importlib.util.spec_from_file_location('evidence',ROOT/'plugin/portable/scripts/routing_evidence.py')
@@ -39,6 +52,8 @@ class EvidenceTests(unittest.TestCase):
         self.assertIsNone(result['candidate_evidence_lane'])
         self.assertFalse(result['qualification'])
         packet['record_access']='codex-owned-jsonrpc'
+        self.assertEqual(self.module.preflight(packet)['candidate_evidence_lane'],'configuration_verified')
+        packet['record_access']='codex-native-session-records'
         self.assertEqual(self.module.preflight(packet)['candidate_evidence_lane'],'configuration_verified')
 
     def test_claude_observes_concrete_model_not_effort(self):
@@ -87,6 +102,19 @@ class EvidenceTests(unittest.TestCase):
         result=self.module.analyze(p)
         self.assertEqual(result['evidence_level'],'configuration_verified')
         self.assertEqual(result['usage']['meters']['host']['usage_tokens'],120)
+
+    def test_native_codex_session_records_support_configuration_verified(self):
+        result=self.module.analyze(capture_native())
+        self.assertEqual(result['evidence_level'],'configuration_verified')
+        self.assertEqual(result['configured'],dict(model='alias',effort=None))
+        self.assertEqual(result['observed'],dict(model=None,effort=None))
+        self.assertEqual(result['usage']['meters']['host']['usage_tokens'],130)
+
+    def test_native_codex_missing_parent_or_conflicting_context_fails_closed(self):
+        p=capture_native();p['records'][0]['parent_thread_id']=''
+        self.assertEqual(self.module.analyze(p)['evidence_level'],'unknown')
+        p=capture_native();p['records'].insert(2,dict(type='turn_context',thread_id='w',turn_id='t',model='other',reasoning_effort=None))
+        self.assertEqual(self.module.analyze(p)['evidence_level'],'unknown')
 
     def test_alias_drift_suspends_without_replay(self):
         previous=self.module.analyze(capture());p=capture();p['records'][0]['message']['model']='concrete-2'
