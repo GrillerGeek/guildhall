@@ -221,3 +221,61 @@ than 3.12, preserving valid incoming quest state. Use a supported interpreter;
 the host adapter may retain an eligible baseline or hold, and must keep its last
 trusted state. The HTTP child exits 2 without a request on unsupported Python.
 Off-mode quests still skip the helper and have no new Python dependency.
+
+
+## Subscription efficiency (0.11.0)
+
+Choose `objective: usage` to compare measured host tokens while preserving
+`cost_usd: null`. This is a proxy for efficient work, not a conversion to remaining
+subscription limits. Choose `cost` only when comparable monetary measurements
+exist; changing objectives requires a new policy hash and renewed activation.
+A smaller model can take more turns and use more tokens. For example, synthetic
+runs using 120 and 170 tokens favor the 120-token run regardless of model tier.
+
+Use the [subscription request template](../resources/examples/subscription-request.json)
+for schema v2. It remains off and unqualified, with no invented measurements.
+Populate actual host settings through normal setup. V1 policies remain supported
+unchanged. V2 sets both request and policy `schema_version` to 2, adds a
+`measurements` list to every candidate, and requires its four old global metric
+fields to be null. Each measurement names exactly one `role`, `category` and
+measurement `basis`, plus `quality`, `latency_ms`, `cost_usd` and `usage_tokens`.
+Unknown or unmeasured scopes yield null; their facts cannot satisfy a ceiling.
+The same model may have separate measurements for documentation and security.
+
+Migration is explicit: review scoped observations, clear old qualifications, hash
+and activate the new policy. Never relabel global facts as measurements of an
+unmeasured role. Profiles and qualification hashes bind the new measurement table.
+See the [v2 policy schema](../resources/schemas/policy-v2.schema.json) and
+[v2 request schema](../resources/schemas/request-v2.schema.json).
+
+### Normalize observed usage
+
+The bundled normalizer accepts reviewed, task-owned records on stdin:
+
+```sh
+python3 "$GUILDHALL_SKILL_ROOT/scripts/routing_usage.py" < usage-records.json
+```
+
+Start with [the synthetic record example](../resources/examples/usage-records.json).
+Its top-level fields are `schema_version: 1`, `scope` (host/role/category),
+`inventory_complete`, `expected` attempts and `events`. Attempt identity is
+worker/turn/attempt/meter. Each expected attempt lists every response ID, or null
+for an explicitly cumulative stream. Missing inventory is incomplete. This
+format is a reviewed interchange format, not a promise that raw host logs have
+these names; host collectors must establish the inventory and normalize semantics.
+
+Every event includes identity, response ID, sequence, response/cumulative kind,
+host/router meter, completeness, input/output/cache-read/cache-write/reasoning
+counts, `input_includes_cache`, and an evidence reference. Unknown counters are
+null. Counts are nonnegative integers. Normalized output already includes
+reasoning. Input either includes cache (do not add again), or excludes it (both
+cache counts are needed). The latest monotonic update for each response or
+cumulative attempt is counted once; conflicting duplicates and resets are rejected.
+Retries are separate attempts and count their actual consumption. Missing or
+partial responses make the affected meter total unknown, not zero.
+
+The report keeps host and Jev/router meters separate, identifies its measurement
+basis and scope, and always leaves cost unknown. Jev calls do not necessarily
+consume the host subscription quota. No usage report qualifies or activates a
+profile. A collector must not combine incompatible token definitions under one
+scope or omit interrupted/retried attempts from the expected inventory.

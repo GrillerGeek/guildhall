@@ -26,3 +26,19 @@ GitHub CI supplies the minimum Python3.12 lane; local tests used Python3.14.
 
 No live Jev calls, personal installation or qualification was performed. Remaining
 #37 components and issues #34–#36 are addressed by the following planned PRs.
+
+## Subscription usage — 0.11.0
+
+Addresses #34. The bundled normalizer separates host/router meters, deduplicates
+response/cumulative updates, rejects conflicts/resets, counts retries and leaves
+incomplete totals/cost unknown. Routing schema2 binds measurements to role/category;
+v1 remains unchanged. Migration is explicit and invalidates old qualifications.
+
+Eight normalizer witnesses initially failed on the missing module; the scoped
+contract witness rejected unsupported v2 before implementation. Final suite:
+93 tests pass. Native/portable validation, build/whitespace checks and ten isolated
+installations pass. Installed probes execute the normalizer after source removal.
+Receipts: `guildhall-install-5cvv_j4o/report.json` (native+pinned) and
+`guildhall-install-s0r7n7dj/report.json` (skills1.7.0). Synthetic usage example gives
+120 host tokens, null monetary cost and unknown router usage. No quota conversion
+or real savings is claimed. PR #38's four GitHub checks passed, including Python3.12.

@@ -145,7 +145,7 @@ workers or claim synthetic savings as observed results. See the
 
 ## Distribution and versioning
 
-The installed-tooling patch is 0.10.1; increment all three manifests for further
+The usage-contract release is 0.11.0; increment all three manifests for further
 installer-visible changes. Existing native Claude agents/commands/hooks remain
 preserved. Never rewrite historical plans to claim newer evidence. No repository
 change implicitly installs personally, publishes a release or edits the separate
@@ -181,3 +181,6 @@ remote refresh/removal evidence and the separate directory-discovery limitation.
 
 The root evaluator CLI remains a thin compatibility entry point. Maintain the full
 routing guide in `plugin/portable/references/model-routing.md`, then regenerate.
+
+Maintain `routing_usage.py` in the canonical portable scripts. Usage input schema
+1 is separate from routing schema2; v1 routing policy hashes are not rewritten.

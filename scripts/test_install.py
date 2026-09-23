@@ -70,6 +70,9 @@ def main():
         assert result['reason']=='router_disabled' and result['state']['calls_used']==0
         evaluation=json.loads(run([sys.executable,'-I','-B',bundle/'scripts/evaluate_routing.py','--demo'],env,cwd))
         assert evaluation['synthetic'] and evaluation['qualification'] is False
+        usage=json.loads(run([sys.executable,'-I','-B',bundle/'scripts/routing_usage.py'],env,cwd,
+                             (bundle/'resources/examples/usage-records.json').read_text()))
+        assert usage['meters']['host']['usage_tokens']==120 and usage['meters']['host']['cost_usd'] is None
     try:
         if args.native_codex:
             case=temp/'native-codex';env=environment(case);source=case/'source';source.mkdir()

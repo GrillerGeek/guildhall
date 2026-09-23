@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11.0 — Unreleased
+
+- Add offline, scoped subscription-usage normalization with replay and retry accounting.
+- Add explicit routing schema v2 for role/category measurement facts; retain v1.
+- Ship subscription setup and unknown-cost examples without fabricated billing.
+
 ## 0.10.1 — Unreleased
 
 - Bundle the routing guide and evaluator for standalone installations.

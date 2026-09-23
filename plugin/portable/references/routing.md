@@ -223,3 +223,14 @@ future routing calls and restores ordinary dispatch; it never cancels, replays
 or reassigns an in-flight worker. Keep partial records for review.
 
 The full [user guide](model-routing.md) and `../scripts/evaluate_routing.py` ship in this bundle.
+
+
+## Scoped measurement schema
+
+V1 remains supported without reinterpretation. V2 requires matching request and
+policy versions, a per-candidate `measurements` array and null legacy global
+metrics. Resolve quality, latency, cost and usage only for the current role and
+task category; absent observations remain unknown. Duplicate scopes are rejected.
+Changing policy version or measurements requires renewed activation and reviewed
+qualification. The installed [guide](model-routing.md#subscription-efficiency-0110)
+explains subscription setup and the bundled usage normalizer.

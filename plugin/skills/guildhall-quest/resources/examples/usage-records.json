@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "scope": {
+    "host": "codex-skill",
+    "role": "docs-writer",
+    "category": "docs"
+  },
+  "inventory_complete": true,
+  "expected": [
+    {
+      "worker_id": "w",
+      "turn_id": "t",
+      "attempt_id": "a",
+      "meter": "host",
+      "response_ids": [
+        "r"
+      ]
+    }
+  ],
+  "events": [
+    {
+      "worker_id": "w",
+      "turn_id": "t",
+      "attempt_id": "a",
+      "response_id": "r",
+      "sequence": 0,
+      "kind": "response",
+      "meter": "host",
+      "complete": true,
+      "input_tokens": 100,
+      "output_tokens": 20,
+      "cache_read_tokens": 40,
+      "cache_write_tokens": 10,
+      "reasoning_tokens": 5,
+      "input_includes_cache": true,
+      "evidence": "synthetic:response"
+    }
+  ]
+}

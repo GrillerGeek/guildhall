@@ -7,6 +7,7 @@ This module validates supplied evidence references, never their underlying truth
 from __future__ import annotations
 
 import hashlib
+import copy
 import json
 import math
 import os
@@ -91,6 +92,28 @@ REQUEST_SCHEMA = obj(schema_version=enum([1]), policy=POLICY_SCHEMA,
     state=obj(calls_used=INTEGER, provider_failed=BOOL, adaptive_suspended=BOOL))
 
 
+# V1 remains byte-for-byte compatible; v2 requires task-scoped measurement facts.
+METRIC_NAMES = ('quality', 'latency_ms', 'cost_usd', 'usage_tokens')
+MEASUREMENT = obj(role=enum(ROLES), category=enum(CATEGORIES), basis=STRING,
+                  **{name: CANDIDATE['properties'][name] for name in METRIC_NAMES})
+POLICY_SCHEMA_V2 = copy.deepcopy(POLICY_SCHEMA)
+POLICY_SCHEMA_V2['properties']['schema_version'] = enum([2])
+_v2candidate = POLICY_SCHEMA_V2['properties']['candidates']['items']
+_v2candidate['properties']['measurements'] = array(MEASUREMENT, 144)
+_v2candidate['required'].append('measurements')
+REQUEST_SCHEMA_V2 = copy.deepcopy(REQUEST_SCHEMA)
+REQUEST_SCHEMA_V2['properties']['schema_version'] = enum([2])
+REQUEST_SCHEMA_V2['properties']['policy'] = POLICY_SCHEMA_V2
+
+
+def metrics(candidate, request):
+    if request['schema_version'] == 1:
+        return {name: candidate[name] for name in METRIC_NAMES}
+    scoped = next((m for m in candidate['measurements']
+                   if (m['role'], m['category']) == (request['task']['role'], request['task']['category'])), {})
+    return {name: scoped.get(name) for name in METRIC_NAMES}
+
+
 def canonical(value):
     return json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False,
                       allow_nan=False).encode('utf-8')
@@ -165,9 +188,17 @@ def strict_json(raw):
 def validate_request(request):
     if len(canonical(request)) > LIMIT:
         raise ValueError('oversize')
-    validate(request, REQUEST_SCHEMA)
+    version = request.get('schema_version') if type(request) is dict else None
+    validate(request, REQUEST_SCHEMA_V2 if version == 2 else REQUEST_SCHEMA)
     policy = request['policy']
     candidates = policy['candidates']
+    if request['schema_version'] == 2:
+        for candidate in candidates:
+            if any(candidate[name] is not None for name in METRIC_NAMES):
+                raise ValueError('global metrics forbidden in v2')
+            scopes = [(m['role'], m['category']) for m in candidate['measurements']]
+            if len(scopes) != len(set(scopes)):
+                raise ValueError('duplicate measurement scope')
     if len({c['id'] for c in candidates}) != len(candidates):
         raise ValueError('duplicate candidate')
     if len({(c['host'], c['model'], c['effort']) for c in candidates}) != len(candidates):
@@ -196,7 +227,7 @@ def eligible(candidate, request):
     if h['route'].startswith('claude') and re.search(r'(^|[^a-z])fable([^a-z]|$)', candidate['model'].lower()):
         return False
     for ceiling, metric in [('max_cost_usd', 'cost_usd'), ('max_latency_ms', 'latency_ms')]:
-        if p[ceiling] is not None and (candidate[metric] is None or candidate[metric] > p[ceiling]):
+        if p[ceiling] is not None and (metrics(candidate, request)[metric] is None or metrics(candidate, request)[metric] > p[ceiling]):
             return False
     return True
 
@@ -223,8 +254,7 @@ def provider_payload(request, candidates):
     facts = {k: task[k] for k in ('role', 'category', 'ambiguity', 'risk', 'context_bucket')}
     facts['required_capability_count'] = len(task['required_capabilities'])
     facts['objective'] = request['policy']['objective']
-    facts['candidates'] = [dict(id=f'p{i}', context_tokens=c['context_tokens'], quality=c['quality'],
-                               latency_ms=c['latency_ms'], cost_usd=c['cost_usd'], usage_tokens=c['usage_tokens'],
+    facts['candidates'] = [dict(id=f'p{i}', context_tokens=c['context_tokens'], **metrics(c, request),
                                required_capabilities_met=True) for i, c in enumerate(candidates)]
     if request['policy']['data_mode'] == 'summary':
         facts['summary'] = task['summary']
@@ -327,10 +357,11 @@ def route(request, *, transport=None, now=None):
                    observed=dict(model='unknown', effort='unknown'), router_identity=None,
                    latency_ms=None, usage=None)
     candidates = []
+    output_version = 1
     def finish(reason, dispatch=None, source='baseline', recommended=None, profile=None):
         receipt['requested'] = dispatch
         receipt['profile_revision'] = profile['profile_revision'] if profile else None
-        return dict(schema_version=1, status='dispatch' if dispatch is not None else 'hold',
+        return dict(schema_version=output_version, status='dispatch' if dispatch is not None else 'hold',
                     source=source, reason=reason, dispatch=dispatch,
                     recommended_candidate=recommended,
                     eligible_candidates=[c['id'] for c in candidates], receipt=receipt, state=state)
@@ -343,6 +374,7 @@ def route(request, *, transport=None, now=None):
             raise ValueError('invalid clock')
     except (ValueError, TypeError, OverflowError, RecursionError, UnicodeError):
         return finish('invalid_request')
+    output_version = request['schema_version']
     p, h, t, a = (request[k] for k in ('policy', 'host', 'task', 'activation'))
     baseline = dict(request['baseline'])
     snapshot = {k: h[k] for k in ('route', 'client_version', 'provider', 'worker_tool', 'configuration_revision', 'attribution')}

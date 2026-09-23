@@ -44,9 +44,9 @@ Full character sheets in [`CHARACTERS.md`](CHARACTERS.md).
 
 ## Installation
 
-Version **0.10.1 includes the installed routing tools**. The [installation guide](https://github.com/GrillerGeek/guildhall/blob/main/docs/installation.md)
+Version **0.11.0 includes the installed routing tools**. The [installation guide](https://github.com/GrillerGeek/guildhall/blob/main/docs/installation.md)
 covers this repository's Codex, Claude and standalone routes, updates and removal.
-The `main` route receives 0.10.1 after merge; the separate marketplace below is
+The `main` route receives 0.11.0 after merge; the separate marketplace below is
 not updated by this change.
 
 ### From the marketplace (recommended)
@@ -172,7 +172,10 @@ change reviewers, permissions, lifecycle gates or retry budgets.
 
 ## Portable quest candidate
 
-Version 0.10.1 ships `skills/guildhall-quest/SKILL.md` for capable
+Version 0.11.0 ships `skills/guildhall-quest/SKILL.md` for capable
 non-Claude hosts. It bundles its role references and uses host-native independent
 workers. The Claude command/agent/hook route documented above is preserved;
 standalone installation does not register those native Claude components.
+
+For subscriptions, select the optional `usage` routing objective; measured tokens
+remain separate from dollar billing and unknown quota limits.
