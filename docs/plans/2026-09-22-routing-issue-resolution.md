@@ -1,6 +1,6 @@
 # Resolve Jev routing issues #34–#37
 
-- Status: approved implementation complete in five stacked PRs; final PR CI/review pending. No live studies run.
+- Status: approved implementation complete in five stacked PRs; review and merge pending; current CI results are on the linked PRs. No live studies run.
 - Delivery and verification: [implementation report](../reviews/2026-09-22-routing-issues.md).
 - Assessed: 2026-09-22, Guildhall `main` at `f0bb120` (merged PR #33).
 - Planning branch: `codex/routing-issue-resolution-plan`.

@@ -82,7 +82,7 @@ First-time studies use correlated shadow recommendations and explicitly approved
 study overrides rather than fabricated qualification. Host permissions, actual
 measurement and independent graders remain external responsibilities.
 
-116 tests pass, including 12 study tests with real temporary worktrees and
+117 tests pass, including 13 study tests with real temporary worktrees and
 synthetic worker outcomes. Both validators and generated/whitespace checks pass.
 Ten isolated installs pass; installed headroom/controller tools execute after
 source removal. Receipts: `guildhall-install-hgsinows/report.json` and
@@ -99,7 +99,7 @@ requires renewed activation. No role definitions, native model aliases or hooks
 were changed. Model-echo, parent coordination and external IDD remain excluded.
 
 New tests first failed because schema4 was unsupported (55 subtest failures and
-18 missing-dispatch errors). Final suite: 121 tests pass. Parameterized checks
+18 missing-dispatch errors). Final suite: 122 tests pass. Parameterized checks
 exercise all 18 roles across native Claude, standalone Claude and Codex routes,
 plus explicit overrides, absent qualifications/permissions/evidence/controls,
 wrong scope and unchanged legacy behavior. These are synthetic helper checks,
@@ -124,7 +124,7 @@ retargeting dependent bases if required by GitHub after each merge:
 | 2 | Subscription usage and scoped measurements | 0.11.0 | [#39](https://github.com/GrillerGeek/guildhall/pull/39) |
 | 3 | Host evidence lanes, capture inspection and drift | 0.12.0 | [#40](https://github.com/GrillerGeek/guildhall/pull/40) |
 | 4 | Reproducible study controller and headroom | 0.13.0 | [#41](https://github.com/GrillerGeek/guildhall/pull/41) |
-| 5 | All-role eligibility, migration and fixture seeds | 0.14.0 | `codex/routing-all-roles` |
+| 5 | All-role eligibility, migration and fixture seeds | 0.14.0 | [#42](https://github.com/GrillerGeek/guildhall/pull/42) |
 
 All three installer manifests advance together at every step. The existing
 skills1.5.25 pin is retained; 1.7.0 was an explicitly tested candidate, not a
@@ -149,3 +149,13 @@ required by this adapter; configuration-based eligibility is not evidence that
 this particular desktop worker interface can supply it. Incomplete evidence
 continues to prevent qualification. Controller packets cannot enforce OS-level
 isolation or kill native workers; actual hosts enforce permissions and budgets.
+
+Final capture validation also refuses outcomes whose usage disagrees with the
+normalized host record, preventing study-budget undercounting. Missing observed
+effort under an execution-observed requirement is a host-evidence violation.
+The new regression failed before the correction and passes afterward. The final
+122-test suite, both validators, generated drift and whitespace checks pass.
+Ten installations were repeated after this correction and fixture clarification;
+final receipts are `guildhall-install-fc7aalpp/report.json` (native+pinned) and
+`guildhall-install-hj8q25ft/report.json` (candidate1.7.0). Hosted checks are linked
+on each PR and rerun for the final commits; review/merge remain pending.
