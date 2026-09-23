@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.12.0 — Unreleased
+
+- Add read-only preflight and task-owned Claude/Codex capture inspection.
+- Separate configuration and execution evidence in explicit routing schema v3.
+- Bind qualification to objective and detect host/alias/evidence drift.
+- Document desktop capture limitations without treating requests as observation.
+
 ## 0.11.0 — Unreleased
 
 - Add offline, scoped subscription-usage normalization with replay and retry accounting.

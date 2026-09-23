@@ -73,6 +73,10 @@ def main():
         usage=json.loads(run([sys.executable,'-I','-B',bundle/'scripts/routing_usage.py'],env,cwd,
                              (bundle/'resources/examples/usage-records.json').read_text()))
         assert usage['meters']['host']['usage_tokens']==120 and usage['meters']['host']['cost_usd'] is None
+        for source,level in [('claude','execution_observed'),('codex','configuration_verified')]:
+            evidence=json.loads(run([sys.executable,'-I','-B',bundle/'scripts/routing_evidence.py'],env,cwd,
+                (bundle/f'resources/examples/{source}-capture.json').read_text()))
+            assert evidence['evidence_level']==level and evidence['qualification'] is False
     try:
         if args.native_codex:
             case=temp/'native-codex';env=environment(case);source=case/'source';source.mkdir()

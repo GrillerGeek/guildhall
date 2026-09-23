@@ -91,3 +91,6 @@ uses the same generated helper through its plugin root. Never select a different
 skill or modify host configuration to obtain controls. Unknown runtime/credential
 or unsupported controls uses an eligible baseline or holds, according to the
 shared contract. Absent/off policy skips Python entirely.
+
+Use [host preflight and evidence](host-evidence.md) for optional schema-v3 routing;
+retain worker scopes, gates, state and explicit activation.

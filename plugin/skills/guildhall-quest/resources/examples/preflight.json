@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "format": "preflight-v1",
+  "host": {
+    "application": "synthetic desktop",
+    "executable": "/synthetic/codex",
+    "version": "fixture-v1",
+    "identity_source": "host_handshake",
+    "worker_tool": "synthetic-worker",
+    "configuration_revision": "revision-1",
+    "model_selection": true,
+    "effort_selection": true,
+    "independent_workers": true,
+    "fresh_context": true
+  },
+  "record_access": "none"
+}

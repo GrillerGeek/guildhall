@@ -42,3 +42,25 @@ Receipts: `guildhall-install-5cvv_j4o/report.json` (native+pinned) and
 `guildhall-install-s0r7n7dj/report.json` (skills1.7.0). Synthetic usage example gives
 120 host tokens, null monetary cost and unknown router usage. No quota conversion
 or real savings is claimed. PR #38's four GitHub checks passed, including Python3.12.
+
+## Host evidence — 0.12.0
+
+Addresses #36 and #37 finding4. Added read-only preflight, bounded task-owned
+Claude transcript and Codex app-server capture inspection, explicit evidence
+levels in routing schema3, and alias/configuration/evidence-loss suspension.
+The decision record documents the user-approved configuration lane and retains
+execution-observed as setup default. No project was activated by this work.
+
+104 tests pass, including mixed/missing responses, wrong-worker/session rejection,
+interruption, repeated telemetry, rerouting, alias drift, objective binding and
+explicit stronger/weaker qualification. Existing v1/v2 tests remain intact.
+Local Codex schemas were generated and inspected without model calls. Running
+ChatGPT-owned runtime0.154.0-alpha.6.2 and separately installed Codex.app0.142.0-alpha.1
+are distinguished; neither certifies issue #36's different0.155 build. The desktop
+collaboration interface does not itself expose the required capture. That route
+remains unsupported for this adapter unless task-owned capture access is established.
+
+Ten isolated installation checks passed with both evidence collectors executing
+synthetic inputs after source removal. Receipts are retained in the OS temp
+installation directories. No personal transcript search, provider probe or live
+adaptive qualification occurred. PR #39's four hosted checks passed.

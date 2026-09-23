@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "synthetic": true,
+  "format": "codex-app-server-v2",
+  "host": {
+    "application": "synthetic desktop",
+    "executable": "/synthetic/codex",
+    "version": "fixture-v1",
+    "identity_source": "host_handshake",
+    "worker_tool": "synthetic-worker",
+    "configuration_revision": "revision-1",
+    "model_selection": true,
+    "effort_selection": true,
+    "independent_workers": true,
+    "fresh_context": true
+  },
+  "worker": {
+    "id": "w",
+    "session_id": "s",
+    "role": "docs-writer",
+    "category": "docs",
+    "requested": {
+      "model": "alias",
+      "effort": null
+    }
+  },
+  "turns": [
+    {
+      "id": "t",
+      "attempt_id": "a",
+      "response_ids": [
+        "r"
+      ],
+      "status": "completed"
+    }
+  ],
+  "inventory_complete": true,
+  "records": [
+    {
+      "id": 1,
+      "method": "thread/start",
+      "params": {}
+    },
+    {
+      "id": 1,
+      "result": {
+        "model": "alias",
+        "reasoningEffort": null,
+        "thread": {
+          "id": "w",
+          "sessionId": "s",
+          "turns": []
+        }
+      }
+    },
+    {
+      "id": 2,
+      "method": "turn/start",
+      "params": {
+        "threadId": "w"
+      }
+    },
+    {
+      "id": 2,
+      "result": {
+        "turn": {
+          "id": "t"
+        }
+      }
+    },
+    {
+      "method": "thread/tokenUsage/updated",
+      "params": {
+        "threadId": "w",
+        "turnId": "t",
+        "tokenUsage": {
+          "total": {
+            "inputTokens": 100,
+            "outputTokens": 20,
+            "totalTokens": 120,
+            "cachedInputTokens": 10,
+            "reasoningOutputTokens": 5
+          }
+        }
+      }
+    },
+    {
+      "method": "turn/completed",
+      "params": {
+        "threadId": "w",
+        "turn": {
+          "id": "t",
+          "status": "completed",
+          "items": [
+            {
+              "type": "agentMessage",
+              "id": "r"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

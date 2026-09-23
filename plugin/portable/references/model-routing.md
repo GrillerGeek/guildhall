@@ -279,3 +279,11 @@ basis and scope, and always leaves cost unknown. Jev calls do not necessarily
 consume the host subscription quota. No usage report qualifies or activates a
 profile. A collector must not combine incompatible token definitions under one
 scope or omit interrupted/retried attempts from the expected inventory.
+
+
+## Host preflight and evidence
+
+Use the bundled [host evidence guide](host-evidence.md) before benchmarking.
+It explains native-Claude observations, Codex configuration evidence, explicit
+qualification lanes, capture import and alias drift. Missing telemetry is shown
+before users spend on a qualification study.

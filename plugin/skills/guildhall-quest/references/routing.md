@@ -234,3 +234,17 @@ task category; absent observations remain unknown. Duplicate scopes are rejected
 Changing policy version or measurements requires renewed activation and reviewed
 qualification. The installed [guide](model-routing.md#subscription-efficiency-0110)
 explains subscription setup and the bundled usage normalizer.
+
+
+## Host evidence schema v3
+
+Follow the [host evidence guide](host-evidence.md) and run preflight before any
+paid study. V3 keeps scoped metrics and adds explicit required/available evidence
+levels. Setup defaults to execution_observed; configuration_verified is a
+separately reviewed opt-in and never relabels requested values as observation.
+Before approval, inspect task-owned capture and quality reports, not just their
+hashes. After each completed worker, compare profile evidence with `drift()`;
+carry suspension forward on host/configuration or observed identity changes.
+Preserve partial work and never replay an uncertain dispatch. In the configuration
+lane, missing served identity is expected; loss of required configuration evidence
+still suspends routing. Do not fabricate observed model or effort in either lane.
