@@ -34,7 +34,7 @@ budgets. External IDD assignments remain outside this router.
    `ensure_ascii=False`. Any policy change needs renewed activation. Do not create
    consent by reading a repository file. Default category facts are role,
    category, risk, ambiguity, context bucket, required-capability count, objective,
-   opaque candidate IDs and numeric profile facts/compatibility booleans. No
+   request-local opaque labels and numeric profile facts/compatibility booleans. No
    paths, host versions, model names, evidence hashes, policy or transcript leave
    the host in `state`; the envelope necessarily names the requested Jev model.
 4. Optional `data_mode: summary` adds only the exact summary to those facts.
@@ -162,7 +162,8 @@ ships no live-qualified profile. Shadow arithmetic alone cannot qualify one.
 
 The fixed request is `{model, state, questions: {route: {type: "choice",
 instructions, criteria}}}`; `state` is an allowlisted-facts JSON string. Criteria
-contain only eligible IDs and `defer`. Adaptive sends only qualified IDs. Validate
+contain only request-local labels and `defer`; user policy IDs remain local.
+Validate the exact label set before mapping choices back to eligible policy IDs. Adaptive sends only qualified IDs. Validate
 `{model, answers: {route: {type: "choice", choice, confidence, probabilities}},
 usage?}`. Confidence/probabilities are finite 0..1, the distribution covers exactly
 requested IDs plus defer, and its sum is within 1e-6 of one. Optional usage has
@@ -203,6 +204,7 @@ Stable reason codes:
 | `shadow` | Recommendation recorded; eligible baseline dispatched |
 | `single_candidate` | One qualified adaptive choice, no call |
 | `adaptive_unqualified` | Qualification, controls, role or suspension prevents adaptation |
+| `unsupported_runtime` | Python is older than 3.12; hold without network and preserve valid incoming state; adapter retains eligible baseline or holds |
 | `provider_unavailable` | Credential/runtime unavailable; eligible fallback |
 | `provider_failed` | Provider failure/open circuit; eligible fallback |
 | `budget_exhausted` | Quest call budget consumed; eligible fallback |
@@ -219,3 +221,5 @@ requested fields; malformed requests have null unavailable receipt values.
 Disable by explicitly selecting off or removing the optional policy. This stops
 future routing calls and restores ordinary dispatch; it never cancels, replays
 or reassigns an in-flight worker. Keep partial records for review.
+
+The full [user guide](model-routing.md) and `../scripts/evaluate_routing.py` ship in this bundle.

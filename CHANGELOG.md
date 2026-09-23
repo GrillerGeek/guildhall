@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.10.1 — Unreleased
+
+- Bundle the routing guide and evaluator for standalone installations.
+- Enforce Python 3.12 before routing requests, preserving trusted quest state.
+- Replace policy candidate IDs with opaque transport labels.
+- Verify installed tools and links after source removal.
+
 ## 0.10.0 — Unreleased
 
 - Add optional Jev-assisted specialist model routing through one bundled helper

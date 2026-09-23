@@ -6,7 +6,7 @@ These are flavor, not agent names. The adventurers answer to `prototype-builder`
 
 The Model rows below are native Claude frontmatter defaults, not observed
 execution identities or Codex quality tiers. Valid user selections take
-precedence; optional [Jev-assisted routing](../docs/model-routing.md) can apply
+precedence; optional [Jev-assisted routing](skills/guildhall-quest/references/model-routing.md) can apply
 qualified settings for docs and PR roles. It changes neither these characters
 nor the nineteen-definition inventory. The router is a helper, not an adventurer.
 

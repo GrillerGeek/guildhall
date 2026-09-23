@@ -13,7 +13,7 @@ not a quest invocation and does not automatically activate quest dispatch rules.
 - `plugin/portable/scripts/route_model.py`, its routing reference, schemas and
   examples: canonical optional routing implementation and public contract.
   Native Claude and both skill hosts consume the same generated helper.
-- `scripts/evaluate_routing.py`: offline comparison of supplied observations;
+- `plugin/portable/scripts/evaluate_routing.py`: canonical offline comparison of supplied observations;
   synthetic demonstrations never qualify a model or activate policy.
 - `scripts/build_portable.py`: explicit transformation from canonical role bodies
   into portable references. Host metadata is stripped; narrow substitutions adapt
@@ -145,7 +145,7 @@ workers or claim synthetic savings as observed results. See the
 
 ## Distribution and versioning
 
-This routing release candidate is 0.10.0; increment all three manifests for further
+The installed-tooling patch is 0.10.1; increment all three manifests for further
 installer-visible changes. Existing native Claude agents/commands/hooks remain
 preserved. Never rewrite historical plans to claim newer evidence. No repository
 change implicitly installs personally, publishes a release or edits the separate
@@ -178,3 +178,6 @@ repository-root copy installs for Codex and Claude without native clients.
 
 See [the onboarding verification](reviews/2026-09-20-skills-onboarding.md) for
 remote refresh/removal evidence and the separate directory-discovery limitation.
+
+The root evaluator CLI remains a thin compatibility entry point. Maintain the full
+routing guide in `plugin/portable/references/model-routing.md`, then regenerate.

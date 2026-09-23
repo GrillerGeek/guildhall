@@ -44,9 +44,9 @@ Full character sheets in [`CHARACTERS.md`](CHARACTERS.md).
 
 ## Installation
 
-Version **0.10.0 is a release candidate**. The [installation guide](../docs/installation.md)
+Version **0.10.1 includes the installed routing tools**. The [installation guide](https://github.com/GrillerGeek/guildhall/blob/main/docs/installation.md)
 covers this repository's Codex, Claude and standalone routes, updates and removal.
-The `main` route receives 0.10.0 after merge; the separate marketplace below is
+The `main` route receives 0.10.1 after merge; the separate marketplace below is
 not updated by this change.
 
 ### From the marketplace (recommended)
@@ -135,7 +135,7 @@ This is the deterministic backstop for the design rule that Mordain plans and di
 
 ## Integration with IDD-framework
 
-Guildhall is the implementation-side complement to the [IDD-framework](https://github.com/grillergeek/idd-framework) plugin. IDD handles specs (Intentions → Expectations → Spec → review); Guildhall handles code (plan → test → implement → refactor) from those specs. For how the two map onto the broader seven-stage AI coding workflow (Grill → Research → Prototype → PRD/Plan → Issues/Tasks → Implement → Review), see [How Guildhall fits the AI coding workflow](../README.md#how-guildhall-fits-the-ai-coding-workflow).
+Guildhall is the implementation-side complement to the [IDD-framework](https://github.com/grillergeek/idd-framework) plugin. IDD handles specs (Intentions → Expectations → Spec → review); Guildhall handles code (plan → test → implement → refactor) from those specs. For how the two map onto the broader seven-stage AI coding workflow (Grill → Research → Prototype → PRD/Plan → Issues/Tasks → Implement → Review), see [How Guildhall fits the AI coding workflow](https://github.com/GrillerGeek/guildhall/blob/main/README.md#how-guildhall-fits-the-ai-coding-workflow).
 
 ## Cost posture
 
@@ -162,7 +162,7 @@ preserving baseline dispatch; `adaptive` can apply reviewed qualifications only
 for `docs-writer` and `pr-author`. Shadow does not require qualified profiles.
 No live-qualified profiles ship, and no cost or quality improvement is claimed.
 
-Use [the setup and operations guide](../docs/model-routing.md) before a quest.
+Use [the setup and operations guide](skills/guildhall-quest/references/model-routing.md) before a quest.
 Enabled routing needs Python 3.12+ and explicit policy activation; external calls
 read `TYPESAFE_API_KEY` from the host process environment. An API key alone enables
 nothing. Ordinary Guildhall needs neither Jev nor IDD. The
@@ -172,7 +172,7 @@ change reviewers, permissions, lifecycle gates or retry budgets.
 
 ## Portable quest candidate
 
-Version 0.10.0 ships `skills/guildhall-quest/SKILL.md` for capable
+Version 0.10.1 ships `skills/guildhall-quest/SKILL.md` for capable
 non-Claude hosts. It bundles its role references and uses host-native independent
 workers. The Claude command/agent/hook route documented above is preserved;
 standalone installation does not register those native Claude components.
