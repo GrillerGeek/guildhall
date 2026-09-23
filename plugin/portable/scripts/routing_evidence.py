@@ -280,7 +280,8 @@ def analyze(capture):
         if not runtime_known:reasons.append('missing_or_mixed_runtime_version')
         for tid,t in turns.items():
             done=completed.get(tid)
-            complete=complete and done is not None and done['status']==t['status'] and bool(t['response_ids']) and seen[tid]==set(t['response_ids'])
+            responses_ok=seen[tid]==set(t['response_ids']) and (cumulative_only or bool(t['response_ids']))
+            complete=complete and done is not None and done['status']==t['status'] and responses_ok
             expected.append(dict(worker_id=w['id'],turn_id=tid,attempt_id=t['attempt_id'],meter='host',
                                  response_ids=None if cumulative_only else (t['response_ids'] or None)))
         configs=[contexts.get(tid) for tid in turns]

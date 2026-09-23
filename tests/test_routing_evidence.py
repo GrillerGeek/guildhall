@@ -139,6 +139,16 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual(result['evidence_level'],'configuration_verified')
         self.assertEqual(result['usage']['meters']['host']['usage_tokens'],156)
 
+    def test_native_codex_snapshot_only_allows_empty_response_ids(self):
+        p=capture_native()
+        p['turns'][0]['response_ids']=[]
+        for r in p['records']:
+            if r['type']=='event_msg' and r['event']=='task_complete':r['response_ids']=[]
+        p['records']=[r for r in p['records'] if r['type']!='token_usage_record']
+        result=self.module.analyze(p)
+        self.assertEqual(result['evidence_level'],'configuration_verified')
+        self.assertEqual(result['usage']['meters']['host']['usage_tokens'],120)
+
     def test_alias_drift_suspends_without_replay(self):
         previous=self.module.analyze(capture());p=capture();p['records'][0]['message']['model']='concrete-2'
         result=self.module.drift(previous,self.module.analyze(p))
