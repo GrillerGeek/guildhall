@@ -238,35 +238,42 @@ def analyze(capture):
                      'cache_read_input_tokens':'cache_read_input_tokens','cache_creation_input_tokens':'cache_creation_input_tokens',
                      'reasoning_tokens':'reasoning_tokens'}
         sum_usage={key:0 for key in counter_map}
+        response_totals={}
         for _,(tid,rid) in sorted(response_order):
             usage=response_usage[(tid,rid)]
             sum_usage={k:sum_usage[k]+usage.get(k,0) for k in counter_map}
+            response_totals.setdefault(tid,{key:0 for key in counter_map})
+            response_totals[tid]={k:response_totals[tid][k]+usage.get(k,0) for k in counter_map}
             events.append(token_event(w,turns[tid],rid,_,usage,'capture:'+digest))
         cumulative_only=not events
         if cumulative_only:
-            previous={key:0 for key in counter_map}
             all_sequences=[seq for tid in snapshot_order for seq,_ in snapshots[tid]]
             need(all_sequences==sorted(all_sequences))
+            sum_usage={key:0 for key in counter_map}
             for tid in snapshot_order:
+                previous={key:0 for key in counter_map}
                 for seq,totals in snapshots[tid]:
                     for key in counter_map:
                         value=totals.get(key)
                         need(type(value) is int and value>=previous[key]);previous[key]=value
                     events.append(token_event(w,turns[tid],'turn-total',seq,{key:previous[key] for key in counter_map},
                         'capture:'+digest,'cumulative',True))
-            sum_usage=dict(previous)
+                sum_usage={k:sum_usage[k]+previous[k] for k in counter_map}
         else:
-            previous={key:0 for key in counter_map}
             all_sequences=[seq for tid in snapshot_order for seq,_ in snapshots[tid]]
             need(all_sequences==sorted(all_sequences))
+            counted={}
             for tid in snapshot_order:
+                previous={key:0 for key in counter_map}
                 for _,totals in snapshots[tid]:
                     for key in counter_map:
                         value=totals.get(key)
                         need(type(value) is int and value>=previous[key]);previous[key]=value
+                counted[tid]=dict(previous)
             for key in counter_map:
-                if previous[key] and previous[key] < sum_usage[key]:
-                    complete=False;reasons.append('token_count_below_response_usage')
+                for tid,usage in response_totals.items():
+                    if key in counted.get(tid,{}) and counted[tid][key] < usage[key]:
+                        complete=False;reasons.append('token_count_below_response_usage')
         parent_link=bool(meta)
         if not parent_link:reasons.append('missing_parent_association')
         runtime_known=bool(meta and len({m['runtime_version'] for _,m in meta})==1)

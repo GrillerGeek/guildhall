@@ -125,6 +125,20 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual(result['evidence_level'],'configuration_verified')
         self.assertEqual(result['usage']['meters']['host']['usage_tokens'],120)
 
+    def test_native_codex_multi_turn_snapshots_are_scoped_per_turn(self):
+        p=capture_native()
+        p['turns'].append(dict(id='t2',attempt_id='a2',response_ids=['r2'],status='completed'))
+        p['records'].extend([
+            dict(type='turn_context',thread_id='w',turn_id='t2',model='alias',reasoning_effort=None),
+            dict(type='token_usage_record',thread_id='w',turn_id='t2',response_id='r2',
+                 usage=dict(input_tokens=20,output_tokens=5,cache_read_input_tokens=1,cache_creation_input_tokens=0,reasoning_tokens=1)),
+            dict(type='event_msg',event='token_count',thread_id='w',turn_id='t2',
+                 totals=dict(input_tokens=20,output_tokens=5,cache_read_input_tokens=1,cache_creation_input_tokens=0,reasoning_tokens=1)),
+            dict(type='event_msg',event='task_complete',thread_id='w',turn_id='t2',status='completed',response_ids=['r2'])])
+        result=self.module.analyze(p)
+        self.assertEqual(result['evidence_level'],'configuration_verified')
+        self.assertEqual(result['usage']['meters']['host']['usage_tokens'],156)
+
     def test_alias_drift_suspends_without_replay(self):
         previous=self.module.analyze(capture());p=capture();p['records'][0]['message']['model']='concrete-2'
         result=self.module.drift(previous,self.module.analyze(p))
