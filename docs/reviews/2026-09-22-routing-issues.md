@@ -64,3 +64,27 @@ Ten isolated installation checks passed with both evidence collectors executing
 synthetic inputs after source removal. Receipts are retained in the OS temp
 installation directories. No personal transcript search, provider probe or live
 adaptive qualification occurred. PR #39's four hosted checks passed.
+
+## Qualification studies — 0.13.0
+
+Addresses the remaining #37 findings 1/2. Development analysis uses the complete
+candidate matrix, paired repeats, quality checks, measured overhead and a frozen
+noise tolerance. It distinguishes insufficient evidence, no measured headroom and
+observed headroom; none is automatic qualification. Held-out quality and 10%
+improvement requirements remain unchanged, with explicit failure reasons.
+
+The installed controller prepares disposable Git worktrees, persists one-time
+claims, imports actual host outcomes, checks file boundaries including ignored
+files, supplies actual artifacts for blind grading, freezes grades and detects
+subsequent changes. Budgets and immutable manifests carry into holdout. Host
+worker dispatch remains explicit; no desktop-to-CLI substitution is performed.
+First-time studies use correlated shadow recommendations and explicitly approved
+study overrides rather than fabricated qualification. Host permissions, actual
+measurement and independent graders remain external responsibilities.
+
+116 tests pass, including 12 study tests with real temporary worktrees and
+synthetic worker outcomes. Both validators and generated/whitespace checks pass.
+Ten isolated installs pass; installed headroom/controller tools execute after
+source removal. Receipts: `guildhall-install-hgsinows/report.json` and
+`guildhall-install-e5n7_rkj/report.json`. PR #40's four hosted checks passed.
+No live provider call, paid study or real profile qualification was performed.

@@ -70,6 +70,10 @@ def main():
         assert result['reason']=='router_disabled' and result['state']['calls_used']==0
         evaluation=json.loads(run([sys.executable,'-I','-B',bundle/'scripts/evaluate_routing.py','--demo'],env,cwd))
         assert evaluation['synthetic'] and evaluation['qualification'] is False
+        headroom=json.loads(run([sys.executable,'-I','-B',bundle/'scripts/routing_study.py'],env,cwd,
+                                (bundle/'resources/examples/headroom-packet.json').read_text()))
+        assert headroom['status']=='headroom_observed' and headroom['qualification'] is False
+        run([sys.executable,'-I','-B',bundle/'scripts/study_runner.py','--help'],env,cwd)
         usage=json.loads(run([sys.executable,'-I','-B',bundle/'scripts/routing_usage.py'],env,cwd,
                              (bundle/'resources/examples/usage-records.json').read_text()))
         assert usage['meters']['host']['usage_tokens']==120 and usage['meters']['host']['cost_usd'] is None

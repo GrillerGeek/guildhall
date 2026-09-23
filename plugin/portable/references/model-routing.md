@@ -287,3 +287,8 @@ Use the bundled [host evidence guide](host-evidence.md) before benchmarking.
 It explains native-Claude observations, Codex configuration evidence, explicit
 qualification lanes, capture import and alias drift. Missing telemetry is shown
 before users spend on a qualification study.
+
+
+For bounded development/holdout evaluation, follow the bundled
+[qualification study workflow](qualification-study.md). No helper launches models
+or automatically promotes a profile.

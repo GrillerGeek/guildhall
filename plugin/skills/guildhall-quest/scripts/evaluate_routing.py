@@ -131,7 +131,9 @@ def evaluate(payload):
                   'failed' if efficiency_failed else 'eligible_for_review')
         if status != 'eligible_for_review':
             issues.append(f'{role}/{category}: {status}; inspect paired quality and objective measurements.')
-        groups.append(dict(role=role, category=category, status=status,
+        reason_codes = [name for name, active in [('quality_regression', bad_quality),
+            ('missing_pairs_or_measurements', missing), ('insufficient_objective_improvement', efficiency_failed)] if active]
+        groups.append(dict(role=role, category=category, status=status, reason_codes=reason_codes,
                            strategies=strategies, improvement=improvement))
     statuses = {g['status'] for g in groups}
     overall = ('failed' if 'failed' in statuses else 'inconclusive'

@@ -1,7 +1,7 @@
 # Guildhall
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Plugin](https://img.shields.io/badge/plugin-v0.12.0-green.svg)](plugin/README.md)
+[![Plugin](https://img.shields.io/badge/plugin-v0.13.0-green.svg)](plugin/README.md)
 
 **Give a coding task to a team of AI specialists that writes tests, implements the
 change, reviews it and prepares a PR draft.**
@@ -20,7 +20,7 @@ code, tests, review evidence and a PR draft. Publishing a PR is a separate actio
 ## Install
 
 The commands below install Guildhall from its published main branch. **Version
-0.12.0 adds installed routing documentation, evaluation and privacy fixes.**
+0.13.0 adds installed routing documentation, evaluation and privacy fixes.**
 Choose one route for your coding app. No repository clone, build or IDD
 installation is required.
 

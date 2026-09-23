@@ -248,3 +248,8 @@ carry suspension forward on host/configuration or observed identity changes.
 Preserve partial work and never replay an uncertain dispatch. In the configuration
 lane, missing served identity is expected; loss of required configuration evidence
 still suspends routing. Do not fabricate observed model or effort in either lane.
+
+
+For bounded development/holdout evaluation, follow the bundled
+[qualification study workflow](qualification-study.md). No helper launches models
+or automatically promotes a profile.

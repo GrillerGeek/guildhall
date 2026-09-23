@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.13.0 — Unreleased
+
+- Add development headroom diagnostics before paid holdout work.
+- Add isolated study worktrees, non-replaying claims, actual artifact grading and frozen exports.
+- Separate quality, missing-evidence and efficiency outcomes without relaxing qualification.
+
 ## 0.12.0 — Unreleased
 
 - Add read-only preflight and task-owned Claude/Codex capture inspection.

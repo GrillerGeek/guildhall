@@ -145,7 +145,7 @@ workers or claim synthetic savings as observed results. See the
 
 ## Distribution and versioning
 
-The usage-contract release is 0.12.0; increment all three manifests for further
+The current package version is 0.13.0; increment all three manifests for further
 installer-visible changes. Existing native Claude agents/commands/hooks remain
 preserved. Never rewrite historical plans to claim newer evidence. No repository
 change implicitly installs personally, publishes a release or edits the separate
