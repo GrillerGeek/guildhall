@@ -33,6 +33,23 @@ def validate(root: Path = ROOT) -> None:
     if (v4['policy'] != v4policy or v4policy['mode'] != 'off' or v4policy['adaptive_roles']
         or any(c['qualification'] is not None for c in v4policy['candidates'])):
         raise ValueError('v4 examples must remain off with no roles activated or qualified')
+    config_helper = root / DEST / 'scripts/routing_config.py'
+    config = {'__name__': '_configuration_validation', '__file__': str(config_helper)}
+    exec(compile(config_helper.read_bytes(), str(config_helper), 'exec'), config)
+    for name, constant in [('global-routing-v1', 'GLOBAL_SCHEMA'),
+                           ('routing-opt-out-v1', 'OPT_OUT_SCHEMA'),
+                           ('routing-approvals-v1', 'APPROVAL_SCHEMA')]:
+        schema = json.loads((root / DEST / f'resources/schemas/{name}.schema.json').read_text())
+        schema.pop('$schema')
+        schema.pop('$comment')
+        if schema != config[constant]:
+            raise ValueError(f'configuration schema drift: {name}')
+    global_example = json.loads((root / DEST / 'resources/examples/off-global-routing.json').read_text())
+    config['validate_global'](global_example)
+    if global_example['hosts'] != {'codex-skill': v4policy}:
+        raise ValueError('global example must match off/unqualified v4 policy')
+    opt_out = json.loads((root / DEST / 'resources/examples/routing-opt-out.json').read_text())
+    namespace['validate'](opt_out, config['OPT_OUT_SCHEMA'])
     paths = ['plugin/plugin.json','plugin/.codex-plugin/plugin.json','plugin/.claude-plugin/plugin.json']
     manifests = [json.loads((root/p).read_text()) for p in paths]
     portable, codex, claude = manifests

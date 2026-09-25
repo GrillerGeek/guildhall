@@ -52,7 +52,10 @@ Use [the shared routing contract](routing.md) for all Guildhall workers, includi
 fast lanes and pre-plan consultations. Absent/off policy leaves ordinary dispatch
 unchanged and never invokes Python. Explicit user choice precedes role override,
 then active routing, then eligible baseline; invalid explicit choices hold.
-Before enabled calls, capture user activation and reviewed host/profile evidence,
+Before enabled calls, resolve session/project/global policy and reuse valid
+source-bound approval under [global setup](global-routing.md). Recheck source,
+approval and fresh host/profile evidence before each worker; when approval is
+missing, obtain explicit activation through setup outside quest execution. Then
 prepare permitted bounded facts, and carry returned routing state serially across
 all workers. Test-author routing sees only its permitted Spec/API/test handoff.
 Buffer pre-plan receipts, then record them in the plan; no-plan fast lanes include

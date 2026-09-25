@@ -211,14 +211,14 @@ def strict_json(raw):
     return json.loads(raw, object_pairs_hook=pairs, parse_constant=constant)
 
 
-def validate_request(request):
-    if len(canonical(request)) > LIMIT:
+def validate_policy(policy):
+    """Validate a standalone policy using the same rules as a routing request."""
+    if len(canonical(policy)) > LIMIT:
         raise ValueError('oversize')
-    version = request.get('schema_version') if type(request) is dict else None
-    validate(request, {2: REQUEST_SCHEMA_V2, 3: REQUEST_SCHEMA_V3, 4: REQUEST_SCHEMA_V4}.get(version, REQUEST_SCHEMA))
-    policy = request['policy']
+    version = policy.get('schema_version') if type(policy) is dict else None
+    validate(policy, {2: POLICY_SCHEMA_V2, 3: POLICY_SCHEMA_V3, 4: POLICY_SCHEMA_V4}.get(version, POLICY_SCHEMA))
     candidates = policy['candidates']
-    if request['schema_version'] >= 2:
+    if version >= 2:
         for candidate in candidates:
             if any(candidate[name] is not None for name in METRIC_NAMES):
                 raise ValueError('global metrics forbidden in v2')
@@ -229,6 +229,15 @@ def validate_request(request):
         raise ValueError('duplicate candidate')
     if len({(c['host'], c['model'], c['effort']) for c in candidates}) != len(candidates):
         raise ValueError('duplicate settings')
+
+
+def validate_request(request):
+    if len(canonical(request)) > LIMIT:
+        raise ValueError('oversize')
+    version = request.get('schema_version') if type(request) is dict else None
+    validate(request, {2: REQUEST_SCHEMA_V2, 3: REQUEST_SCHEMA_V3, 4: REQUEST_SCHEMA_V4}.get(version, REQUEST_SCHEMA))
+    policy = request['policy']
+    validate_policy(policy)
     if request['baseline']['model'] is None and request['baseline']['effort'] is not None:
         raise ValueError('unresolved effort')
     if policy['data_mode'] == 'categories' and request['task']['summary'] is not None:

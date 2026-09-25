@@ -77,6 +77,9 @@ def main():
                                 (bundle/'resources/examples/headroom-packet.json').read_text()))
         assert headroom['status']=='headroom_observed' and headroom['qualification'] is False
         run([sys.executable,'-I','-B',bundle/'scripts/study_runner.py','--help'],env,cwd)
+        configuration=json.loads(run([sys.executable,'-I','-B',bundle/'scripts/routing_config.py'],env,cwd,
+            json.dumps(dict(operation='resolve',project_root=str(cwd.resolve()),host_route='codex-skill'))))
+        assert configuration['reason']=='no_policy' and configuration['policy'] is None
         usage=json.loads(run([sys.executable,'-I','-B',bundle/'scripts/routing_usage.py'],env,cwd,
                              (bundle/'resources/examples/usage-records.json').read_text()))
         assert usage['meters']['host']['usage_tokens']==120 and usage['meters']['host']['cost_usd'] is None

@@ -44,9 +44,9 @@ Full character sheets in [`CHARACTERS.md`](CHARACTERS.md).
 
 ## Installation
 
-Version **0.14.0 includes the installed routing tools**. The [installation guide](https://github.com/GrillerGeek/guildhall/blob/main/docs/installation.md)
+Version **0.15.0 includes the installed routing tools**. The [installation guide](https://github.com/GrillerGeek/guildhall/blob/main/docs/installation.md)
 covers this repository's Codex, Claude and standalone routes, updates and removal.
-The `main` route receives 0.14.0 after merge; the separate marketplace below is
+The `main` route receives 0.15.0 after merge; the separate marketplace below is
 not updated by this change.
 
 ### From the marketplace (recommended)
@@ -163,6 +163,11 @@ for explicitly enabled specialists across all 18 roles with schema v4. Shadow
 does not require qualified profiles. See the [role matrix and migration guide](skills/guildhall-quest/references/role-eligibility.md).
 No live-qualified profiles ship, and no cost or quality improvement is claimed.
 
+Set up [global defaults and persistent approvals](skills/guildhall-quest/references/global-routing.md)
+once per host, then inherit them across projects. Optional project policies
+replace global defaults; explicit project opt-out disables them. Removing a
+project policy restores inheritance.
+
 Use [the setup and operations guide](skills/guildhall-quest/references/model-routing.md) before a quest.
 Enabled routing needs Python 3.12+ and explicit policy activation; external calls
 read `TYPESAFE_API_KEY` from the host process environment. An API key alone enables
@@ -173,7 +178,7 @@ change reviewers, permissions, lifecycle gates or retry budgets.
 
 ## Portable quest candidate
 
-Version 0.14.0 ships `skills/guildhall-quest/SKILL.md` for capable
+Version 0.15.0 ships `skills/guildhall-quest/SKILL.md` for capable
 non-Claude hosts. It bundles its role references and uses host-native independent
 workers. The Claude command/agent/hook route documented above is preserved;
 standalone installation does not register those native Claude components.

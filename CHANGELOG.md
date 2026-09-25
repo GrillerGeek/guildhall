@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.15.0 — Unreleased
+
+- Add global per-host routing defaults, optional full project overrides and explicit opt-out.
+- Persist source-bound activation across projects and sessions with host/evidence checks, expiry and revocation.
+- Bundle offline configuration preview, preparation and status with atomic conflict-checked writes.
+- Preserve legacy policies, qualification and quest-local state; deleting a project policy now restores global inheritance.
+
 ## 0.14.0 — Unreleased
 
 - Make all 18 specialists eligible through explicit schema-v4 role allowlists.

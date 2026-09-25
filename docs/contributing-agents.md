@@ -145,7 +145,7 @@ workers or claim synthetic savings as observed results. See the
 
 ## Distribution and versioning
 
-The current package version is 0.14.0; increment all three manifests for further
+The current package version is 0.15.0; increment all three manifests for further
 installer-visible changes. Existing native Claude agents/commands/hooks remain
 preserved. Never rewrite historical plans to claim newer evidence. No repository
 change implicitly installs personally, publishes a release or edits the separate
@@ -184,3 +184,9 @@ routing guide in `plugin/portable/references/model-routing.md`, then regenerate.
 
 Maintain `routing_usage.py` in the canonical portable scripts. Usage input schema
 1 is separate from routing schema2; v1 routing policy hashes are not rewritten.
+
+Maintain global policy resolution and approval persistence in
+`plugin/portable/scripts/routing_config.py` and `references/global-routing.md`.
+Configuration schemas have their own version; existing routing policy hashes
+and quest state semantics remain unchanged. Test using isolated user directories;
+never activate or install into a personal profile during packaging validation.

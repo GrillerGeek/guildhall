@@ -75,7 +75,9 @@ plugin or modify user configuration just to make the report green.
 
 ## Shared optional routing adapter
 
-For all three routes, follow [routing](routing.md) before each new worker,
+For all three routes, resolve [global/project configuration](global-routing.md)
+and reusable source-bound activation with current host evidence, then follow
+[routing](routing.md) before each new worker,
 including fast lanes, pre-plan consultation, prototype/debug workers, review
 fan-out and PR drafting. Serialize helper decisions and carry its returned quest
 state forward before dispatching concurrent workers. A policy file or API key

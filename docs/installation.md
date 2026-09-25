@@ -1,6 +1,6 @@
 # Guildhall installation and host support
 
-Version **0.14.0 is a release candidate**, available through the `main` commands
+Version **0.15.0 is a release candidate**, available through the `main` commands
 below after merge. It includes all-role routing eligibility, usage/evidence/study tools, one complete
 `guildhall-quest` skill and native Codex metadata. Claude's `/guildhall:quest`, nineteen agent definitions
 and hooks remain available. Choose one route per quest to avoid duplicate entry
@@ -148,8 +148,13 @@ Native Claude uses `${CLAUDE_PLUGIN_ROOT}/skills/guildhall-quest`; standalone an
 Codex paths depend on the selected installation scope. Use the installed bundle,
 not `plugin/portable`, which is an authoring source.
 
-Follow [the routing guide](model-routing.md) to prepare `.guildhall/routing.json`
-before a quest. Python **3.12+** is required only for the optional routing helper;
+Follow [global routing setup](../plugin/skills/guildhall-quest/references/global-routing.md)
+to prepare and approve one policy per host in `~/.config/guildhall/routing.json`
+(or the absolute XDG_CONFIG_HOME location). Projects inherit it without setup.
+Optional `.guildhall/routing.json` files replace those defaults; an explicit project
+opt-out disables routing. Removing a project policy restores global inheritance.
+Package updates and removal leave user configuration and approval files alone.
+The [routing guide](model-routing.md) covers qualification and outbound data. Python **3.12+** is required only for the optional routing helper;
 normal skill loading and off-mode dispatch do not need it. Native Claude's
 existing Python hooks retain their separate prerequisites. Set
 `TYPESAFE_API_KEY` in the environment of the terminal/process launching the host

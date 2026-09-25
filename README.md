@@ -1,7 +1,7 @@
 # Guildhall
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Plugin](https://img.shields.io/badge/plugin-v0.14.0-green.svg)](plugin/README.md)
+[![Plugin](https://img.shields.io/badge/plugin-v0.15.0-green.svg)](plugin/README.md)
 
 **Give a coding task to a team of AI specialists that writes tests, implements the
 change, reviews it and prepares a PR draft.**
@@ -19,8 +19,9 @@ code, tests, review evidence and a PR draft. Publishing a PR is a separate actio
 
 ## Install
 
-The commands below install Guildhall from its published main branch. **Version
-0.14.0 adds routing support for all 18 specialists, usage accounting and study tools.**
+The commands below install Guildhall from its published main branch. This branch
+prepares **0.15.0**, adding global specialist-routing defaults and persistent
+approvals across projects; those changes reach the main install route after merge.
 Choose one route for your coding app. No repository clone, build or IDD
 installation is required.
 
@@ -121,8 +122,12 @@ existing model defaults without a Jev key or the routing Python runtime.
   when that role is explicitly enabled and independently qualified for its host,
   task category and objective. No qualified profiles ship with this release.
 
-An API key alone enables nothing. Prepare the project policy before starting a
-quest, then explicitly activate it. The [routing guide](docs/model-routing.md)
+Configure routing once per host with [global defaults](plugin/skills/guildhall-quest/references/global-routing.md)
+in `~/.config/guildhall/routing.json` (or XDG_CONFIG_HOME). Approve the selected
+policy for all projects once; unchanged approvals persist across sessions. Optional
+`.guildhall/routing.json` project policies override it in full, and a project opt-out
+can disable routing. Deleting a project policy restores global inheritance.
+An API key alone enables nothing. The [routing guide](docs/model-routing.md)
 includes a setup prompt, safe smoke command, data-sharing details, receipts and
 disable instructions. The [role matrix and migration guide](plugin/skills/guildhall-quest/references/role-eligibility.md)
 explains how to enable one qualified role at a time. There are no measured Jev savings or live qualification
