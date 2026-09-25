@@ -19,7 +19,9 @@ not a quest invocation and does not automatically activate quest dispatch rules.
   into portable references. Host metadata is stripped; narrow substitutions adapt
   guidance, evidence, recovery and runbook contracts. These differences are
   intentional and must be reviewed whenever the native role contract changes.
-- `plugin/skills/guildhall-quest/`: generated complete bundle; never hand-edit.
+- `plugin/skills/`: generated complete quest and routing-setup bundles; never hand-edit.
+- `plugin/routing-setup/`: canonical conversational setup entry and flow. Shared
+  tools, schemas and routing references still come from `plugin/portable/`.
 - Three manifests: portable `plugin/plugin.json`, Codex
   `plugin/.codex-plugin/plugin.json`, Claude `plugin/.claude-plugin/plugin.json`.
   Keep identity and versions aligned. Claude's existing tier description remains
@@ -145,7 +147,7 @@ workers or claim synthetic savings as observed results. See the
 
 ## Distribution and versioning
 
-The current package version is 0.15.0; increment all three manifests for further
+The current package version is 0.16.0; increment all three manifests for further
 installer-visible changes. Existing native Claude agents/commands/hooks remain
 preserved. Never rewrite historical plans to claim newer evidence. No repository
 change implicitly installs personally, publishes a release or edits the separate

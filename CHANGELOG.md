@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.16.0 — Unreleased
+
+- Add `guildhall-routing-setup`, a conversational wizard for global/project setup, settings changes, diagnosis and disabling.
+- Suggest shadow mode for new users and preview supported profiles, scope, outbound data and prerequisites before activation.
+- Ship complete independent quest/setup skills generated from shared routing resources, and verify both installation routes.
+
 ## 0.15.0 — Unreleased
 
 - Add global per-host routing defaults, optional full project overrides and explicit opt-out.

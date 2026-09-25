@@ -1,6 +1,6 @@
 {
   "name": "guildhall",
-  "version": "0.15.0",
+  "version": "0.16.0",
   "author": {
     "name": "GrillerGeek"
   },
@@ -19,7 +19,7 @@
   "interface": {
     "displayName": "Guildhall",
     "shortDescription": "Independent specialists for test-first coding quests.",
-    "longDescription": "Plan a quest, dispatch independent specialists, verify a sequential test-first build, collect gated reviews and draft a PR.",
+    "longDescription": "Plan a quest, dispatch independent specialists, verify a sequential test-first build, collect gated reviews and draft a PR. Configure specialist routing through a guided setup skill.",
     "developerName": "GrillerGeek",
     "category": "Productivity",
     "capabilities": [
@@ -28,7 +28,8 @@
     ],
     "websiteURL": "https://github.com/GrillerGeek/guildhall",
     "defaultPrompt": [
-      "Run a Guildhall quest for this task."
+      "Run a Guildhall quest for this task.",
+      "Help me set up Guildhall model routing."
     ]
   }
 }

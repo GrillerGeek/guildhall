@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "Generated from canonical routing_config.py; verified by validate_portable.py.",
+  "type": "object",
+  "properties": {
+    "config_version": {
+      "enum": [
+        1
+      ],
+      "type": "integer"
+    },
+    "approvals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "source_key": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "minLength": 64,
+            "maxLength": 64
+          },
+          "policy_hash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "minLength": 64,
+            "maxLength": 64
+          },
+          "host_fingerprint": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "minLength": 64,
+            "maxLength": 64
+          },
+          "scope": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "approved_at": {
+            "type": "number",
+            "minimum": 0
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "evidence_hashes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$",
+              "minLength": 64,
+              "maxLength": 64
+            },
+            "uniqueItems": true,
+            "maxItems": 64,
+            "minItems": 0
+          }
+        },
+        "required": [
+          "source_key",
+          "policy_hash",
+          "host_fingerprint",
+          "scope",
+          "approved_at",
+          "expires_at",
+          "evidence_hashes"
+        ],
+        "additionalProperties": false
+      },
+      "uniqueItems": true,
+      "maxItems": 256,
+      "minItems": 0
+    }
+  },
+  "required": [
+    "config_version",
+    "approvals"
+  ],
+  "additionalProperties": false
+}

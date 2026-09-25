@@ -112,6 +112,34 @@ class GlobalRoutingTests(unittest.TestCase):
         self.write_policy(self.other / '.guildhall/routing.json', self.req['policy'])
         self.assertEqual(self.client(self.other).status(self.req['host'], now=NOW)['reason'], 'activation_required')
 
+    def test_setup_can_activate_masked_global_without_changing_project(self):
+        self.prepare()
+        self.write_policy(self.project / '.guildhall/routing.json', self.module.OPT_OUT)
+        self.assertEqual(self.config.resolve()['reason'], 'router_disabled')
+        status = self.config.status(self.req['host'], target='global', now=NOW)
+        self.assertEqual(status['source'], 'global')
+        self.config.activate(self.req['host'], target='global',
+            expected_policy_hash=status['policy_hash'],
+            expected_host_fingerprint=status['host_fingerprint'],
+            expected_source_key=status['source_key'], expected_revision=status['approval_revision'],
+            confirm_scope='all-projects', evidence_hashes=['1'*64], now=NOW)
+        self.assertEqual(self.config.status(self.req['host'], now=NOW)['reason'], 'router_disabled')
+        self.assertEqual(self.client(self.other).status(self.req['host'], now=NOW)['reason'], 'ready')
+        global_status = self.config.status(self.req['host'], target='global', now=NOW)
+        self.config.revoke(global_status['source_key'], expected_revision=global_status['approval_revision'])
+        self.assertEqual(self.client(self.other).status(self.req['host'], now=NOW)['reason'], 'activation_required')
+
+    def test_targeted_setup_does_not_guess_or_replace_effective_selection(self):
+        self.prepare()
+        local = self.config.resolve(target='project')
+        self.assertEqual(local['reason'], 'no_policy')
+        with self.assertRaises(ValueError):
+            self.config.resolve(target='bogus')
+        with self.assertRaises(ValueError):
+            self.client(session_off=True).resolve(target='global')
+        with self.assertRaises(ValueError):
+            self.client(policy_path=self.root / 'explicit.json').resolve(target='global')
+
     def test_hash_formatting_host_changes_expiry_and_evidence(self):
         self.prepare()
         self.approve()

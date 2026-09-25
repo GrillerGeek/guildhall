@@ -180,12 +180,21 @@ class RoutingConfig:
             need(self.explicit_path.is_absolute(), 'policy_path_must_be_absolute')
         self.session_off = session_off
 
-    def resolve(self):
+    def resolve(self, *, target=None):
+        # Targeted reads are explicit setup operations. Worker dispatch omits
+        # target and always resolves the ordinary session/project/global chain.
+        need(target in (None, 'global', 'project'), 'invalid_setup_target')
+        need(target is None or not (self.session_off or self.explicit_path is not None),
+             'setup_target_conflicts_with_session_selection')
         result = dict(source='none', source_path=None, scope=None, source_key=None,
                       policy=None, policy_hash=None, config_revision=None, reason='no_policy')
         if self.session_off:
             return dict(result, source='session', reason='router_disabled')
-        if self.explicit_path is not None:
+        if target == 'global':
+            source, path = 'global', self.global_path
+        elif target == 'project':
+            source, path = 'project', self.project_path
+        elif self.explicit_path is not None:
             source, path = 'explicit', self.explicit_path
         elif exists(self.project_path):
             source, path = 'project', self.project_path
@@ -193,7 +202,7 @@ class RoutingConfig:
             source, path = 'global', self.global_path
         value = read_json(path)
         if value is None:
-            need(source == 'global', 'selected_policy_missing')
+            need(source == 'global' or target == 'project', 'selected_policy_missing')
             return result
         scope = 'all-projects' if source == 'global' else str(self.project)
         identity = dict(source=source, path=str(path.resolve()), scope=scope, host_route=self.host_route)
@@ -228,9 +237,9 @@ class RoutingConfig:
         validate_approvals(value)
         return value, digest(value)
 
-    def status(self, host=None, *, now=None):
+    def status(self, host=None, *, target=None, now=None):
         current = clock(now)
-        result = self.resolve()
+        result = self.resolve(target=target)
         result.update(host_fingerprint=None, approval_revision=None,
             activation=dict(policy_hash=None, external_requests=False,
                             summary_preview_hash=None, evidence_hashes=[]))
@@ -293,10 +302,10 @@ class RoutingConfig:
 
     def activate(self, host, *, expected_policy_hash, expected_host_fingerprint,
                  expected_source_key, expected_revision, confirm_scope,
-                 evidence_hashes, expires_at=None, now=None):
+                 evidence_hashes, expires_at=None, target=None, now=None):
         """Called only after explicit approval of the displayed policy and scope."""
         current = clock(now)
-        result = self.status(host, now=current)
+        result = self.status(host, target=target, now=current)
         need(result['policy'] is not None and result['policy']['mode'] != 'off', 'no_enabled_policy')
         need((result['policy_hash'], result['host_fingerprint'], result['source_key'], result['scope']) ==
              (expected_policy_hash, expected_host_fingerprint, expected_source_key, confirm_scope),
@@ -314,7 +323,7 @@ class RoutingConfig:
             approved_at=current, expires_at=expires_at, evidence_hashes=evidence_hashes))
         validate_approvals(approvals)
         write_json(self.approvals_path, approvals, revision, private=True)
-        return self.status(host, now=current)
+        return self.status(host, target=target, now=current)
 
     def revoke(self, source_key, *, expected_revision):
         validate(source_key, _R['HASH'])

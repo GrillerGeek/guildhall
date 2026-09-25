@@ -13,6 +13,7 @@ import re
 from evaluate_portable import snapshot
 
 ROOT = Path(__file__).resolve().parent.parent
+SKILLS = ('guildhall-quest', 'guildhall-routing-setup')
 
 
 def main():
@@ -101,7 +102,8 @@ def main():
             assert any(x['name']=='guildhall' and x['enabled'] and x['version']==json.loads((ROOT/'plugin/.codex-plugin/plugin.json').read_text())['version'] for x in listing['installed'])
             shutil.rmtree(source)
             assert snapshot(installed)==expected,'Native cache depends on removed source'
-            installed_tools(installed/'skills/guildhall-quest',env,case)
+            for skill in SKILLS:
+                installed_tools(installed/'skills'/skill,env,case)
             report['native_codex']='passed: installed/enabled, exact bytes/modes, source removal'
         if args.native_claude:
             case=temp/'native-claude';env=environment(case);source=case/'source';source.mkdir()
@@ -122,37 +124,34 @@ def main():
             assert snapshot(installed)==expected,'Native Claude cached contents/modes differ'
             shutil.rmtree(source)
             assert snapshot(installed)==expected,'Native Claude cache depends on removed source'
-            installed_tools(installed/'skills/guildhall-quest',env,project)
+            for skill in SKILLS:
+                installed_tools(installed/'skills'/skill,env,project)
             report['native_claude']='passed: project installation/enabled, exact bytes/modes, source removal'
         if args.skills_cli:
-            for host in ['codex','claude-code']:
-                case=temp/host;env=environment(case);source=case/'source';project=case/'project';project.mkdir()
-                shutil.copytree(ROOT/'plugin/skills/guildhall-quest',source)
-                expected=snapshot(source)
-                run([args.skills_cli,'add',source,'--agent',host,'--skill','guildhall-quest','--copy','--yes'],env,project)
-                installed=project/('.agents' if host=='codex' else '.claude')/'skills/guildhall-quest'
-                assert not installed.is_symlink(),'Expected copy installation'
-                assert snapshot(installed)==expected,'Standalone installed bytes/modes differ'
-                shutil.rmtree(source)
-                assert snapshot(installed)==expected,'Standalone copy depends on removed source'
-                installed_tools(installed,env,project)
-                report[host]='passed: exact copied bytes/modes and source removal'
-            # Repository-root discovery must select the complete generated
-            # bundle, not the similarly named canonical authoring source.
-            for host in ['codex','claude-code']:
-                case=temp/f'repository-{host}';env=environment(case)
-                source=case/'source';source.mkdir();project=case/'project';project.mkdir()
-                for rel in ['plugin','.agents','.claude-plugin']:
-                    shutil.copytree(ROOT/rel,source/rel)
-                expected=snapshot(source/'plugin/skills/guildhall-quest')
-                run([args.skills_cli,'add',source,'--agent',host,'--skill','guildhall-quest','--copy','--yes'],env,project)
-                installed=project/('.agents' if host=='codex' else '.claude')/'skills/guildhall-quest'
-                assert not installed.is_symlink(),'Expected repository-root copy installation'
-                assert snapshot(installed)==expected,'Repository discovery selected an incomplete/different bundle'
-                shutil.rmtree(source)
-                assert snapshot(installed)==expected,'Repository-root copy depends on removed source'
-                installed_tools(installed,env,project)
-                report[f'repository_{host}']='passed: repository discovery selects exact complete bundle; source removal'
+            for discovery in ('bundle', 'repository'):
+                for host in ('codex', 'claude-code'):
+                    for skill in SKILLS:
+                        case=temp/f'{discovery}-{host}-{skill}';env=environment(case)
+                        source=case/'source';project=case/'project';project.mkdir()
+                        if discovery == 'bundle':
+                            shutil.copytree(ROOT/'plugin/skills'/skill,source)
+                            expected=snapshot(source)
+                        else:
+                            source.mkdir()
+                            for rel in ('plugin','.agents','.claude-plugin'):
+                                shutil.copytree(ROOT/rel,source/rel)
+                            expected=snapshot(source/'plugin/skills'/skill)
+                        run([args.skills_cli,'add',source,'--agent',host,'--skill',skill,'--copy','--yes'],env,project)
+                        installed=project/('.agents' if host=='codex' else '.claude')/'skills'/skill
+                        assert not installed.is_symlink(),'Expected copy installation'
+                        assert snapshot(installed)==expected,'Discovery selected incomplete/different bundle'
+                        # Installing setup alone must not need a sibling quest install.
+                        siblings=list(installed.parent.iterdir())
+                        assert len(siblings)==1 and siblings[0].name==skill,'Unexpected sibling skill installation'
+                        shutil.rmtree(source)
+                        assert snapshot(installed)==expected,'Copy depends on removed source'
+                        installed_tools(installed,env,project)
+                        report[f'{discovery}_{host}_{skill}']='passed: exact complete bundle, independent install, source removal'
         report['status']='passed'
     except Exception as exc:
         report['status']='failed';report['error']=str(exc)

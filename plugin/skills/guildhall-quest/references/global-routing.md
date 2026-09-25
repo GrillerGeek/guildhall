@@ -124,11 +124,11 @@ environment, not packet fields. For example, this operation makes no changes:
 
 | Operation | Additional input | Result |
 |---|---|---|
-| `resolve` | None | Policy, source, scope, effective policy hash, source key and config revision; no writes. |
-| `status` | `host`: the fresh host object from the routing request schema, optional for discovery | Reusable activation or a reason it is unavailable; also host fingerprint and approval-store revision. |
+| `resolve` | Optional `target`: `global` or `project`, for setup only | Policy, source, scope, effective policy hash, source key and config revision; no writes. |
+| `status` | `host`: the fresh host object from the routing request schema, optional for discovery; optional setup `target` | Reusable activation or a reason it is unavailable; also host fingerprint and approval-store revision. |
 | `preview` | `policy`: complete policy or project opt-out; `target`: `global` or `project` | Exact proposed document, target path, scope, expected revision and whether a project override remains. No writes. |
 | `prepare` | Same as preview, plus `expected_revision` returned by preview | Writes that configuration with conflict detection. Does not activate. |
-| `activate` | Fresh `host`; `expected_policy_hash`, `expected_host_fingerprint`, `expected_source_key`, `expected_revision` (approval revision), `confirm_scope`, reviewed `evidence_hashes`; optional `expires_at` (Unix seconds or null) | Persists explicit approval and returns current status. |
+| `activate` | Fresh `host`; `expected_policy_hash`, `expected_host_fingerprint`, `expected_source_key`, `expected_revision` (approval revision), `confirm_scope`, reviewed `evidence_hashes`; optional `expires_at` (Unix seconds or null) and setup `target` | Persists explicit approval and returns current status. |
 | `revoke` | `source_key` and `expected_revision` (approval revision) | Removes that source's approval; does not edit policies or other approvals. |
 
 For activation, copy the expected hashes, scope and approval revision from the
@@ -139,6 +139,15 @@ configuration and approval revisions are distinct. Never automatically refresh
 expected values and retry after a conflict without reviewing what changed.
 For revocation after a policy becomes unreadable, use the previously recorded
 source key and a freshly read, validated approval-store revision.
+
+Setup can use `target: global` to inspect and approve a global host entry masked
+by a project override, without removing or modifying that override. Use the same
+target for status and activation; afterward also read untargeted status to report
+what this project actually uses. `target: project` inspects only the project file,
+with no global fallback if absent. Targeted setup rejects explicit session
+selection/off options instead of guessing which intent wins. Worker dispatch
+always omits `target`: using targeted status to bypass a project opt-out violates
+the routing contract. The setup skill does not dispatch workers.
 
 Writes use restrictive file modes and atomic replacement with an exclusive lock.
 Unsafe approval file ownership/permissions and symlinks are refused. A leftover

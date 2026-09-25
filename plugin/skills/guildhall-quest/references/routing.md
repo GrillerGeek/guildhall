@@ -33,7 +33,8 @@ budgets. External IDD assignments remain outside this router.
    settings: represent this with both baseline arguments null, not guessed names.
    A model paired with null effort means omit effort, not known inherited effort.
 3. For shadow/adaptive, first read reusable approval through the installed
-   `scripts/routing_config.py` status operation with fresh host evidence. Use its
+   `scripts/routing_config.py` status operation with fresh host evidence and no
+   setup `target` override. Worker routing always uses the effective source. Use its
    policy and activation in the routing request. Reuse an unchanged valid approval
    across sessions/projects within its recorded scope; do not ask again. If none
    applies, show the user mode, objective, candidate scope and outbound

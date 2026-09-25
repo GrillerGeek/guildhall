@@ -1,8 +1,8 @@
 # Guildhall installation and host support
 
-Version **0.15.0 is a release candidate**, available through the `main` commands
-below after merge. It includes all-role routing eligibility, usage/evidence/study tools, one complete
-`guildhall-quest` skill and native Codex metadata. Claude's `/guildhall:quest`, nineteen agent definitions
+Version **0.16.0 is a release candidate**, available through the `main` commands
+below after merge. It includes all-role routing eligibility, usage/evidence/study tools, independent
+`guildhall-quest` and `guildhall-routing-setup` skills and native Codex metadata. Claude's `/guildhall:quest`, nineteen agent definitions
 and hooks remain available. Choose one route per quest to avoid duplicate entry
 points. Guildhall works independently; IDD is optional. See
 [using Guildhall with IDD](../README.md#optional-use-with-idd) if you want to add
@@ -85,9 +85,12 @@ use `--global` instead of `--project` for updates.
 
 ```bash
 npx --yes skills@1.5.25 add GrillerGeek/guildhall --skill guildhall-quest --agent codex --copy --yes
+npx --yes skills@1.5.25 add GrillerGeek/guildhall --skill guildhall-routing-setup --agent codex --copy --yes
 npx skills@1.5.25 list --agent codex
 ```
 
+The second add command installs the optional setup wizard. Each skill can be
+installed alone; the wizard does not dispatch workers or require the quest skill.
 Look for `guildhall-quest` in the listing. Restart your coding app, then ask it
 to use `guildhall-quest` for a small prototype.
 This verifies discovery; executing a workflow still depends on the host's tools
@@ -103,7 +106,8 @@ npx skills@1.5.25 update guildhall-quest --project --yes
 
 This command uses the installer lockfile and detected project destinations.
 To retain an explicit target app and copy method, or repair an installed copy,
-repeat the full `add` command above instead. Restart the app afterward. Updates
+repeat the corresponding `add` command above instead. To update the setup wizard,
+use `update guildhall-routing-setup --project --yes` with the same installer. Restart the app afterward. Updates
 replace installed resources; keep project instructions in your project rather
 than editing the installed bundle.
 
@@ -120,7 +124,10 @@ npx skills@1.5.25 remove guildhall-quest --agent codex --yes
 npx skills@1.5.25 list --agent codex
 ```
 
-Removal was verified in single-host copy fixtures, preserving an unrelated
+To remove only the wizard, replace `guildhall-quest` with `guildhall-routing-setup`
+in the remove command. Configuration/approvals remain in their user-owned location.
+
+Removal of the quest skill was verified in single-host copy fixtures, preserving an unrelated
 skill. In projects sharing `.agents/skills` across hosts, a copy may remain for
 another host; inspect the listing and selected path rather than assuming success
 means every shared copy was deleted. Avoid `--all` when keeping other skills.
@@ -128,7 +135,8 @@ means every shared copy was deleted. Avoid `--all` when keeping other skills.
 ### Local sources and advanced discovery
 
 Replace `GrillerGeek/guildhall` with `/absolute/path/to/guildhall` or the direct
-`plugin/skills/guildhall-quest` directory to install local development files.
+`plugin/skills/guildhall-quest` or `plugin/skills/guildhall-routing-setup` directory
+to install that skill’s local development files.
 To inspect available skills without installing:
 
 ```bash
@@ -141,6 +149,16 @@ parser and actual recorded readiness approval. Native agents, model aliases and
 hooks are not installed by this route.
 
 ## Optional routing setup after installation
+
+With the wizard installed, restart the host and ask **“Set up Guildhall routing”**,
+or invoke `$guildhall-routing-setup` in Codex. It detects the executing host, offers
+global/project scope and a goal, checks profiles and prerequisites, then presents
+a plain-language proposal. You choose whether to save and enable shadow mode, save
+off, change choices or cancel. It never treats missing evidence as qualification
+or runs a paid test automatically. A returning user can ask the same skill to
+change, diagnose or disable routing.
+
+For manual setup or the wizard’s underlying contract:
 
 Restart the host after installing or updating. Locate the installed
 `guildhall-quest` directory containing `SKILL.md`, `resources/` and `scripts/`.

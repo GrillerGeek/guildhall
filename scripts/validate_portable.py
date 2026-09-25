@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import re
-from build_portable import build, ROOT, DEST
+from build_portable import build, ROOT, DEST, DESTINATIONS
 
 
 def validate(root: Path = ROOT) -> None:
@@ -65,16 +65,17 @@ def validate(root: Path = ROOT) -> None:
         raise ValueError('unexpected manifest fields')
     if codex.get('skills') != './skills/':
         raise ValueError('skills must use fixed plugin-local discovery')
-    if sorted(p.name for p in (root/'plugin/skills').iterdir()) != ['guildhall-quest']:
+    if sorted(p.name for p in (root/'plugin/skills').iterdir()) != sorted(p.name for p in DESTINATIONS):
         raise ValueError('unexpected skill inventory')
-    for file in (root/DEST).rglob('*.md'):
-        for target in re.findall(r'\]\(([^)]+)\)',file.read_text()):
-            if '://' in target or target.startswith('#'):
-                continue
-            target = target.split('#')[0]
-            resolved = (file.parent/target).resolve()
-            if not resolved.is_relative_to((root/DEST).resolve()) or not resolved.is_file():
-                raise ValueError(f'missing/escaped reference: {file}: {target}')
+    for destination in DESTINATIONS:
+        for file in (root/destination).rglob('*.md'):
+            for target in re.findall(r'\]\(([^)]+)\)',file.read_text()):
+                if '://' in target or target.startswith('#'):
+                    continue
+                target = target.split('#')[0]
+                resolved = (file.parent/target).resolve()
+                if not resolved.is_relative_to((root/destination).resolve()) or not resolved.is_file():
+                    raise ValueError(f'missing/escaped reference: {file}: {target}')
     for rel in ['.agents/plugins/marketplace.json','.claude-plugin/marketplace.json']:
         m = json.loads((root/rel).read_text())
         if m['name'] != 'guildhall-local' or len(m['plugins']) != 1 or m['plugins'][0]['name'] != 'guildhall':
