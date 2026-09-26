@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "policy": {
+    "schema_version": 1,
+    "mode": "off",
+    "router_model": "jev-latest",
+    "key_env": "TYPESAFE_API_KEY",
+    "timeout_ms": 2000,
+    "max_calls": 8,
+    "data_mode": "categories",
+    "objective": "latency",
+    "min_confidence": 0.8,
+    "allowed_candidates": [
+      "baseline"
+    ],
+    "adaptive_roles": [
+      "docs-writer",
+      "pr-author"
+    ],
+    "max_cost_usd": null,
+    "max_latency_ms": null,
+    "candidates": [
+      {
+        "id": "baseline",
+        "host": "codex-skill",
+        "model": "REPLACE_WITH_HOST_MODEL",
+        "effort": null,
+        "roles": [
+          "docs-writer",
+          "pr-author"
+        ],
+        "categories": [
+          "docs",
+          "pr"
+        ],
+        "capabilities": [
+          "text"
+        ],
+        "context_tokens": 32768,
+        "quality": null,
+        "latency_ms": null,
+        "cost_usd": null,
+        "usage_tokens": null,
+        "profile_revision": "REPLACE_WITH_REVIEWED_PROFILE_REVISION",
+        "qualification": null
+      }
+    ]
+  },
+  "activation": {
+    "policy_hash": null,
+    "external_requests": false,
+    "summary_preview_hash": null,
+    "evidence_hashes": []
+  },
+  "host": {
+    "route": "codex-skill",
+    "client_version": "REPLACE_WITH_CLIENT_VERSION",
+    "provider": "REPLACE_WITH_HOST_PROVIDER",
+    "worker_tool": "REPLACE_WITH_ACTUAL_WORKER_TOOL",
+    "independent_workers": true,
+    "fresh_context": true,
+    "model_selection": false,
+    "effort_selection": false,
+    "attribution": "unknown",
+    "configuration_revision": "REPLACE_WITH_CONFIGURATION_REVISION",
+    "evidence_hash": null,
+    "baseline_candidate": null,
+    "allowed_settings": [
+      {
+        "model": "REPLACE_WITH_HOST_MODEL",
+        "effort": null
+      }
+    ]
+  },
+  "task": {
+    "role": "docs-writer",
+    "category": "docs",
+    "ambiguity": "low",
+    "risk": "low",
+    "required_capabilities": [
+      "text"
+    ],
+    "context_bucket": "medium",
+    "summary": null
+  },
+  "baseline": {
+    "model": null,
+    "effort": null
+  },
+  "selection": {
+    "user_candidate": null,
+    "role_candidate": null
+  },
+  "state": {
+    "calls_used": 0,
+    "provider_failed": false,
+    "adaptive_suspended": false
+  }
+}

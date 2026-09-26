@@ -1,0 +1,50 @@
+{
+  "config_version": 1,
+  "hosts": {
+    "codex-skill": {
+      "schema_version": 4,
+      "mode": "off",
+      "router_model": "jev-latest",
+      "key_env": "TYPESAFE_API_KEY",
+      "timeout_ms": 2000,
+      "max_calls": 8,
+      "data_mode": "categories",
+      "objective": "usage",
+      "min_confidence": 0.8,
+      "allowed_candidates": [
+        "baseline"
+      ],
+      "adaptive_roles": [],
+      "max_cost_usd": null,
+      "max_latency_ms": null,
+      "candidates": [
+        {
+          "id": "baseline",
+          "host": "codex-skill",
+          "model": "REPLACE_WITH_HOST_MODEL",
+          "effort": null,
+          "roles": [
+            "docs-writer",
+            "pr-author"
+          ],
+          "categories": [
+            "docs",
+            "pr"
+          ],
+          "capabilities": [
+            "text"
+          ],
+          "context_tokens": 32768,
+          "quality": null,
+          "latency_ms": null,
+          "cost_usd": null,
+          "usage_tokens": null,
+          "profile_revision": "REPLACE_WITH_REVIEWED_PROFILE_REVISION",
+          "qualification": null,
+          "measurements": []
+        }
+      ],
+      "required_evidence": "execution_observed"
+    }
+  }
+}

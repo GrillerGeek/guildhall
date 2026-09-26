@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import re
-from build_portable import build, ROOT, DEST
+from build_portable import build, ROOT, DEST, DESTINATIONS
 
 
 def validate(root: Path = ROOT) -> None:
@@ -33,6 +33,23 @@ def validate(root: Path = ROOT) -> None:
     if (v4['policy'] != v4policy or v4policy['mode'] != 'off' or v4policy['adaptive_roles']
         or any(c['qualification'] is not None for c in v4policy['candidates'])):
         raise ValueError('v4 examples must remain off with no roles activated or qualified')
+    config_helper = root / DEST / 'scripts/routing_config.py'
+    config = {'__name__': '_configuration_validation', '__file__': str(config_helper)}
+    exec(compile(config_helper.read_bytes(), str(config_helper), 'exec'), config)
+    for name, constant in [('global-routing-v1', 'GLOBAL_SCHEMA'),
+                           ('routing-opt-out-v1', 'OPT_OUT_SCHEMA'),
+                           ('routing-approvals-v1', 'APPROVAL_SCHEMA')]:
+        schema = json.loads((root / DEST / f'resources/schemas/{name}.schema.json').read_text())
+        schema.pop('$schema')
+        schema.pop('$comment')
+        if schema != config[constant]:
+            raise ValueError(f'configuration schema drift: {name}')
+    global_example = json.loads((root / DEST / 'resources/examples/off-global-routing.json').read_text())
+    config['validate_global'](global_example)
+    if global_example['hosts'] != {'codex-skill': v4policy}:
+        raise ValueError('global example must match off/unqualified v4 policy')
+    opt_out = json.loads((root / DEST / 'resources/examples/routing-opt-out.json').read_text())
+    namespace['validate'](opt_out, config['OPT_OUT_SCHEMA'])
     paths = ['plugin/plugin.json','plugin/.codex-plugin/plugin.json','plugin/.claude-plugin/plugin.json']
     manifests = [json.loads((root/p).read_text()) for p in paths]
     portable, codex, claude = manifests
@@ -48,16 +65,17 @@ def validate(root: Path = ROOT) -> None:
         raise ValueError('unexpected manifest fields')
     if codex.get('skills') != './skills/':
         raise ValueError('skills must use fixed plugin-local discovery')
-    if sorted(p.name for p in (root/'plugin/skills').iterdir()) != ['guildhall-quest']:
+    if sorted(p.name for p in (root/'plugin/skills').iterdir()) != sorted(p.name for p in DESTINATIONS):
         raise ValueError('unexpected skill inventory')
-    for file in (root/DEST).rglob('*.md'):
-        for target in re.findall(r'\]\(([^)]+)\)',file.read_text()):
-            if '://' in target or target.startswith('#'):
-                continue
-            target = target.split('#')[0]
-            resolved = (file.parent/target).resolve()
-            if not resolved.is_relative_to((root/DEST).resolve()) or not resolved.is_file():
-                raise ValueError(f'missing/escaped reference: {file}: {target}')
+    for destination in DESTINATIONS:
+        for file in (root/destination).rglob('*.md'):
+            for target in re.findall(r'\]\(([^)]+)\)',file.read_text()):
+                if '://' in target or target.startswith('#'):
+                    continue
+                target = target.split('#')[0]
+                resolved = (file.parent/target).resolve()
+                if not resolved.is_relative_to((root/destination).resolve()) or not resolved.is_file():
+                    raise ValueError(f'missing/escaped reference: {file}: {target}')
     for rel in ['.agents/plugins/marketplace.json','.claude-plugin/marketplace.json']:
         m = json.loads((root/rel).read_text())
         if m['name'] != 'guildhall-local' or len(m['plugins']) != 1 or m['plugins'][0]['name'] != 'guildhall':

@@ -34,4 +34,7 @@ The installed bundle contains its own role and workflow references. Resolve
 these paths from this skill directory, not from the consuming project. Read
 project-specific instructions from the consuming project's applicable guidance.
 
-For optional model routing setup, read the [installed guide](references/model-routing.md).
+For optional model routing setup, read the [installed guide](references/model-routing.md)
+and [global defaults and project overrides](references/global-routing.md). Reuse
+valid global approval across projects; recheck source, host evidence and revocation
+at each worker boundary. Setup writes remain outside quest execution.

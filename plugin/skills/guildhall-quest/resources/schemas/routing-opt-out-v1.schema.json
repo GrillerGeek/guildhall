@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "Generated from canonical routing_config.py; verified by validate_portable.py.",
+  "type": "object",
+  "properties": {
+    "config_version": {
+      "enum": [
+        1
+      ],
+      "type": "integer"
+    },
+    "kind": {
+      "enum": [
+        "guildhall-routing-override"
+      ],
+      "type": "string"
+    },
+    "mode": {
+      "enum": [
+        "off"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "config_version",
+    "kind",
+    "mode"
+  ],
+  "additionalProperties": false
+}

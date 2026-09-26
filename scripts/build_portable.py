@@ -7,6 +7,10 @@ import re
 
 ROOT = Path(__file__).resolve().parent.parent
 DEST = Path('plugin/skills/guildhall-quest')
+SETUP_DEST = Path('plugin/skills/guildhall-routing-setup')
+DESTINATIONS = (DEST, SETUP_DEST)
+SETUP_REFERENCES = ('global-routing', 'model-routing', 'routing', 'host-evidence',
+                    'role-eligibility', 'qualification-study')
 
 
 def outputs(root: Path) -> dict[Path, bytes]:
@@ -95,25 +99,44 @@ def outputs(root: Path) -> dict[Path, bytes]:
     roster += ''.join(f'| [{name}](roles/{name}.md) | {tier} |\n' for name,tier in roles)
     result[DEST / 'references/roster.md'] = roster.encode()
     result[DEST / 'LICENSE'] = (root/'LICENSE').read_bytes()
+    # Setup must remain usable as the only installed skill. Shared routing tools
+    # and their linked resources are copied from one canonical source, not forks.
+    for relative, data in list(result.items()):
+        local = relative.relative_to(DEST)
+        if (local.parts[0] in {'scripts', 'resources'} or local == Path('LICENSE')
+            or local in {Path('references') / (name + '.md') for name in SETUP_REFERENCES}):
+            result[SETUP_DEST / local] = data
+    setup = root / 'plugin/routing-setup'
+    if setup.is_symlink() or not setup.is_dir():
+        raise ValueError(f'invalid source directory: {setup}')
+    for file in sorted(setup.rglob('*')):
+        if file.is_symlink():
+            raise ValueError(f'symlink source: {file}')
+        if file.is_file():
+            destination = SETUP_DEST / file.relative_to(setup)
+            if destination in result:
+                raise ValueError(f'setup source shadows shared resource: {file}')
+            result[destination] = file.read_bytes()
     return result
 
 
 def build(root: Path = ROOT, check: bool = False) -> int:
     expected = outputs(root)
-    dest = root / DEST
     # Refuse symlinks and unknown output files before the first write. This tool
     # never deletes files and is not an installer into a user's existing skills.
-    for parent in [dest, *dest.parents]:
-        if parent == root.parent:
-            break
-        if parent.is_symlink():
-            raise ValueError(f'symlink output parent: {parent}')
-    if dest.exists():
-        for file in dest.rglob('*'):
-            if file.is_symlink():
-                raise ValueError(f'symlink output: {file}')
-            if file.is_file() and file.relative_to(root) not in expected:
-                raise ValueError(f'unknown output: {file}')
+    for destination in DESTINATIONS:
+        dest = root / destination
+        for parent in [dest, *dest.parents]:
+            if parent == root.parent:
+                break
+            if parent.is_symlink():
+                raise ValueError(f'symlink output parent: {parent}')
+        if dest.exists():
+            for file in dest.rglob('*'):
+                if file.is_symlink():
+                    raise ValueError(f'symlink output: {file}')
+                if file.is_file() and file.relative_to(root) not in expected:
+                    raise ValueError(f'unknown output: {file}')
     changes = [p for p, data in expected.items() if not (root/p).is_file() or (root/p).read_bytes() != data]
     if check and changes:
         raise ValueError('Generated drift: ' + ', '.join(map(str,changes)))

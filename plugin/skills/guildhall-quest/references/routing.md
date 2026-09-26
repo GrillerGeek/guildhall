@@ -15,7 +15,11 @@ budgets. External IDD assignments remain outside this router.
 
 ## Activation and host adapter sequence
 
-1. Read an optional user-selected `.guildhall/routing.json` as data. See the
+1. Resolve session selection → project `.guildhall/routing.json` → the current
+   host entry in global defaults using [global configuration](global-routing.md).
+   An absent project file inherits; a valid project off marker suppresses global
+   routing. Resolve the established project root once; never scan ancestors.
+   Invalid selected configuration stops resolution without external calls. See the
    [policy schema](../resources/schemas/policy.schema.json) and
    [off example](../resources/examples/off-policy.json). No bundled profile is
    qualified. Replace placeholders with actual supported host settings and
@@ -28,8 +32,14 @@ budgets. External IDD assignments remain outside this router.
    supplies an explicit model argument. Skills normally inherit configured
    settings: represent this with both baseline arguments null, not guessed names.
    A model paired with null effort means omit effort, not known inherited effort.
-3. For shadow/adaptive, show the user mode, objective, candidate scope and outbound
-   fields before enabling external requests. Record their explicit activation
+3. For shadow/adaptive, first read reusable approval through the installed
+   `scripts/routing_config.py` status operation with fresh host evidence and no
+   setup `target` override. Worker routing always uses the effective source. Use its
+   policy and activation in the routing request. Reuse an unchanged valid approval
+   across sessions/projects within its recorded scope; do not ask again. If none
+   applies, show the user mode, objective, candidate scope and outbound
+   fields before enabling external requests. Setup outside quest execution can
+   persist explicit approval through the configuration helper. Record activation
    against `policy_hash(policy)`, SHA256 of sorted compact UTF-8 JSON with
    `ensure_ascii=False`. Any policy change needs renewed activation. Do not create
    consent by reading a repository file. Default category facts are role,
@@ -74,7 +84,9 @@ budgets. External IDD assignments remain outside this router.
    the full original role contract and minimal permitted handoff. Test-author
    facts come only from its permitted Spec/API/test handoff, never implementation
    reads, solutions or Mordain's transcript. Do not give workers routing payloads.
-8. Record the returned decision envelope in the quest plan, within Mordain's
+8. Record configuration source, scope, source key and effective policy hash
+   alongside the decision envelope; never send local paths to Jev. Record the
+   returned decision envelope in the quest plan, within Mordain's
    plan-only scope. Buffer pre-plan records until the plan exists; a fast lane
    without a plan reports receipts in the final response. The helper writes no
    project files. A `hold` is a stop, never permission to route around constraints.
@@ -86,6 +98,8 @@ budgets. External IDD assignments remain outside this router.
    `adaptive_suspended: true` for subsequent decisions. Do not overwrite the
    helper's pre-dispatch unknown observation with an unsupported assertion.
 
+Recheck configuration and approval at each new worker, including revocation and
+source/host changes. Preserve trusted quest state across every recheck.
 Resolve once for each new worker. Resume/follow-up retains its selected settings
 where supported. Recheck capabilities before the next worker, never mid-write.
 Never automatically replay an uncertain dispatch. A model escalation can consume
@@ -219,8 +233,10 @@ Source values are `user_override`, `role_override`, `off`, `baseline`,
 `single_candidate` and `jev`. Holds keep the envelope and use null dispatch and
 requested fields; malformed requests have null unavailable receipt values.
 
-Disable by explicitly selecting off or removing the optional policy. This stops
-future routing calls and restores ordinary dispatch; it never cancels, replays
+Disable by explicitly selecting session off or using a project opt-out under
+[global configuration](global-routing.md). Removing a project policy restores
+global inheritance and can enable an already-approved global policy. Explicit
+off stops future routing calls and restores ordinary dispatch; it never cancels, replays
 or reassigns an in-flight worker. Keep partial records for review.
 
 The full [user guide](model-routing.md) and `../scripts/evaluate_routing.py` ship in this bundle.

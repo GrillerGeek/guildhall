@@ -25,15 +25,18 @@ dispatch do not need the routing runtime, Jev or a key. Enabled routing needs
 Python **3.12+** with only its standard library. Native Claude's existing hooks
 have their own Python prerequisite, unchanged by this feature.
 
-Prepare the optional project policy at `.guildhall/routing.json` in an ordinary
-setup conversation before invoking a quest. Mordain can write only the quest
+Prepare global defaults once in `~/.config/guildhall/routing.json` (or the
+absolute XDG_CONFIG_HOME location) using the [global setup guide](global-routing.md).
+Each host has its own policy and reusable approval. Optional project policies at
+`.guildhall/routing.json` override those defaults in full. Use an ordinary setup
+conversation before invoking a quest. Mordain can write only the quest
 plan during execution. A useful setup request is:
 
 ```text
-Help me prepare Guildhall's optional model routing for this project before a
+Help me prepare Guildhall's optional model routing globally for this host before a
 quest. Read the installed routing guide, policy schema and off-policy example.
 Discover the actual host worker tool and supported model/effort settings without
-paid probes. Prepare .guildhall/routing.json in off mode with real candidate
+paid probes. Prepare the global host policy in off mode with real candidate
 profiles and a baseline supported by host/configuration evidence. Keep unknown
 metrics null and qualification null. Show me the proposed shadow mode, objective,
 candidate scope, outbound fields and any unresolved baseline evidence. Wait for
@@ -75,6 +78,8 @@ stores only `key_env: "TYPESAFE_API_KEY"`, never the value. Do not paste a key i
 chat, JSON, shell arguments or receipts, and do not print the environment to
 check it. A GUI host may not inherit a key set in a different terminal.
 
+Unchanged global approval is reusable across projects and sessions through the
+installed configuration helper; approval is separate from repository files.
 Once the proposed policy and baseline are ready, explicitly request shadow mode
 and approve its displayed objective, candidate scope and outbound fields. The
 adapter records activation against `policy_hash(policy)`, the SHA256 of sorted,
@@ -197,8 +202,9 @@ changed router identity require reevaluation and renewed policy activation.
 Trusted host substitution or lost attribution suspends further adaptive choices.
 Keep work already in flight; never automatically replay an uncertain dispatch.
 
-To disable, explicitly select `off` or remove the optional project policy before
-future dispatches. This stops future routing calls and restores ordinary host
+To disable, explicitly select session `off` or use the project opt-out described
+in [global setup](global-routing.md) before future dispatches. Removing a project
+policy restores global inheritance; it does not necessarily disable routing. This stops future routing calls and restores ordinary host
 behavior. It does not cancel, reassign or restart existing workers. Retain partial
 work and receipts for review. No personal app settings need to change.
 

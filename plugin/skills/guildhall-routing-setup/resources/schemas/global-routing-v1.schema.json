@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "Generated from canonical routing_config.py; verified by validate_portable.py.",
+  "type": "object",
+  "properties": {
+    "config_version": {
+      "enum": [
+        1
+      ],
+      "type": "integer"
+    },
+    "hosts": {
+      "type": "object",
+      "properties": {
+        "claude-native": {
+          "anyOf": [
+            {
+              "$ref": "policy.schema.json"
+            },
+            {
+              "$ref": "policy-v2.schema.json"
+            },
+            {
+              "$ref": "policy-v3.schema.json"
+            },
+            {
+              "$ref": "policy-v4.schema.json"
+            }
+          ]
+        },
+        "claude-skill": {
+          "anyOf": [
+            {
+              "$ref": "policy.schema.json"
+            },
+            {
+              "$ref": "policy-v2.schema.json"
+            },
+            {
+              "$ref": "policy-v3.schema.json"
+            },
+            {
+              "$ref": "policy-v4.schema.json"
+            }
+          ]
+        },
+        "codex-skill": {
+          "anyOf": [
+            {
+              "$ref": "policy.schema.json"
+            },
+            {
+              "$ref": "policy-v2.schema.json"
+            },
+            {
+              "$ref": "policy-v3.schema.json"
+            },
+            {
+              "$ref": "policy-v4.schema.json"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "config_version",
+    "hosts"
+  ],
+  "additionalProperties": false
+}
