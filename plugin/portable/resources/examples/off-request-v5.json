@@ -29,22 +29,34 @@
           "docs",
           "pr"
         ],
-        "capabilities": [
-          "text"
-        ],
-        "context_tokens": 32768,
+        "capabilities": [],
+        "context_tokens": null,
         "quality": null,
         "latency_ms": null,
         "cost_usd": null,
         "usage_tokens": null,
         "profile_revision": "REPLACE_WITH_REVIEWED_PROFILE_REVISION",
         "qualification": null,
-        "measurements": []
+        "measurements": [],
+        "facts_source": {
+          "kind": "unknown",
+          "reference": null
+        },
+        "routing_profile": {
+          "work_types": [],
+          "reasoning_depth": "unknown",
+          "complexity": [],
+          "risk": [],
+          "efficiency": "unknown",
+          "basis": "user_preference",
+          "source": "replace-with-reviewed-host-profile",
+          "revision": "1"
+        }
       }
     ],
     "required_evidence": "execution_observed",
     "routing_roles": [],
-    "catalog_revision": "0000000000000000000000000000000000000000000000000000000000000000",
+    "catalog_revision": "5056aadadd5ee2576f760b9d691696f5cafd9a96fc6b3bacaf116e3d9139b820",
     "outbound_contract": "categories-v2"
   },
   "activation": {
@@ -85,7 +97,11 @@
       "text"
     ],
     "context_bucket": "medium",
-    "summary": null
+    "summary": null,
+    "reasoning_depth": "unknown",
+    "change_breadth": "unknown",
+    "expected_output": "unknown",
+    "verification": "unknown"
   },
   "baseline": {
     "model": null,

@@ -14,7 +14,7 @@ def validate(root: Path = ROOT) -> None:
     helper = root / DEST / 'scripts/route_model.py'
     namespace = {'__name__': '_routing_validation', '__file__': str(helper)}
     exec(compile(helper.read_bytes(), str(helper), 'exec'), namespace)
-    for name, constant in [('policy', 'POLICY_SCHEMA'), ('request', 'REQUEST_SCHEMA'), ('policy-v2', 'POLICY_SCHEMA_V2'), ('request-v2', 'REQUEST_SCHEMA_V2'), ('policy-v3', 'POLICY_SCHEMA_V3'), ('request-v3', 'REQUEST_SCHEMA_V3'), ('policy-v4', 'POLICY_SCHEMA_V4'), ('request-v4', 'REQUEST_SCHEMA_V4'), ('policy-v5', 'POLICY_SCHEMA_V5'), ('request-v5', 'REQUEST_SCHEMA_V5')]:
+    for name, constant in [('policy', 'POLICY_SCHEMA'), ('request', 'REQUEST_SCHEMA'), ('policy-v2', 'POLICY_SCHEMA_V2'), ('request-v2', 'REQUEST_SCHEMA_V2'), ('policy-v3', 'POLICY_SCHEMA_V3'), ('request-v3', 'REQUEST_SCHEMA_V3'), ('policy-v4', 'POLICY_SCHEMA_V4'), ('request-v4', 'REQUEST_SCHEMA_V4'), ('policy-v5', 'POLICY_SCHEMA_V5'), ('request-v5', 'REQUEST_SCHEMA_V5'), ('catalog-v1', 'CATALOG_SCHEMA')]:
         schema = json.loads((root / DEST / f'resources/schemas/{name}.schema.json').read_text())
         schema.pop('$schema')
         schema.pop('$comment')
