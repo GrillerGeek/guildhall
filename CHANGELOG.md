@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.17.0 — Unreleased
+
+- Add schema-v5 dynamic routing with control-based approval and no study requirement.
+- Preserve legacy qualified routing, scope precedence, explicit overrides and quest budgets.
+- Require a valid fallback and suspend when observed router identity changes.
+
 ## 0.16.0 — Unreleased
 
 - Add `guildhall-routing-setup`, a conversational wizard for global/project setup, settings changes, diagnosis and disabling.

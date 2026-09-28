@@ -1,0 +1,195 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "Canonical runtime contract; synthetic examples are not qualification.",
+  "type": "object",
+  "properties": {
+    "config_version": {
+      "enum": [
+        2
+      ],
+      "type": "integer"
+    },
+    "approvals": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "source_key": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$",
+                "minLength": 64,
+                "maxLength": 64
+              },
+              "policy_hash": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$",
+                "minLength": 64,
+                "maxLength": 64
+              },
+              "host_fingerprint": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$",
+                "minLength": 64,
+                "maxLength": 64
+              },
+              "scope": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "approved_at": {
+                "type": "number",
+                "minimum": 0
+              },
+              "expires_at": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "evidence_hashes": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$",
+                  "minLength": 64,
+                  "maxLength": 64
+                },
+                "uniqueItems": true,
+                "maxItems": 64,
+                "minItems": 0
+              }
+            },
+            "required": [
+              "source_key",
+              "policy_hash",
+              "host_fingerprint",
+              "scope",
+              "approved_at",
+              "expires_at",
+              "evidence_hashes"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "source_key": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$",
+                "minLength": 64,
+                "maxLength": 64
+              },
+              "policy_hash": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$",
+                "minLength": 64,
+                "maxLength": 64
+              },
+              "host_fingerprint": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$",
+                "minLength": 64,
+                "maxLength": 64
+              },
+              "scope": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "approved_at": {
+                "type": "number",
+                "minimum": 0
+              },
+              "expires_at": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "evidence_hashes": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$",
+                  "minLength": 64,
+                  "maxLength": 64
+                },
+                "uniqueItems": true,
+                "maxItems": 64,
+                "minItems": 0
+              },
+              "approval_version": {
+                "enum": [
+                  2
+                ],
+                "type": "integer"
+              },
+              "mode": {
+                "enum": [
+                  "shadow",
+                  "dynamic",
+                  "adaptive"
+                ],
+                "type": "string"
+              },
+              "control_basis_hash": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$",
+                "minLength": 64,
+                "maxLength": 64
+              },
+              "catalog_revision": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$",
+                "minLength": 64,
+                "maxLength": 64
+              },
+              "outbound_contract": {
+                "enum": [
+                  "categories-v2"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "source_key",
+              "policy_hash",
+              "host_fingerprint",
+              "scope",
+              "approved_at",
+              "expires_at",
+              "evidence_hashes",
+              "approval_version",
+              "mode",
+              "control_basis_hash",
+              "catalog_revision",
+              "outbound_contract"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "uniqueItems": true,
+      "maxItems": 256,
+      "minItems": 0
+    }
+  },
+  "required": [
+    "config_version",
+    "approvals"
+  ],
+  "additionalProperties": false
+}

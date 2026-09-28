@@ -30,7 +30,7 @@ OPT_OUT_SCHEMA = _R['obj'](config_version=_R['enum']([1]),
     kind=_R['enum'](['guildhall-routing-override']), mode=_R['enum'](['off']))
 GLOBAL_SCHEMA = _R['obj'](config_version=_R['enum']([1]), hosts={
     'type': 'object', 'properties': {route: {'anyOf': [{'$ref': name + '.schema.json'} for name in
-        ('policy', 'policy-v2', 'policy-v3', 'policy-v4')]}
+        ('policy', 'policy-v2', 'policy-v3', 'policy-v4', 'policy-v5')]}
         for route in ROUTES}, 'additionalProperties': False})
 PATH_STRING = dict(type='string', minLength=1, maxLength=4096)
 APPROVAL = _R['obj'](source_key=_R['HASH'], policy_hash=_R['HASH'],
@@ -38,6 +38,12 @@ APPROVAL = _R['obj'](source_key=_R['HASH'], policy_hash=_R['HASH'],
     expires_at=_R['nullable'](_R['NUMBER']), evidence_hashes=_R['array'](_R['HASH'], 64))
 APPROVAL_SCHEMA = _R['obj'](config_version=_R['enum']([1]),
     approvals=_R['array'](APPROVAL, 256))
+
+APPROVAL_V2 = _R['obj'](**APPROVAL['properties'], approval_version=_R['enum']([2]),
+    mode=_R['enum'](['shadow', 'dynamic', 'adaptive']), control_basis_hash=_R['HASH'],
+    catalog_revision=_R['HASH'], outbound_contract=_R['enum'](['categories-v2']))
+APPROVAL_SCHEMA_V2 = _R['obj'](config_version=_R['enum']([2]),
+    approvals=_R['array']({'anyOf': [APPROVAL, APPROVAL_V2]}, 256))
 
 
 def need(condition, reason):
@@ -77,7 +83,7 @@ def validate_global(value):
 
 
 def validate_approvals(value):
-    validate(value, APPROVAL_SCHEMA)
+    validate(value, APPROVAL_SCHEMA_V2 if value.get('config_version') == 2 else APPROVAL_SCHEMA)
     need(len({a['source_key'] for a in value['approvals']}) == len(value['approvals']),
          'duplicate_approval_source')
 
@@ -223,9 +229,11 @@ class RoutingConfig:
                     reason='router_disabled' if policy['mode'] == 'off' else 'policy_selected')
 
     def _host_fingerprint(self, host, version):
-        schema = _R['REQUEST_SCHEMA_V3' if version >= 3 else 'REQUEST_SCHEMA']['properties']['host']
+        schema = _R['REQUEST_SCHEMA_V5' if version == 5 else 'REQUEST_SCHEMA_V3' if version >= 3 else 'REQUEST_SCHEMA']['properties']['host']
         validate(host, schema)
         need(host['route'] == self.host_route, 'host_route_mismatch')
+        if version == 5:
+            return _R['control_fingerprint'](host)
         stable = {k: v for k, v in host.items() if k != 'evidence_hash'}
         stable['allowed_settings'] = sorted(stable['allowed_settings'], key=canonical)
         return digest(stable)
@@ -243,6 +251,8 @@ class RoutingConfig:
         result.update(host_fingerprint=None, approval_revision=None,
             activation=dict(policy_hash=None, external_requests=False,
                             summary_preview_hash=None, evidence_hashes=[]))
+        if result['policy'] is not None and result['policy']['schema_version'] == 5:
+            result['activation']['control_basis_hash'] = None
         if result['reason'] != 'policy_selected':
             return result
         if host is None:
@@ -259,7 +269,13 @@ class RoutingConfig:
             return dict(result, reason='host_changed')
         if record['expires_at'] is not None and record['expires_at'] <= current:
             return dict(result, reason='approval_expired')
-        if host['evidence_hash'] is None or host['evidence_hash'] not in record['evidence_hashes']:
+        if result['policy']['schema_version'] == 5:
+            if (record.get('approval_version') != 2 or not _R['valid_controls'](host) or
+                record['control_basis_hash'] != digest(host['control_basis']) or
+                any(record[k] != result['policy'][k] for k in ('mode', 'catalog_revision', 'outbound_contract'))):
+                return dict(result, reason='control_review_required')
+            result['activation']['control_basis_hash'] = record['control_basis_hash']
+        elif host['evidence_hash'] is None or host['evidence_hash'] not in record['evidence_hashes']:
             return dict(result, reason='evidence_review_required')
         result['activation'].update(policy_hash=result['policy_hash'], external_requests=True,
                                     evidence_hashes=record['evidence_hashes'])
@@ -313,14 +329,23 @@ class RoutingConfig:
         validate(evidence_hashes, _R['array'](_R['HASH'], 64))
         validate(expires_at, _R['nullable'](_R['NUMBER']))
         need(expires_at is None or expires_at > current, 'approval_already_expired')
-        need(host['evidence_hash'] is not None and host['evidence_hash'] in evidence_hashes,
-             'host_evidence_not_reviewed')
+        v5 = result['policy']['schema_version'] == 5
+        if v5:
+            need(_R['valid_controls'](host), 'valid_worker_controls_required')
+        else:
+            need(host['evidence_hash'] is not None and host['evidence_hash'] in evidence_hashes,
+                 'host_evidence_not_reviewed')
         approvals, revision = self._approvals()
         need(revision == expected_revision, 'configuration_conflict: approval store changed')
         approvals['approvals'] = [a for a in approvals['approvals'] if a['source_key'] != result['source_key']]
-        approvals['approvals'].append(dict(source_key=result['source_key'], scope=confirm_scope,
+        record = dict(source_key=result['source_key'], scope=confirm_scope,
             policy_hash=expected_policy_hash, host_fingerprint=expected_host_fingerprint,
-            approved_at=current, expires_at=expires_at, evidence_hashes=evidence_hashes))
+            approved_at=current, expires_at=expires_at, evidence_hashes=evidence_hashes)
+        if v5:
+            approvals['config_version'] = 2
+            record.update(approval_version=2, control_basis_hash=digest(host['control_basis']),
+                          **{k: result['policy'][k] for k in ('mode', 'catalog_revision', 'outbound_contract')})
+        approvals['approvals'].append(record)
         validate_approvals(approvals)
         write_json(self.approvals_path, approvals, revision, private=True)
         return self.status(host, target=target, now=current)
