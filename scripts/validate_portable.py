@@ -14,7 +14,7 @@ def validate(root: Path = ROOT) -> None:
     helper = root / DEST / 'scripts/route_model.py'
     namespace = {'__name__': '_routing_validation', '__file__': str(helper)}
     exec(compile(helper.read_bytes(), str(helper), 'exec'), namespace)
-    for name, constant in [('policy', 'POLICY_SCHEMA'), ('request', 'REQUEST_SCHEMA'), ('policy-v2', 'POLICY_SCHEMA_V2'), ('request-v2', 'REQUEST_SCHEMA_V2'), ('policy-v3', 'POLICY_SCHEMA_V3'), ('request-v3', 'REQUEST_SCHEMA_V3'), ('policy-v4', 'POLICY_SCHEMA_V4'), ('request-v4', 'REQUEST_SCHEMA_V4')]:
+    for name, constant in [('policy', 'POLICY_SCHEMA'), ('request', 'REQUEST_SCHEMA'), ('policy-v2', 'POLICY_SCHEMA_V2'), ('request-v2', 'REQUEST_SCHEMA_V2'), ('policy-v3', 'POLICY_SCHEMA_V3'), ('request-v3', 'REQUEST_SCHEMA_V3'), ('policy-v4', 'POLICY_SCHEMA_V4'), ('request-v4', 'REQUEST_SCHEMA_V4'), ('policy-v5', 'POLICY_SCHEMA_V5'), ('request-v5', 'REQUEST_SCHEMA_V5')]:
         schema = json.loads((root / DEST / f'resources/schemas/{name}.schema.json').read_text())
         schema.pop('$schema')
         schema.pop('$comment')
@@ -33,12 +33,17 @@ def validate(root: Path = ROOT) -> None:
     if (v4['policy'] != v4policy or v4policy['mode'] != 'off' or v4policy['adaptive_roles']
         or any(c['qualification'] is not None for c in v4policy['candidates'])):
         raise ValueError('v4 examples must remain off with no roles activated or qualified')
+    v5 = json.loads((root / DEST / 'resources/examples/off-request-v5.json').read_text())
+    namespace['validate_request'](v5)
+    if (v5['policy']['mode'] != 'off' or v5['policy']['routing_roles'] or
+        any(c['qualification'] is not None for c in v5['policy']['candidates'])):
+        raise ValueError('v5 example must stay off and unqualified')
     config_helper = root / DEST / 'scripts/routing_config.py'
     config = {'__name__': '_configuration_validation', '__file__': str(config_helper)}
     exec(compile(config_helper.read_bytes(), str(config_helper), 'exec'), config)
     for name, constant in [('global-routing-v1', 'GLOBAL_SCHEMA'),
                            ('routing-opt-out-v1', 'OPT_OUT_SCHEMA'),
-                           ('routing-approvals-v1', 'APPROVAL_SCHEMA')]:
+                           ('routing-approvals-v1', 'APPROVAL_SCHEMA'), ('routing-approvals-v2', 'APPROVAL_SCHEMA_V2')]:
         schema = json.loads((root / DEST / f'resources/schemas/{name}.schema.json').read_text())
         schema.pop('$schema')
         schema.pop('$comment')

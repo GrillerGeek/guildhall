@@ -132,6 +132,43 @@ REQUEST_SCHEMA_V4['properties']['schema_version'] = enum([4])
 REQUEST_SCHEMA_V4['properties']['policy'] = POLICY_SCHEMA_V4
 
 
+# V5 separates permission to select from optional benchmark assurance.
+CONTROL_BASIS = obj(source=enum(['callable_tool', 'host_handshake']), fingerprint=HASH)
+POLICY_SCHEMA_V5 = copy.deepcopy(POLICY_SCHEMA_V4)
+_p5 = POLICY_SCHEMA_V5['properties']
+_p5['schema_version'] = enum([5])
+_p5['mode'] = enum(['off', 'shadow', 'dynamic', 'adaptive'])
+_p5['routing_roles'] = _p5.pop('adaptive_roles')
+POLICY_SCHEMA_V5['required'].remove('adaptive_roles')
+_p5.update(catalog_revision=HASH, outbound_contract=enum(['categories-v2']))
+POLICY_SCHEMA_V5['required'] += ['routing_roles', 'catalog_revision', 'outbound_contract']
+REQUEST_SCHEMA_V5 = copy.deepcopy(REQUEST_SCHEMA_V4)
+_r5 = REQUEST_SCHEMA_V5['properties']
+_r5['schema_version'] = enum([5])
+_r5['policy'] = POLICY_SCHEMA_V5
+for section, key, schema in [('host', 'control_basis', nullable(CONTROL_BASIS)),
+                             ('activation', 'control_basis_hash', nullable(HASH)),
+                             ('state', 'router_identity', nullable(STRING))]:
+    _r5[section]['properties'][key] = schema
+    _r5[section]['required'].append(key)
+
+
+def control_fingerprint(host):
+    """Hash controls/configuration, never confuse observations with controls."""
+    keys = ('route', 'client_version', 'provider', 'worker_tool', 'independent_workers',
+            'fresh_context', 'model_selection', 'effort_selection',
+            'configuration_revision', 'baseline_candidate', 'allowed_settings')
+    facts = {key: host[key] for key in keys}
+    facts['allowed_settings'] = sorted(facts['allowed_settings'], key=canonical)
+    return policy_hash(facts)
+
+
+def valid_controls(host):
+    basis = host['control_basis']
+    return bool(basis and basis['fingerprint'] == control_fingerprint(host)
+                and host['model_selection'] and host['independent_workers'] and host['fresh_context'])
+
+
 def metrics(candidate, request):
     if request['schema_version'] == 1:
         return {name: candidate[name] for name in METRIC_NAMES}
@@ -216,7 +253,7 @@ def validate_policy(policy):
     if len(canonical(policy)) > LIMIT:
         raise ValueError('oversize')
     version = policy.get('schema_version') if type(policy) is dict else None
-    validate(policy, {2: POLICY_SCHEMA_V2, 3: POLICY_SCHEMA_V3, 4: POLICY_SCHEMA_V4}.get(version, POLICY_SCHEMA))
+    validate(policy, {2: POLICY_SCHEMA_V2, 3: POLICY_SCHEMA_V3, 4: POLICY_SCHEMA_V4, 5: POLICY_SCHEMA_V5}.get(version, POLICY_SCHEMA))
     candidates = policy['candidates']
     if version >= 2:
         for candidate in candidates:
@@ -235,7 +272,7 @@ def validate_request(request):
     if len(canonical(request)) > LIMIT:
         raise ValueError('oversize')
     version = request.get('schema_version') if type(request) is dict else None
-    validate(request, {2: REQUEST_SCHEMA_V2, 3: REQUEST_SCHEMA_V3, 4: REQUEST_SCHEMA_V4}.get(version, REQUEST_SCHEMA))
+    validate(request, {2: REQUEST_SCHEMA_V2, 3: REQUEST_SCHEMA_V3, 4: REQUEST_SCHEMA_V4, 5: REQUEST_SCHEMA_V5}.get(version, REQUEST_SCHEMA))
     policy = request['policy']
     validate_policy(policy)
     if request['baseline']['model'] is None and request['baseline']['effort'] is not None:
@@ -392,7 +429,8 @@ def route(request, *, transport=None, now=None):
     state = dict(calls_used=0, provider_failed=True, adaptive_suspended=True)
     incoming_state = request.get('state') if type(request) is dict else None
     try:
-        validate(incoming_state, REQUEST_SCHEMA['properties']['state'])
+        validate(incoming_state, (REQUEST_SCHEMA_V5 if type(incoming_state) is dict and
+                 'router_identity' in incoming_state else REQUEST_SCHEMA)['properties']['state'])
         state = dict(incoming_state)
     except ValueError:
         pass
@@ -419,6 +457,8 @@ def route(request, *, transport=None, now=None):
     except (ValueError, TypeError, OverflowError, RecursionError, UnicodeError):
         return finish('invalid_request')
     output_version = request['schema_version']
+    if output_version == 5:
+        receipt['assurance'] = 'benchmark_required' if request['policy']['mode'] == 'adaptive' else 'unbenchmarked'
     p, h, t, a = (request[k] for k in ('policy', 'host', 'task', 'activation'))
     baseline = dict(request['baseline'])
     snapshot = {k: h[k] for k in ('route', 'client_version', 'provider', 'worker_tool', 'configuration_revision', 'attribution')}
@@ -427,7 +467,8 @@ def route(request, *, transport=None, now=None):
     phash = policy_hash(p)
     receipt.update(policy_hash=phash, baseline=baseline, host_snapshot=snapshot,
                    input_fingerprint=policy_hash(dict(task={k: v for k, v in t.items() if k != 'summary'}, policy_hash=phash, host=snapshot)))
-    candidates = [c for c in p['candidates'] if eligible(c, request)]
+    candidates = [c for c in p['candidates'] if eligible(c, request)
+                  and (output_version < 5 or controls(c, h))]
     for selection, source in [('user_candidate', 'user_override'), ('role_candidate', 'role_override')]:
         cid = request['selection'][selection]
         if cid is not None:
@@ -442,6 +483,9 @@ def route(request, *, transport=None, now=None):
     if (a['policy_hash'] != phash or not a['external_requests'] or
         p['data_mode'] == 'summary' and a['summary_preview_hash'] != hashlib.sha256(t['summary'].encode()).hexdigest()):
         return finish('activation_required')
+    if output_version == 5 and (not valid_controls(h) or
+        a['control_basis_hash'] != policy_hash(h['control_basis'])):
+        return finish('control_review_required')
     if not candidates:
         return finish('no_candidates')
     def fallback(reason, recommended=None):
@@ -449,10 +493,15 @@ def route(request, *, transport=None, now=None):
             return finish('baseline_ineligible', recommended=recommended)
         return finish(reason, baseline, 'baseline', recommended, base)
     choices = candidates
+    if output_version == 5:
+        if base is None:
+            return fallback('baseline_ineligible')
+        if state['adaptive_suspended'] or t['role'] not in p['routing_roles']:
+            return fallback('routing_suspended' if state['adaptive_suspended'] else 'role_not_enabled')
     if p['mode'] == 'shadow' and base is None:
         return fallback('shadow')
     if p['mode'] == 'adaptive':
-        if state['adaptive_suspended'] or t['role'] not in p['adaptive_roles']:
+        if state['adaptive_suspended'] or t['role'] not in p['routing_roles' if output_version == 5 else 'adaptive_roles']:
             return fallback('adaptive_unqualified')
         choices = [c for c in candidates if qualified(c, request, current)]
         if not choices:
@@ -485,6 +534,12 @@ def route(request, *, transport=None, now=None):
     receipt['router_identity'] = answer['model']
     receipt['usage'] = answer.get('usage')
     decision = answer['answers']['route']
+    if output_version == 5:
+        receipt['confidence'] = decision['confidence']
+        if state['router_identity'] is not None and state['router_identity'] != answer['model']:
+            state['adaptive_suspended'] = True
+            return fallback('router_changed')
+        state['router_identity'] = answer['model']
     if p['mode'] == 'adaptive' and any(c['qualification']['router_identity'] != answer['model'] for c in choices):
         state['adaptive_suspended'] = True
         return fallback('router_changed')
