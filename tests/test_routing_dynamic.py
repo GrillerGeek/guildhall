@@ -3,7 +3,7 @@ import copy
 import unittest
 from test_routing import activate, digest, load_script, NOW, provider
 from test_routing_all_roles import request_for, ROLES
-from test_routing_config import GlobalRoutingTests
+import test_routing_config as config_tests
 
 
 def dynamic_request(role='docs-writer', host='codex-skill'):
@@ -13,6 +13,12 @@ def dynamic_request(role='docs-writer', host='codex-skill'):
         catalog_revision='a'*64,outbound_contract='categories-v2')
     for c in p['candidates']:
         c['qualification']=None;c['measurements']=[]
+        c['facts_source']=dict(kind='host_metadata',reference='synthetic-controls')
+        c['routing_profile']=dict(work_types=c['categories'],reasoning_depth='extended' if c['id']=='base' else 'routine',
+            complexity=['high'] if c['id']=='base' else ['low'],risk=['high'] if c['id']=='base' else ['low'],
+            efficiency='thorough' if c['id']=='base' else 'low_overhead',basis='user_preference',source='synthetic-review',revision='1')
+    p['catalog_revision']=load_script().catalog_revision(p['candidates'])
+    r['task'].update(reasoning_depth='routine',change_breadth='single',expected_output='documentation',verification='inspection')
     r['host'].update(attribution='unknown',evidence_level='unknown',evidence_hash=None)
     refresh_controls(r)
     r['activation']['evidence_hashes']=[]
@@ -77,8 +83,10 @@ class DynamicTests(unittest.TestCase):
         self.assertEqual(self.router.route(r)['state']['calls_used'],r['policy']['max_calls'])
 
 
-class DynamicApprovalTests(GlobalRoutingTests):
-    # Inherited legacy tests continue to run against legacy requests.
+class DynamicApprovalTests(unittest.TestCase):
+    setUp = config_tests.GlobalRoutingTests.setUp
+    client = config_tests.GlobalRoutingTests.client
+    prepare = config_tests.GlobalRoutingTests.prepare
     def test_dynamic_global_approval_without_capture_and_observation_changes(self):
         self.req=dynamic_request();self.prepare()
         status=self.config.status(self.req['host'],now=NOW)
@@ -92,7 +100,8 @@ class DynamicApprovalTests(GlobalRoutingTests):
         self.req['host']['configuration_revision']='changed'
         self.assertEqual(self.config.status(self.req['host'],now=NOW)['reason'],'host_changed')
         self.req['host']['configuration_revision']='synthetic-host-v1'
-        changed=copy.deepcopy(self.req['policy']);changed['catalog_revision']='c'*64
+        changed=copy.deepcopy(self.req['policy']);changed['candidates'][0]['routing_profile']['revision']='changed'
+        changed['catalog_revision']=load_script().catalog_revision(changed['candidates'])
         proposal=self.config.preview(changed,target='global')
         self.config.prepare(changed,target='global',expected_revision=proposal['expected_revision'])
         self.assertEqual(self.config.status(self.req['host'],now=NOW)['reason'],'policy_changed')

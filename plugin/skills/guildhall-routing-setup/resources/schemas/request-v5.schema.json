@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$comment": "Canonical runtime contract; synthetic examples are not qualification.",
+  "$comment": "Canonical runtime contract; catalog preferences are not qualification.",
   "type": "object",
   "properties": {
     "schema_version": {
@@ -207,9 +207,16 @@
                 "minItems": 0
               },
               "context_tokens": {
-                "type": "integer",
-                "minimum": 1,
-                "maximum": 10000000
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10000000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               },
               "quality": {
                 "anyOf": [
@@ -504,6 +511,27 @@
                           "type": "null"
                         }
                       ]
+                    },
+                    "source": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 256
+                    },
+                    "sample_count": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "completeness": {
+                      "enum": [
+                        "complete",
+                        "partial"
+                      ],
+                      "type": "string"
+                    },
+                    "revision": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 256
                     }
                   },
                   "required": [
@@ -513,13 +541,147 @@
                     "quality",
                     "latency_ms",
                     "cost_usd",
-                    "usage_tokens"
+                    "usage_tokens",
+                    "source",
+                    "sample_count",
+                    "completeness",
+                    "revision"
                   ],
                   "additionalProperties": false
                 },
                 "uniqueItems": true,
                 "maxItems": 144,
                 "minItems": 0
+              },
+              "routing_profile": {
+                "type": "object",
+                "properties": {
+                  "work_types": {
+                    "type": "array",
+                    "items": {
+                      "enum": [
+                        "docs",
+                        "pr",
+                        "implementation",
+                        "tests",
+                        "debug",
+                        "review",
+                        "prototype",
+                        "refactor"
+                      ],
+                      "type": "string"
+                    },
+                    "uniqueItems": true,
+                    "maxItems": 8,
+                    "minItems": 0
+                  },
+                  "reasoning_depth": {
+                    "enum": [
+                      "unknown",
+                      "routine",
+                      "extended",
+                      "intensive"
+                    ],
+                    "type": "string"
+                  },
+                  "complexity": {
+                    "type": "array",
+                    "items": {
+                      "enum": [
+                        "unknown",
+                        "low",
+                        "medium",
+                        "high"
+                      ],
+                      "type": "string"
+                    },
+                    "uniqueItems": true,
+                    "maxItems": 4,
+                    "minItems": 0
+                  },
+                  "risk": {
+                    "type": "array",
+                    "items": {
+                      "enum": [
+                        "unknown",
+                        "low",
+                        "medium",
+                        "high"
+                      ],
+                      "type": "string"
+                    },
+                    "uniqueItems": true,
+                    "maxItems": 4,
+                    "minItems": 0
+                  },
+                  "efficiency": {
+                    "enum": [
+                      "unknown",
+                      "low_overhead",
+                      "balanced",
+                      "thorough"
+                    ],
+                    "type": "string"
+                  },
+                  "basis": {
+                    "enum": [
+                      "documented",
+                      "user_preference"
+                    ],
+                    "type": "string"
+                  },
+                  "source": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "revision": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  }
+                },
+                "required": [
+                  "work_types",
+                  "reasoning_depth",
+                  "complexity",
+                  "risk",
+                  "efficiency",
+                  "basis",
+                  "source",
+                  "revision"
+                ],
+                "additionalProperties": false
+              },
+              "facts_source": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "host_metadata",
+                      "documentation",
+                      "unknown"
+                    ],
+                    "type": "string"
+                  },
+                  "reference": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "kind",
+                  "reference"
+                ],
+                "additionalProperties": false
               }
             },
             "required": [
@@ -537,7 +699,9 @@
               "usage_tokens",
               "profile_revision",
               "qualification",
-              "measurements"
+              "measurements",
+              "routing_profile",
+              "facts_source"
             ],
             "additionalProperties": false
           },
@@ -898,6 +1062,7 @@
         },
         "ambiguity": {
           "enum": [
+            "unknown",
             "low",
             "medium",
             "high"
@@ -906,6 +1071,7 @@
         },
         "risk": {
           "enum": [
+            "unknown",
             "low",
             "medium",
             "high"
@@ -926,6 +1092,7 @@
         },
         "context_bucket": {
           "enum": [
+            "unknown",
             "small",
             "medium",
             "large"
@@ -942,6 +1109,45 @@
               "type": "null"
             }
           ]
+        },
+        "reasoning_depth": {
+          "enum": [
+            "unknown",
+            "routine",
+            "extended",
+            "intensive"
+          ],
+          "type": "string"
+        },
+        "change_breadth": {
+          "enum": [
+            "unknown",
+            "single",
+            "multiple",
+            "system"
+          ],
+          "type": "string"
+        },
+        "expected_output": {
+          "enum": [
+            "unknown",
+            "analysis",
+            "documentation",
+            "code",
+            "tests",
+            "pr"
+          ],
+          "type": "string"
+        },
+        "verification": {
+          "enum": [
+            "unknown",
+            "inspection",
+            "tests",
+            "independent_review",
+            "tests_and_review"
+          ],
+          "type": "string"
         }
       },
       "required": [
@@ -951,7 +1157,11 @@
         "risk",
         "required_capabilities",
         "context_bucket",
-        "summary"
+        "summary",
+        "reasoning_depth",
+        "change_breadth",
+        "expected_output",
+        "verification"
       ],
       "additionalProperties": false
     },

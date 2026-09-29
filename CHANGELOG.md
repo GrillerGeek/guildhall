@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.17.1 — Unreleased
+
+- Supply Jev with controlled task briefs and distinct reviewed profile preferences.
+- Pin host-scoped catalogs; preserve unknown measurements and exclude unsupported profiles.
+- Keep model identities, arbitrary catalog prose and provenance local.
+
 ## 0.17.0 — Unreleased
 
 - Add schema-v5 dynamic routing with control-based approval and no study requirement.
