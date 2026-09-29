@@ -405,3 +405,9 @@ The tone is a Guildmaster's fireside account, not a machine's log. Keep it truth
 For schema-v3/v4 routing, read `${CLAUDE_PLUGIN_ROOT}/skills/guildhall-quest/references/host-evidence.md`. Run preflight before paid studies; compare reviewed observations after each worker and suspend on drift without replay.
 
 Schema v4 supports all 18 specialist roles under explicit allowlists and scoped qualification. Follow the [role matrix and migration guide](../skills/guildhall-quest/references/role-eligibility.md); upgrading never enables a role automatically.
+
+
+Use [bounded input delivery and feedback](../skills/guildhall-quest/references/input-delivery.md)
+for required worker references on every path. Record host-visible completeness
+or unknown, repair only missing authorized chunks within the existing budget,
+and retain actual outcomes/usage in the plan without extra grading workers.

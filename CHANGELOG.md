@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.17.3 — Unreleased
+
+- Add bounded handoff chunks and host-visible completeness checks with budgeted recovery.
+- Exclude incomplete/unknown live inputs before optional grading and model comparisons.
+- Record ordinary-work feedback without extra model calls, automatic training or policy changes.
+
 ## 0.17.2 — Unreleased
 
 - Make Dynamic routing the ordinary automatic-selection wizard path on Codex and Claude.

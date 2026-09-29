@@ -211,3 +211,9 @@ routing solely from a role's own assertion.
 
 Use [host preflight and evidence](host-evidence.md) for optional schema-v3 routing;
 retain worker scopes, gates, state and explicit activation.
+
+
+For required reference material, use [bounded input delivery](input-delivery.md)
+and record ordinary-work feedback from existing tests/reviews/usage only. Repair
+missing chunks within the existing budget; never treat source hashes or worker
+assertions as delivery proof or run extra workers to collect feedback.

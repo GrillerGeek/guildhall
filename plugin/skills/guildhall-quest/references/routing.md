@@ -313,3 +313,9 @@ or automatically promotes a profile.
 Follow the [role matrix and migration guide](role-eligibility.md). Eligibility
 never changes role contracts, test-author handoffs, review membership or lifecycle
 gates. Upgrading does not add roles to existing allowlists or qualify profiles.
+
+
+For required reference material, use [bounded input delivery](input-delivery.md)
+and record ordinary-work feedback from existing tests/reviews/usage only. Repair
+missing chunks within the existing budget; never treat source hashes or worker
+assertions as delivery proof or run extra workers to collect feedback.

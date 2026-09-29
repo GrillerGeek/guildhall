@@ -343,7 +343,7 @@ def preflight(packet):
     if lane is None:missing.append('task_owned_supported_capture_unavailable')
     return dict(schema_version=1,host=h,python_version=list(sys.version_info[:3]),
         available_modes=['off','shadow'] + ([] if control_missing else ['dynamic']),
-        dynamic_missing=control_missing + ['review_supported_settings_and_fallback', 'explicit_policy_activation'],
+        dynamic_missing=[reason.replace('_for_adaptive','_for_dynamic') for reason in control_missing] + ['review_supported_settings_and_fallback', 'explicit_policy_activation'],
         candidate_evidence_lane=lane if not missing else None,
         missing_evidence=missing+['review_complete_capture','independent_role_quality_study','explicit_policy_activation'],
         qualification=False,observed=dict(model=None,effort=None))

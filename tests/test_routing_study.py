@@ -142,8 +142,14 @@ class RunnerTests(unittest.TestCase):
         self.m['synthetic']=False;self.m['host']['evidence_requirement']='execution_observed'
         for c in self.m['candidates']:c['effort']='high'
         state=self.prepare()
+        material=[dict(id='task',text=self.m['fixtures'][0]['prompt'])]
+        delivery_manifest=self.r['_D']['plan'](material,2,1000)
         for run,change in zip(state['runs'],['usage','effort','valid']):
+            self.r['delivery_plan'](self.directory,run['id'],delivery_manifest)
             packet=self.r['claim'](self.directory,run['id'])
+            self.r['delivery'](self.directory,run['id'],dict(schema_version=1,host='codex-skill',worker_id='synthetic-worker',
+                manifest=delivery_manifest,observations=[dict(chunk_id='task:0',attempt=0,text=material[0]['text'],
+                truncated=False,source='host_tool_output',evidence='synthetic-visible-input',elapsed_ms=1)]))
             out=self.outcome()
             out['host_report']=dict(synthetic=False,complete=True,worker_id=out['worker_id'],
                 scope=dict(host='codex-skill',role='docs-writer',category='docs'),requested=packet['settings'],
