@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$comment": "Canonical runtime contract; catalog preferences are not qualification.",
+  "$comment": "Canonical runtime contract; explicit host fallback and role locks.",
   "type": "object",
   "properties": {
     "schema_version": {
@@ -747,6 +747,102 @@
         "categories-v2"
       ],
       "type": "string"
+    },
+    "fallback_candidate": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 32,
+      "pattern": "^(?!defer$)[a-z][a-z0-9_-]{0,31}$"
+    },
+    "role_baselines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "enum": [
+              "accessibility-reviewer",
+              "architecture-reviewer",
+              "debug-investigator",
+              "docs-writer",
+              "feature-implementer",
+              "fog-cartographer",
+              "migration-safety-reviewer",
+              "observability-reviewer",
+              "ops-readiness-reviewer",
+              "performance-reviewer",
+              "plugin-validator",
+              "pr-author",
+              "prototype-builder",
+              "refactorer",
+              "reliability-reviewer",
+              "security-reviewer",
+              "test-author",
+              "ui-test-author"
+            ],
+            "type": "string"
+          },
+          "candidate": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32,
+            "pattern": "^(?!defer$)[a-z][a-z0-9_-]{0,31}$"
+          }
+        },
+        "required": [
+          "role",
+          "candidate"
+        ],
+        "additionalProperties": false
+      },
+      "uniqueItems": true,
+      "maxItems": 18,
+      "minItems": 0
+    },
+    "role_locks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "enum": [
+              "accessibility-reviewer",
+              "architecture-reviewer",
+              "debug-investigator",
+              "docs-writer",
+              "feature-implementer",
+              "fog-cartographer",
+              "migration-safety-reviewer",
+              "observability-reviewer",
+              "ops-readiness-reviewer",
+              "performance-reviewer",
+              "plugin-validator",
+              "pr-author",
+              "prototype-builder",
+              "refactorer",
+              "reliability-reviewer",
+              "security-reviewer",
+              "test-author",
+              "ui-test-author"
+            ],
+            "type": "string"
+          },
+          "candidate": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32,
+            "pattern": "^(?!defer$)[a-z][a-z0-9_-]{0,31}$"
+          }
+        },
+        "required": [
+          "role",
+          "candidate"
+        ],
+        "additionalProperties": false
+      },
+      "uniqueItems": true,
+      "maxItems": 18,
+      "minItems": 0
     }
   },
   "required": [
@@ -766,7 +862,10 @@
     "required_evidence",
     "routing_roles",
     "catalog_revision",
-    "outbound_contract"
+    "outbound_contract",
+    "fallback_candidate",
+    "role_baselines",
+    "role_locks"
   ],
   "additionalProperties": false
 }

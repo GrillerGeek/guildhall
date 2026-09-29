@@ -140,8 +140,10 @@ _p5['schema_version'] = enum([5])
 _p5['mode'] = enum(['off', 'shadow', 'dynamic', 'adaptive'])
 _p5['routing_roles'] = _p5.pop('adaptive_roles')
 POLICY_SCHEMA_V5['required'].remove('adaptive_roles')
-_p5.update(catalog_revision=HASH, outbound_contract=enum(['categories-v2']))
-POLICY_SCHEMA_V5['required'] += ['routing_roles', 'catalog_revision', 'outbound_contract']
+ROLE_CHOICE = obj(role=enum(ROLES), candidate=CID)
+_p5.update(catalog_revision=HASH, outbound_contract=enum(['categories-v2']),
+           fallback_candidate=CID, role_baselines=array(ROLE_CHOICE, 18), role_locks=array(ROLE_CHOICE, 18))
+POLICY_SCHEMA_V5['required'] += ['routing_roles', 'catalog_revision', 'outbound_contract', 'fallback_candidate', 'role_baselines', 'role_locks']
 REQUEST_SCHEMA_V5 = copy.deepcopy(REQUEST_SCHEMA_V4)
 _r5 = REQUEST_SCHEMA_V5['properties']
 _r5['schema_version'] = enum([5])
@@ -188,7 +190,7 @@ def control_fingerprint(host):
     """Hash controls/configuration, never confuse observations with controls."""
     keys = ('route', 'client_version', 'provider', 'worker_tool', 'independent_workers',
             'fresh_context', 'model_selection', 'effort_selection',
-            'configuration_revision', 'baseline_candidate', 'allowed_settings')
+            'configuration_revision', 'allowed_settings')
     facts = {key: host[key] for key in keys}
     facts['allowed_settings'] = sorted(facts['allowed_settings'], key=canonical)
     return policy_hash(facts)
@@ -291,6 +293,12 @@ def validate_policy(policy):
     if version == 5:
         if policy['catalog_revision'] != catalog_revision(candidates):
             raise ValueError('catalog_revision_mismatch')
+        for key in ('role_baselines', 'role_locks'):
+            if len({entry['role'] for entry in policy[key]}) != len(policy[key]):
+                raise ValueError('duplicate_role_choice')
+        selected = [policy['fallback_candidate']] + [e['candidate'] for key in ('role_baselines', 'role_locks') for e in policy[key]]
+        if any(cid not in policy['allowed_candidates'] or cid not in {c['id'] for c in candidates} for cid in selected):
+            raise ValueError('unknown_fallback_or_lock')
         for c in candidates:
             if c['facts_source']['kind'] == 'unknown' and (c['context_tokens'] is not None or c['capabilities']):
                 raise ValueError('unknown_hard_facts')
@@ -348,6 +356,24 @@ def eligible(candidate, request):
 
 def controls(candidate, host):
     return host['model_selection'] and (candidate['effort'] is None or host['effort_selection'])
+
+
+def activation_issues(policy, host):
+    """Offline setup checks. Task-specific constraints are rechecked at dispatch."""
+    if not valid_controls(host):
+        return ['valid_worker_controls_required']
+    issues = []
+    roles = set(policy['routing_roles']) | {e['role'] for e in policy['role_locks']}
+    for role in roles:
+        cid = next((e['candidate'] for e in policy['role_baselines'] if e['role'] == role), policy['fallback_candidate'])
+        ids = [cid] + [e['candidate'] for e in policy['role_locks'] if e['role'] == role]
+        for selected in ids:
+            candidate = next(c for c in policy['candidates'] if c['id'] == selected)
+            if (candidate['host'] != host['route'] or role not in candidate['roles'] or
+                settings(candidate) not in host['allowed_settings'] or not controls(candidate, host) or
+                host['route'].startswith('claude') and re.search(r'(^|[^a-z])fable([^a-z]|$)', candidate['model'].lower())):
+                issues.append('unsupported_fallback_or_lock:' + role)
+    return sorted(set(issues))
 
 
 def qualified(candidate, request, now):
@@ -525,11 +551,18 @@ def route(request, *, transport=None, now=None):
                   and (output_version < 5 or controls(c, h))]
     for selection, source in [('user_candidate', 'user_override'), ('role_candidate', 'role_override')]:
         cid = request['selection'][selection]
+        if output_version == 5 and selection == 'role_candidate' and cid is None:
+            cid = next((e['candidate'] for e in p['role_locks'] if e['role'] == t['role']), None)
         if cid is not None:
             candidate = next((c for c in candidates if c['id'] == cid), None)
             if candidate is None or not controls(candidate, h):
                 return finish('invalid_override', source=source)
             return finish('selected', settings(candidate), source, cid, candidate)
+    if output_version == 5:
+        fallback_id = next((e['candidate'] for e in p['role_baselines'] if e['role'] == t['role']), p['fallback_candidate'])
+        expected_base = next((c for c in candidates if c['id'] == fallback_id), None)
+        if p['mode'] != 'off' and candidates and (expected_base is None or baseline != settings(expected_base)):
+            return finish('baseline_ineligible')
     base = next((c for c in candidates if (settings(c) == baseline if baseline['model'] is not None
                  else c['id'] == h['baseline_candidate'] and h['evidence_hash'] in a['evidence_hashes'])), None)
     if p['mode'] == 'off':

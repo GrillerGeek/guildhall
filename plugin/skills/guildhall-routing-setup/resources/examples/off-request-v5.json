@@ -57,7 +57,10 @@
     "required_evidence": "execution_observed",
     "routing_roles": [],
     "catalog_revision": "5056aadadd5ee2576f760b9d691696f5cafd9a96fc6b3bacaf116e3d9139b820",
-    "outbound_contract": "categories-v2"
+    "outbound_contract": "categories-v2",
+    "fallback_candidate": "baseline",
+    "role_baselines": [],
+    "role_locks": []
   },
   "activation": {
     "policy_hash": null,

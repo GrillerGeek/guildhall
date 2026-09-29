@@ -118,7 +118,9 @@ existing model defaults without a Jev key or the routing Python runtime.
 - **Shadow** records recommendations while keeping baseline dispatch. It needs
   explicit activation, supported candidate profiles and Python 3.12+; it does
   not require adaptive qualification.
-- **Adaptive** can route any of the 18 specialists under schema v4, but only
+- **Dynamic** selects per task among reviewed supported model/effort pairs without
+  a qualification study. Available on Codex and both Claude routes under schema v5.
+- **Benchmark-qualified adaptive** can route any of the 18 specialists under schema v4, but only
   when that role is explicitly enabled and independently qualified for its host,
   task category and objective. No qualified profiles ship with this release.
 
@@ -129,8 +131,8 @@ $guildhall-routing-setup Set up model routing across my projects.
 ```
 
 The wizard detects the host, asks short choices, previews settings and saves them
-after your selected action. New setup recommends shadow mode, which leaves worker
-models unchanged. It also handles changes, diagnosis and disabling routing. Native
+after your selected action. Automatic-selection setup recommends Dynamic routing; shadow is optional.
+No study or paid setup probe is required. It also handles changes, diagnosis and disabling routing. Native
 plugins include the skill; standalone users select it during installation.
 
 Configure routing once per host with [global defaults](plugin/skills/guildhall-quest/references/global-routing.md)
@@ -141,7 +143,7 @@ can disable routing. Deleting a project policy restores global inheritance.
 An API key alone enables nothing. The [routing guide](docs/model-routing.md)
 includes a setup prompt, safe smoke command, data-sharing details, receipts and
 disable instructions. The [role matrix and migration guide](plugin/skills/guildhall-quest/references/role-eligibility.md)
-explains how to enable one qualified role at a time. There are no measured Jev savings or live qualification
+explains explicit role scope, fallback defaults and migration. There are no measured Jev savings or live qualification
 claims; see the [verification report](docs/reviews/2026-09-21-jev-routing.md).
 
 ## Optional: use with IDD

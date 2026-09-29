@@ -185,3 +185,24 @@ effect. Preserve work already in flight; never replay uncertain dispatch. Setup,
 activation and revocation writes stay outside Mordain's plan-only quest scope.
 Package installation/update never edits these user-owned files. See the shared
 [routing contract](routing.md) for role precedence, eligibility and dispatch.
+
+
+## V5 dynamic approval
+
+Schema v5 binds `routing_roles`, default and role fallbacks, intentional locks,
+catalog revision and `categories-v2` outbound fields in the policy hash. The
+helper reads both approval-store versions; v2 can contain unchanged legacy
+records alongside v5 approvals. It never upgrades legacy policy semantics.
+
+Supply the v5 host with a reviewed `control_basis` (source and fingerprint from
+`control_fingerprint`). V5 status fingerprints controls/configuration separately
+from execution telemetry and per-assignment baseline selection. `activate` checks
+supported fallbacks/locks and persists mode, catalog/data contract and control
+hash. Ordinary dynamic setup uses `evidence_hashes: []`; no worker capture or
+study is required. Execution observations may remain unknown or improve without
+invalidating this control approval. Policy/catalog/control changes still need
+review. Whole-policy hashing binds roles and exact candidate scope.
+
+Preview, prepare, targeted setup, compare-and-swap, revocation and ordinary
+session/project/global precedence remain identical. An old approval cannot
+activate a migrated v5 policy. Keep qualified adaptive evidence separate.

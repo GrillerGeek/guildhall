@@ -10,7 +10,7 @@ def dynamic_request(role='docs-writer', host='codex-skill'):
     r=request_for(role,host)
     r['schema_version']=r['policy']['schema_version']=5
     p=r['policy'];p.update(mode='dynamic',routing_roles=p.pop('adaptive_roles'),
-        catalog_revision='a'*64,outbound_contract='categories-v2')
+        catalog_revision='a'*64,outbound_contract='categories-v2',fallback_candidate='base',role_baselines=[],role_locks=[])
     for c in p['candidates']:
         c['qualification']=None;c['measurements']=[]
         c['facts_source']=dict(kind='host_metadata',reference='synthetic-controls')
