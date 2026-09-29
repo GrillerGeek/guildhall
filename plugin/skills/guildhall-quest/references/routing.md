@@ -319,3 +319,10 @@ For required reference material, use [bounded input delivery](input-delivery.md)
 and record ordinary-work feedback from existing tests/reviews/usage only. Repair
 missing chunks within the existing budget; never treat source hashes or worker
 assertions as delivery proof or run extra workers to collect feedback.
+
+
+V5 optionally accepts `host.model_resolutions` with requested/resolved models,
+configured default effort and local provenance. The [mapping contract](task-routing.md#sonnet-55-and-reviewed-model-mappings)
+defines validation and approval refresh. Receipts include these configuration
+facts and their control fingerprint; observed execution stays unknown unless
+separately established. Mappings and source references never enter Jev payloads.

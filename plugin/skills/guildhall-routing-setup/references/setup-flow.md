@@ -22,6 +22,14 @@ their request: a status check or disable request should not restart onboarding.
   Do not expose secrets or scan unrelated session transcripts. Use the
   [host-evidence guide](host-evidence.md) when interpreting records. Its preflight
   consumes supplied metadata; it does not discover the host on its own.
+- On Claude, check the executing client's Sonnet 5.5 support (Claude Code
+  2.1.284+) before proposing it. Read the [model-mapping contract](task-routing.md#sonnet-55-and-reviewed-model-mappings).
+  Collect current alias resolutions and default effort into optional
+  `host.model_resolutions`, with their actual stable configuration source.
+  Never assume every provider's `sonnet` is 5.5. Null means unknown. Keep native
+  frontmatter aliases and existing role defaults/locks; offer a supported explicit
+  pin only when wanted. Use the 5.5 priors only for a known 5.5 mapping or pin.
+  Discover per-worker effort support separately from session/default effort.
 - Once the fresh `host` object is supported by current controls/configuration, call `status`. Retain
   its source key, scope, fingerprint, policy hash and approval revision for the
   operation they belong to. Do not claim `ready` proves adaptive qualification.
@@ -204,3 +212,10 @@ For a supplied study failure involving truncated references, read
 [input delivery](input-delivery.md) and inspect only the supplied report. Preserve
 its original outcomes. Offer Dynamic routing based on supported controls; do not
 require regrading, extra trials or fabricated delivery evidence to enable it.
+
+
+When an alias/version refresh changes reviewed controls, preview the affected
+host entry and obtain fresh approval for that proposal. Preserve unrelated hosts,
+project overrides and role locks. An unchanged valid approval needs no new write.
+Do not inspect worker transcripts or run a study to discover an alias mapping;
+use unknown if the current host cannot expose it, and state that limitation.

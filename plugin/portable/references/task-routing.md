@@ -69,3 +69,59 @@ The TypeSafe [choice API](https://docs.typesafe.ai/introduction/quickstart) supp
 text state and per-choice criteria (reviewed 2026-09-27). Returned confidence is
 recorded, not treated as calibrated coding success. Receipts retain local task
 facts and catalog revision; do not invent a provider rationale or savings claim.
+
+
+## Sonnet 5.5 and reviewed model mappings
+
+The Claude catalogs include an optional `claude-sonnet-5-5` profile. Its scoped
+coding, debugging and documentation preferences come from Anthropic's
+[Sonnet 5.5 announcement](https://www.anthropic.com/claude-sonnet-5-5), checked
+2026-09-29. These are documented priors, not Guildhall measurements or guaranteed
+savings. Capacity stays null until the actual host's limits are established;
+a model's advertised window does not override a gateway or configured cap.
+
+Keep native agent frontmatter as `sonnet`. According to the
+[Claude Code model configuration guide](https://code.claude.com/docs/en/model-config),
+Sonnet 5.5 needs Claude Code 2.1.284+; the Anthropic API's `sonnet` alias resolves
+to 5.5, while other providers may still use older models. Verify the executing
+client and current provider mapping without paid probes. Do not infer a mapping
+from the alias, another installed CLI, or a generic documentation table.
+
+Schema-v5 hosts can now supply optional `model_resolutions`, for example:
+
+```json
+[{"requested_model":"sonnet","resolved_model":"claude-sonnet-5-5",
+  "default_effort":"medium","source":"configuration",
+  "reference":"reviewed current provider model configuration"}]
+```
+
+Use only actually reviewed facts. Each requested model must occur in the current
+allowed settings; records are unique by requested model. `source` is
+`configuration`, `host_metadata` or `unknown`. A known fact needs a local source
+reference; a wholly unknown record has null resolved_model/default_effort/reference
+and source unknown. Use a stable configuration reference, not a changing tool-call
+ID. Model resolution describes configuration, never proof of served identity.
+
+Mappings and known default effort are included in the control fingerprint and
+local receipts, never Jev's payload. Recheck them at each worker boundary. A known
+version/default change, provider change or loss of a known mapping invalidates
+that host's approval; refresh its catalog and review the affected host entry once.
+Reordering records does not invalidate approval. Legacy v5 packets without this
+optional field keep their previous fingerprints and cannot detect changes they
+do not report. The wizard adds reviewed mappings on an explicit setup refresh;
+installation does not invent mappings or silently activate a new policy.
+
+Catalog compilation specializes the generic documented Sonnet starter using the
+5.5 template only when a supplied mapping resolves exactly to that model. Older
+or unknown mappings retain generic priors. User-authored preferences remain intact.
+An explicitly supported pinned ID can be selected independently. In the setup
+proposal, prefer either the alias or the pin for an otherwise identical profile.
+Keep distinct scopes and user preferences intact; the compiler does not merge
+them just because they currently resolve to the same model.
+
+Claude Code defaults Sonnet 5.5 effort to medium; the API defaults to high. Record
+the actual configured default when known. Default metadata does not authorize
+an effort override: keep effort null unless the worker interface explicitly
+supports the requested value. Never carry over high/max just because an older
+model used it. Codex's starter remains unchanged; discover only models exposed
+by that actual interface. No new benchmark or paid smoke test is required.

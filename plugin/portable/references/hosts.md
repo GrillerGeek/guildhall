@@ -111,3 +111,10 @@ For required reference material, use [bounded input delivery](input-delivery.md)
 and record ordinary-work feedback from existing tests/reviews/usage only. Repair
 missing chunks within the existing budget; never treat source hashes or worker
 assertions as delivery proof or run extra workers to collect feedback.
+
+
+For versioned aliases, refresh optional `host.model_resolutions` from actual
+configuration before status/routing. Keep unknown resolutions null. Known changes
+invalidate control approval even if the requested alias is still `sonnet`.
+[Sonnet 5.5 setup](task-routing.md#sonnet-55-and-reviewed-model-mappings) distinguishes
+Claude Code's medium default from API defaults and per-worker effort support.

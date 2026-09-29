@@ -28,6 +28,10 @@ def feedback(request,decision,outcome,observation,usage=None):
     snapshot={k:request['host'][k] for k in ('route','client_version','provider','worker_tool','configuration_revision','attribution','evidence_level')}
     fingerprint=_R['policy_hash'](dict(task={k:v for k,v in request['task'].items() if k!='summary'},
         policy_hash=_R['policy_hash'](request['policy']),host=snapshot))
+    reviewed_controls=decision['receipt'].get('control_fingerprint')
+    if ((reviewed_controls is None and request['host'].get('model_resolutions')) or
+        reviewed_controls is not None and reviewed_controls!=_R['control_fingerprint'](request['host'])):
+        raise ValueError('uncorrelated_control_mapping')
     if decision['receipt']['input_fingerprint']!=fingerprint:raise ValueError('uncorrelated_task_or_host')
     _R['validate'](decision['dispatch'],_R['BASELINE'])
     scope=dict(host=request['host']['route'],role=request['task']['role'],category=request['task']['category'])

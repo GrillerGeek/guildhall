@@ -1099,6 +1099,82 @@
               "type": "null"
             }
           ]
+        },
+        "model_resolutions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "requested_model": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "resolved_model": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "default_effort": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "none",
+                      "minimal",
+                      "low",
+                      "medium",
+                      "high",
+                      "xhigh",
+                      "max",
+                      "ultra"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "source": {
+                "enum": [
+                  "host_metadata",
+                  "configuration",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              "reference": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "requested_model",
+              "resolved_model",
+              "default_effort",
+              "source",
+              "reference"
+            ],
+            "additionalProperties": false
+          },
+          "uniqueItems": true,
+          "maxItems": 64,
+          "minItems": 0
         }
       },
       "required": [

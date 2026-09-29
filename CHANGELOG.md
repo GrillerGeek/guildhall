@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.17.4 — Unreleased
+
+- Add documented Sonnet 5.5 preferences to both Claude catalogs without changing native aliases.
+- Bind optional reviewed alias versions and default effort to control approval; preserve unknown mappings and legacy v5 packets.
+- Refresh supported Claude profiles without studies or automatic effort overrides; keep Codex catalog discovery unchanged.
+- Integrate the already-approved routing stack into main after its PRs merged into their intermediate base branches.
+
 ## 0.17.3 — Unreleased
 
 - Add bounded handoff chunks and host-visible completeness checks with budgeted recovery.

@@ -1,6 +1,6 @@
 # Guildhall installation and host support
 
-Version **0.17.3 is a release candidate**, available through the `main` commands
+Version **0.17.4 is a release candidate**, available through the `main` commands
 below after merge. It includes all-role routing eligibility, usage/evidence/study tools, independent
 `guildhall-quest` and `guildhall-routing-setup` skills and native Codex metadata. Claude's `/guildhall:quest`, nineteen agent definitions
 and hooks remain available. Choose one route per quest to avoid duplicate entry

@@ -178,6 +178,69 @@
         "source": "https://code.claude.com/docs/en/model-config",
         "revision": "2026-09-27"
       }
+    },
+    {
+      "id": "sonnet-5-5",
+      "host": "claude-skill",
+      "model": "claude-sonnet-5-5",
+      "effort": null,
+      "roles": [
+        "accessibility-reviewer",
+        "architecture-reviewer",
+        "debug-investigator",
+        "docs-writer",
+        "feature-implementer",
+        "fog-cartographer",
+        "migration-safety-reviewer",
+        "observability-reviewer",
+        "ops-readiness-reviewer",
+        "performance-reviewer",
+        "plugin-validator",
+        "pr-author",
+        "prototype-builder",
+        "refactorer",
+        "reliability-reviewer",
+        "security-reviewer",
+        "test-author",
+        "ui-test-author"
+      ],
+      "categories": [
+        "docs",
+        "pr",
+        "implementation",
+        "tests",
+        "debug",
+        "review",
+        "prototype",
+        "refactor"
+      ],
+      "capabilities": [],
+      "context_tokens": null,
+      "quality": null,
+      "latency_ms": null,
+      "cost_usd": null,
+      "usage_tokens": null,
+      "profile_revision": "sonnet-5-5-2026-09-29",
+      "qualification": null,
+      "measurements": [],
+      "facts_source": {
+        "kind": "unknown",
+        "reference": null
+      },
+      "routing_profile": {
+        "work_types": [
+          "implementation",
+          "debug",
+          "docs"
+        ],
+        "reasoning_depth": "extended",
+        "complexity": [],
+        "risk": [],
+        "efficiency": "balanced",
+        "basis": "documented",
+        "source": "https://www.anthropic.com/claude-sonnet-5-5",
+        "revision": "2026-09-29"
+      }
     }
   ]
 }

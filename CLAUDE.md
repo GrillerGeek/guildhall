@@ -134,3 +134,14 @@ from those unchanged defaults.
 - No skipping the explicit `model` parameter on native dispatch. Every `Agent(...)` call in `quest.md` includes the literal supported model resolved by shared precedence. Frontmatter aliases remain defaults; neither syntax nor self-report proves execution identity.
 - No `Write` access for Mordain beyond plan files. If a new artifact type is needed, either dispatch an adventurer (who has `Write`) or design a new adventurer specifically for it.
 - No always-on additions to the post-green fan-out beyond `security-reviewer` and `docs-writer`. New reviewers must be GATED with an explicit trigger documented in `quest.md` Step 3.7, recorded in the plan file's `## Reviewers selected` section. The selectivity is the scaling mechanism — making everything always-on negates the design.
+
+
+### Sonnet 5.5 setup
+
+Keep `sonnet` frontmatter and roster defaults. Sonnet 5.5 support in Claude Code
+requires 2.1.284+; check the executing host and provider mapping during setup.
+The optional reviewed `host.model_resolutions` records known version/default-effort
+changes for approval without treating them as execution evidence. Follow the
+[installed mapping contract](plugin/skills/guildhall-quest/references/task-routing.md#sonnet-55-and-reviewed-model-mappings).
+Do not copy API effort defaults into worker dispatch or launch qualification runs
+just to refresh a supported model. Existing user locks remain intentional locks.

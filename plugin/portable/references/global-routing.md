@@ -208,3 +208,10 @@ review. Whole-policy hashing binds roles and exact candidate scope.
 Preview, prepare, targeted setup, compare-and-swap, revocation and ordinary
 session/project/global precedence remain identical. An old approval cannot
 activate a migrated v5 policy. Keep qualified adaptive evidence separate.
+
+
+Optional v5 `host.model_resolutions` binds known alias versions and configured
+default effort into the control fingerprint. See [the mapping contract](task-routing.md#sonnet-55-and-reviewed-model-mappings).
+Existing packets without mappings keep their previous fingerprint. Supplying,
+changing or losing a known mapping requires renewed host approval; order changes
+do not. Refresh only the affected host entry and preserve project overrides.

@@ -154,6 +154,37 @@ for section, key, schema in [('host', 'control_basis', nullable(CONTROL_BASIS)),
     _r5[section]['properties'][key] = schema
     _r5[section]['required'].append(key)
 
+# Optional extension: old v5 requests and their fingerprints remain valid.
+# A mapping describes reviewed configuration, never observed execution.
+MODEL_RESOLUTION = obj(requested_model=STRING, resolved_model=nullable(STRING),
+    default_effort=EFFORT, source=enum(['host_metadata', 'configuration', 'unknown']),
+    reference=nullable(STRING))
+_r5['host']['properties']['model_resolutions'] = array(MODEL_RESOLUTION, 64)
+
+
+def validate_host(host, version=5):
+    schema = (REQUEST_SCHEMA_V5 if version == 5 else REQUEST_SCHEMA_V3 if version >= 3 else REQUEST_SCHEMA)['properties']['host']
+    validate(host, schema)
+    if version != 5:
+        return
+    mappings = host.get('model_resolutions', [])
+    names = [m['requested_model'] for m in mappings]
+    if len(names) != len(set(names)) or not set(names) <= {s['model'] for s in host['allowed_settings']}:
+        raise ValueError('invalid_model_resolution_scope')
+    for mapping in mappings:
+        known = mapping['resolved_model'] is not None or mapping['default_effort'] is not None
+        if mapping['source'] == 'unknown':
+            if known or mapping['reference'] is not None:
+                raise ValueError('unknown_model_resolution_has_facts')
+        elif not known or mapping['reference'] is None:
+            raise ValueError('model_resolution_source_required')
+
+
+def resolved_model(model, host):
+    return next((m['resolved_model'] for m in host.get('model_resolutions', [])
+                 if m['requested_model'] == model), None)
+
+
 DEPTH = ['unknown', 'routine', 'extended', 'intensive']
 LEVEL = ['unknown', 'low', 'medium', 'high']
 ROUTING_PROFILE = obj(work_types=array(enum(CATEGORIES), 8),
@@ -193,6 +224,8 @@ def control_fingerprint(host):
             'configuration_revision', 'allowed_settings')
     facts = {key: host[key] for key in keys}
     facts['allowed_settings'] = sorted(facts['allowed_settings'], key=canonical)
+    if host.get('model_resolutions'):
+        facts['model_resolutions'] = sorted(host['model_resolutions'], key=lambda m: m['requested_model'])
     return policy_hash(facts)
 
 
@@ -245,7 +278,7 @@ def validate(value, schema):
     elif type(value) is not types[kind]:
         raise ValueError('invalid')
     if kind == 'object':
-        if set(value) != set(schema['properties']):
+        if not set(schema.get('required', [])) <= set(value) or not set(value) <= set(schema['properties']):
             raise ValueError('invalid')
         for key, item in value.items():
             validate(item, schema['properties'][key])
@@ -324,6 +357,7 @@ def validate_request(request):
     validate(request, {2: REQUEST_SCHEMA_V2, 3: REQUEST_SCHEMA_V3, 4: REQUEST_SCHEMA_V4, 5: REQUEST_SCHEMA_V5}.get(version, REQUEST_SCHEMA))
     policy = request['policy']
     validate_policy(policy)
+    validate_host(request['host'], version)
     if request['baseline']['model'] is None and request['baseline']['effort'] is not None:
         raise ValueError('unresolved effort')
     if policy['data_mode'] == 'categories' and request['task']['summary'] is not None:
@@ -346,7 +380,7 @@ def eligible(candidate, request):
         settings(candidate) not in h['allowed_settings'] or
         not h['independent_workers'] or not h['fresh_context']):
         return False
-    if h['route'].startswith('claude') and re.search(r'(^|[^a-z])fable([^a-z]|$)', candidate['model'].lower()):
+    if h['route'].startswith('claude') and re.search(r'(^|[^a-z])fable([^a-z]|$)', (candidate['model'] + ' ' + (resolved_model(candidate['model'], h) or '')).lower()):
         return False
     for ceiling, metric in [('max_cost_usd', 'cost_usd'), ('max_latency_ms', 'latency_ms')]:
         if p[ceiling] is not None and (metrics(candidate, request)[metric] is None or metrics(candidate, request)[metric] > p[ceiling]):
@@ -371,7 +405,7 @@ def activation_issues(policy, host):
             candidate = next(c for c in policy['candidates'] if c['id'] == selected)
             if (candidate['host'] != host['route'] or role not in candidate['roles'] or
                 settings(candidate) not in host['allowed_settings'] or not controls(candidate, host) or
-                host['route'].startswith('claude') and re.search(r'(^|[^a-z])fable([^a-z]|$)', candidate['model'].lower())):
+                host['route'].startswith('claude') and re.search(r'(^|[^a-z])fable([^a-z]|$)', (candidate['model'] + ' ' + (resolved_model(candidate['model'], host) or '')).lower())):
                 issues.append('unsupported_fallback_or_lock:' + role)
     return sorted(set(issues))
 
@@ -536,6 +570,8 @@ def route(request, *, transport=None, now=None):
         return finish('invalid_request')
     output_version = request['schema_version']
     if output_version == 5:
+        receipt['control_fingerprint'] = control_fingerprint(request['host'])
+        receipt['model_resolutions'] = copy.deepcopy(request['host'].get('model_resolutions', []))
         receipt['catalog_revision'] = request['policy']['catalog_revision']
         receipt['task_brief'] = {k: v for k, v in request['task'].items() if k not in ('summary', 'required_capabilities')}
         receipt['assurance'] = 'benchmark_required' if request['policy']['mode'] == 'adaptive' else 'unbenchmarked'
