@@ -10,6 +10,7 @@ IDD is optional and its external agents are outside this router.
 |---|---|
 | `off` (default) | Ordinary host dispatch; absent/off policy skips the helper and makes no Jev calls. |
 | `shadow` | Records recommendations and dispatches the eligible baseline. Profiles need supported settings, not adaptive qualification. |
+| `dynamic` | V5 task-level selection among approved supported profiles, with no benchmark or served-model proof required. |
 | `adaptive` | Can change dispatch for any of the 18 specialists under schema v4, with explicit role enablement and scoped qualification. |
 
 **No live-qualified profiles ship.** There are no measured cost, latency or
@@ -37,21 +38,21 @@ Help me prepare Guildhall's optional model routing globally for this host before
 quest. Read the installed routing guide, policy schema and off-policy example.
 Discover the actual host worker tool and supported model/effort settings without
 paid probes. Prepare the global host policy in off mode with real candidate
-profiles and a baseline supported by host/configuration evidence. Keep unknown
-metrics null and qualification null. Show me the proposed shadow mode, objective,
-candidate scope, outbound fields and any unresolved baseline evidence. Wait for
+profiles and a supported fallback. Keep unknown metrics null and qualification
+null. Show me proposed Dynamic routing, objective, role scope, model preferences,
+locked roles, outbound fields and any missing worker controls. Wait for
 my explicit activation before external requests. Do not print credentials or
 change host settings to manufacture model controls.
 ```
 
-Use the installed skill's `resources/examples/off-policy-v4.json` as the complete
+Use the installed skill's `resources/examples/off-policy-v5.json` as the complete
 policy template; it contains placeholders, not a working model catalog. Source
 links to the bundled files:
 
-- [Off policy](../resources/examples/off-policy-v4.json)
-- [Complete off request](../resources/examples/off-request-v4.json)
-- [Policy schema](../resources/schemas/policy-v4.schema.json)
-- [Request schema](../resources/schemas/request-v4.schema.json)
+- [Off policy](../resources/examples/off-policy-v5.json)
+- [Complete off request](../resources/examples/off-request-v5.json)
+- [Policy schema](../resources/schemas/policy-v5.schema.json)
+- [Request schema](../resources/schemas/request-v5.schema.json)
 - [Host adapter and routing contract](routing.md)
 
 Profiles bind an opaque candidate ID to one actual host model/effort pair, roles,
@@ -62,13 +63,14 @@ every model with paid requests. Keep unknown quality, latency, usage and cost
 null. Unknown cost/latency cannot satisfy a configured ceiling. The example's
 confidence threshold is illustrative, not a calibrated recommendation.
 
-Native Claude retains its roster/frontmatter baseline and passes a literal model
-argument. Skills normally inherit host configuration: baseline model and effort
-are both null. With routing active, that inherited baseline needs a trusted
-configuration mapping in `host.baseline_candidate` and reviewed host evidence
-whose hash appears in `activation.evidence_hashes`. A concrete baseline must
-exactly match an eligible profile. An unresolved or ineligible fallback holds
-dispatch. Null effort means omit the argument; it does not prove inherited effort.
+For schema v5, follow [task briefs and reviewed catalogs](task-routing.md).
+Native Claude imports roster/frontmatter defaults as `role_baselines`; only
+intentional overrides become `role_locks`. Codex and standalone Claude use the
+actual worker controls and a supported `fallback_candidate`. If inherited model
+identity is unknown, choose an explicit supported fallback without a paid probe.
+Omit effort unless that interface supports it. No role's Claude alias becomes a
+Codex quality tier. Dynamic approval binds controls separately from observations;
+served identity can remain unknown. Hard constraints still apply to fallback.
 
 ## Credentials and activation
 
@@ -80,13 +82,13 @@ check it. A GUI host may not inherit a key set in a different terminal.
 
 Unchanged global approval is reusable across projects and sessions through the
 installed configuration helper; approval is separate from repository files.
-Once the proposed policy and baseline are ready, explicitly request shadow mode
-and approve its displayed objective, candidate scope and outbound fields. The
+Once the proposed policy and baseline are ready, choose Dynamic routing for automatic selection
+and approve its displayed objective, roles, candidates, fallback and outbound fields. The
 adapter records activation against `policy_hash(policy)`, the SHA256 of sorted,
 compact UTF-8 JSON. **Any policy change requires renewed activation.** Changing
 the file alone supplies no consent. Start a quest only after setup is complete.
 
-Shadow can recommend without model-selection controls. It never changes the
+Legacy shadow can recommend without model-selection controls. It never changes the
 worker settings. A singleton eligible choice needs no API call; multiple eligible
 choices require the key unless routing falls back first. Other Guildhall roles
 can participate in shadow if their profiles cover the assignment. Adaptive is
@@ -107,7 +109,7 @@ GUILDHALL_SKILL_ROOT='/absolute/path/to/installed/guildhall-quest'
 GUILDHALL_SKILL_ROOT="$(realpath "$GUILDHALL_SKILL_ROOT")"
 python3 --version
 python3 "$GUILDHALL_SKILL_ROOT/scripts/route_model.py" \
-  < "$GUILDHALL_SKILL_ROOT/resources/examples/off-request-v4.json"
+  < "$GUILDHALL_SKILL_ROOT/resources/examples/off-request-v5.json"
 ```
 
 Expect exit 0, `status: "dispatch"`, `reason: "router_disabled"`, null baseline
@@ -188,7 +190,7 @@ host execution metadata can establish observation; a request, model-echo or
 worker self-report cannot. Missing billing stays unknown. Fingerprints support
 correlation; they do not anonymize secrets.
 
-## Adaptive promotion and rollback
+## Optional benchmark-qualified adaptive promotion and rollback
 
 Before adaptive use, independently review real host attribution and per-role,
 per-category evaluations against both static and deterministic baselines. The
@@ -300,3 +302,22 @@ before users spend on a qualification study.
 For bounded development/holdout evaluation, follow the bundled
 [qualification study workflow](qualification-study.md). No helper launches models
 or automatically promotes a profile.
+
+
+## Dynamic setup and migration (v5)
+
+Ask the installed `guildhall-routing-setup` wizard to enable Dynamic routing.
+The short path is current controls → scope/objective/candidates/fallback → review
+mode and outbound fields → save/activate. No benchmark, shadow warmup, paid probe
+or minimum worker count is required. A failed study does not block this path.
+Quality and savings are not benchmark-established simply because routing works.
+
+The `categories-v2` contract includes bounded reasoning depth, change breadth,
+expected output, verification and reviewed profile preferences as well as the
+legacy task facts. Model IDs, paths and arbitrary provenance prose stay local.
+Versioned control-based approvals and pinned catalogs require review when they
+change. Existing policies retain their modes; v5 is an explicit reviewed migration.
+See [role migration](role-eligibility.md) and [global approval](global-routing.md).
+Initialize v5 quest state with `router_identity: null`; preserve the returned
+identity and counters through retries/resumes. Known substitution suspends future
+choices; unknown served identity alone does not. No uncertain worker is replayed.

@@ -48,6 +48,12 @@ never creates an absent map, and leaves decisions to `idd-resolve`.
 
 ## Optional routing at every worker boundary
 
+Schema v5 Dynamic routing uses [task briefs and catalogs](task-routing.md) and
+reviewed worker controls, without benchmark qualification. Preserve intentional
+role locks separately from fallback defaults. All paths below use this adapter;
+unknown execution identity does not disable dynamic mode, known substitution does.
+
+
 Use [the shared routing contract](routing.md) for all Guildhall workers, including
 fast lanes and pre-plan consultations. Absent/off policy leaves ordinary dispatch
 unchanged and never invokes Python. Explicit user choice precedes role override,

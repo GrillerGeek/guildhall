@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.17.2 — Unreleased
+
+- Make Dynamic routing the ordinary automatic-selection wizard path on Codex and Claude.
+- Separate intentional role locks from reviewed default/role fallbacks; preserve Claude roster defaults.
+- Ship complete independent setup/quest integration, migration and outbound-data guidance.
+
 ## 0.17.1 — Unreleased
 
 - Supply Jev with controlled task briefs and distinct reviewed profile preferences.

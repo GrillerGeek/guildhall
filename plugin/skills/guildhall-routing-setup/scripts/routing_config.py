@@ -331,7 +331,8 @@ class RoutingConfig:
         need(expires_at is None or expires_at > current, 'approval_already_expired')
         v5 = result['policy']['schema_version'] == 5
         if v5:
-            need(_R['valid_controls'](host), 'valid_worker_controls_required')
+            issues = _R['activation_issues'](result['policy'], host)
+            need(not issues, ','.join(issues))
         else:
             need(host['evidence_hash'] is not None and host['evidence_hash'] in evidence_hashes,
                  'host_evidence_not_reviewed')
