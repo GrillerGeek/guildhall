@@ -10,7 +10,7 @@ DEST = Path('plugin/skills/guildhall-quest')
 SETUP_DEST = Path('plugin/skills/guildhall-routing-setup')
 DESTINATIONS = (DEST, SETUP_DEST)
 SETUP_REFERENCES = ('global-routing', 'model-routing', 'routing', 'host-evidence',
-                    'role-eligibility', 'qualification-study', 'task-routing')
+                    'role-eligibility', 'qualification-study', 'task-routing', 'input-delivery')
 
 
 def outputs(root: Path) -> dict[Path, bytes]:

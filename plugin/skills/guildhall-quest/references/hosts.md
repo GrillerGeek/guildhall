@@ -105,3 +105,9 @@ worker and bundled role body without assuming native registration or hooks.
 Codex uses actual exposed model/effort arguments and a fresh independent context;
 missing served identity alone is not a reason to demand a study. Never copy effort
 names between hosts. Reuse the same control approval across role fallback choices.
+
+
+For required reference material, use [bounded input delivery](input-delivery.md)
+and record ordinary-work feedback from existing tests/reviews/usage only. Repair
+missing chunks within the existing budget; never treat source hashes or worker
+assertions as delivery proof or run extra workers to collect feedback.

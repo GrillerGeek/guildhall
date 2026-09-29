@@ -63,8 +63,8 @@ Use an ordinary setup conversation outside quest execution. For example:
 > Configure Guildhall specialist model routing globally for this host. Read the
 > installed global and model-routing guides. Discover supported model/effort
 > settings without paid probes. Prepare an off global policy, keep unknown metrics
-> and qualifications unknown, and show the proposed shadow policy, all-project
-> scope, objective, candidates, budgets, outbound fields and host evidence.
+> and qualifications unknown, and show the proposed Dynamic policy, all-project
+> scope, objective, candidates, budgets, outbound fields and worker controls.
 > Activate only after I explicitly approve that exact proposal. Retain any
 > existing project policy and explain which source currently wins.
 
@@ -83,16 +83,17 @@ different source do not copy consent. Credentials stay in the host environment,
 using the policy's `key_env`; never store the secret value in either file.
 
 Each approval binds the effective canonical policy hash, source and host route,
-current host configuration fingerprint, and reviewed evidence hashes. Changing
+current host configuration fingerprint, and either v5 reviewed control facts or
+legacy/qualified reviewed evidence hashes. Changing
 another host's global entry or JSON formatting does not invalidate it. Changing
 the selected policy or host configuration requires renewed activation. Expiry,
-revocation, missing reviewed host evidence or corrupt approval state prevents
+revocation, missing required control/evidence review or corrupt approval state prevents
 reuse. Approval expiry may be omitted; qualification still has its own expiry.
 When reviewed host evidence has an expiry, do not approve beyond that expiry.
 
 The helper fingerprints the supplied host request fields (sorting supported
 settings), excluding the evidence hash itself; that hash must separately appear
-in approved evidence. Supply fresh, truthful host metadata each time, not a stale
+in approved evidence. V5 uses the control fingerprint described below instead. Supply fresh, truthful host metadata each time, not a stale
 snapshot to keep approval working. Host/role qualification checks still happen
 in the routing engine. `ready` means reusable consent, not adaptive qualification
 or proof of which model executed.
@@ -165,7 +166,8 @@ recognize a valid opt-out or valid off policy, and skip both Python helpers.
 Check global defaults when the project file is absent. If selected configuration
 cannot be validated, stop configuration resolution; never guess that it is off.
 
-For enabled routing, call `status` with current host evidence. Use its `policy`
+For enabled routing, call `status` with current host controls/evidence shaped to
+the selected request version. V5 dynamic requires no execution-evidence hashes. Use its `policy`
 and `activation` verbatim in the existing routing request, setting request schema
 version to the selected policy's schema version. Add a summary hash only after
 the exact summary's approval. Non-ready results do not authorize external calls;

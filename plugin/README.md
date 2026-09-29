@@ -44,7 +44,7 @@ Full character sheets in [`CHARACTERS.md`](CHARACTERS.md).
 
 ## Installation
 
-Version **0.17.2 includes the installed routing tools**. The [installation guide](https://github.com/GrillerGeek/guildhall/blob/main/docs/installation.md)
+Version **0.17.3 includes the installed routing tools**. The [installation guide](https://github.com/GrillerGeek/guildhall/blob/main/docs/installation.md)
 covers this repository's Codex, Claude and standalone routes, updates and removal.
 The `main` route receives 0.16.0 after merge; the separate marketplace below is
 not updated by this change.

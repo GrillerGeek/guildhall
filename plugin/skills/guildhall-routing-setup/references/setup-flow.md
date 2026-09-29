@@ -198,3 +198,9 @@ configuration and approval only; it never resets an active quest's counters.
   qualification, corrupt files, unsafe permissions or an existing override.
   Do not silently overwrite malformed files, relax permissions or clear locks.
   Suggest the smallest concrete repair, then apply only the requested repair.
+
+
+For a supplied study failure involving truncated references, read
+[input delivery](input-delivery.md) and inspect only the supplied report. Preserve
+its original outcomes. Offer Dynamic routing based on supported controls; do not
+require regrading, extra trials or fabricated delivery evidence to enable it.
