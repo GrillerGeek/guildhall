@@ -1,5 +1,11 @@
 # Run a bounded routing study
 
+This advanced workflow is optional. Dynamic routing does not require a study.
+Before a paid trial, follow [bounded delivery](input-delivery.md), freeze its
+expected input manifest and verify actual visible chunks. Exclude incomplete or
+unknown live delivery before grading or comparing model quality/efficiency.
+A failed study does not authorize another run or prevent Dynamic activation.
+
 Guildhall supplies a development headroom analyzer and a study controller. They
 run no models themselves. The controller prepares isolated Git worktrees and
 explicit dispatch packets for the actual host, then imports measured outcomes

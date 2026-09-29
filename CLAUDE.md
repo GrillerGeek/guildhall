@@ -56,7 +56,7 @@ When editing `quest.md`, preserve this three-phase shape. Serializing the review
 
 Resolve session/project/global defaults through the installed
 [global routing contract](plugin/skills/guildhall-quest/references/global-routing.md).
-Reuse unchanged source-bound approval with fresh host evidence; recheck each
+Reuse unchanged source-bound approval with fresh host controls/evidence; recheck each
 worker boundary. Setup writes stay outside Mordain's plan-only execution scope.
 
 Every native `Agent(...)` call includes a literal `model` argument. Resolve it
@@ -77,8 +77,12 @@ The [routing guide](docs/model-routing.md) and
 [shared contract](plugin/skills/guildhall-quest/references/routing.md) govern the
 single helper used by native Claude and portable Claude/Codex. Absent/off policy
 skips Python and external calls. Shadow needs explicit activation, not adaptive
-qualification. Schema v4 makes all 18 specialists eligible for adaptive routing
-with an explicit role allowlist and reviewed role/category/host/profile evidence.
+qualification. Schema v5 Dynamic routing can select per assignment for all 18
+specialists with reviewed controls, task briefs and pinned host catalogs, without
+a study or served-model proof. Import roster defaults as role baselines; only
+intentional user overrides become locks. Advanced adaptive retains benchmark
+qualification. Unknown worker observation does not suspend dynamic mode; known
+substitution does. Preserve requested and observed identities separately.
 No qualified profiles ship. Prepare global defaults or a project override before the quest, outside Mordain's plan-only write scope. Any policy change requires
 renewed activation. Serialize helper decisions and carry returned state across
 workers, even when the workers run concurrently. Keep test-author routing facts

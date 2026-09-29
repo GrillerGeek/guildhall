@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.17.3 — Unreleased
+
+- Add bounded handoff chunks and host-visible completeness checks with budgeted recovery.
+- Exclude incomplete/unknown live inputs before optional grading and model comparisons.
+- Record ordinary-work feedback without extra model calls, automatic training or policy changes.
+
+## 0.17.2 — Unreleased
+
+- Make Dynamic routing the ordinary automatic-selection wizard path on Codex and Claude.
+- Separate intentional role locks from reviewed default/role fallbacks; preserve Claude roster defaults.
+- Ship complete independent setup/quest integration, migration and outbound-data guidance.
+
+## 0.17.1 — Unreleased
+
+- Supply Jev with controlled task briefs and distinct reviewed profile preferences.
+- Pin host-scoped catalogs; preserve unknown measurements and exclude unsupported profiles.
+- Keep model identities, arbitrary catalog prose and provenance local.
+
 ## 0.17.0 — Unreleased
 
 - Add schema-v5 dynamic routing with control-based approval and no study requirement.

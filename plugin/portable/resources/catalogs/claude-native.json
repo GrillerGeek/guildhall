@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "host": "claude-native",
+  "profiles": [
+    {
+      "id": "haiku",
+      "host": "claude-native",
+      "model": "haiku",
+      "effort": null,
+      "roles": [
+        "accessibility-reviewer",
+        "architecture-reviewer",
+        "debug-investigator",
+        "docs-writer",
+        "feature-implementer",
+        "fog-cartographer",
+        "migration-safety-reviewer",
+        "observability-reviewer",
+        "ops-readiness-reviewer",
+        "performance-reviewer",
+        "plugin-validator",
+        "pr-author",
+        "prototype-builder",
+        "refactorer",
+        "reliability-reviewer",
+        "security-reviewer",
+        "test-author",
+        "ui-test-author"
+      ],
+      "categories": [
+        "docs",
+        "pr",
+        "implementation",
+        "tests",
+        "debug",
+        "review",
+        "prototype",
+        "refactor"
+      ],
+      "capabilities": [],
+      "context_tokens": null,
+      "quality": null,
+      "latency_ms": null,
+      "cost_usd": null,
+      "usage_tokens": null,
+      "profile_revision": "starter-2026-09-27",
+      "qualification": null,
+      "measurements": [],
+      "facts_source": {
+        "kind": "unknown",
+        "reference": null
+      },
+      "routing_profile": {
+        "work_types": [],
+        "reasoning_depth": "routine",
+        "complexity": [],
+        "risk": [],
+        "efficiency": "low_overhead",
+        "basis": "documented",
+        "source": "https://code.claude.com/docs/en/model-config",
+        "revision": "2026-09-27"
+      }
+    },
+    {
+      "id": "sonnet",
+      "host": "claude-native",
+      "model": "sonnet",
+      "effort": null,
+      "roles": [
+        "accessibility-reviewer",
+        "architecture-reviewer",
+        "debug-investigator",
+        "docs-writer",
+        "feature-implementer",
+        "fog-cartographer",
+        "migration-safety-reviewer",
+        "observability-reviewer",
+        "ops-readiness-reviewer",
+        "performance-reviewer",
+        "plugin-validator",
+        "pr-author",
+        "prototype-builder",
+        "refactorer",
+        "reliability-reviewer",
+        "security-reviewer",
+        "test-author",
+        "ui-test-author"
+      ],
+      "categories": [
+        "docs",
+        "pr",
+        "implementation",
+        "tests",
+        "debug",
+        "review",
+        "prototype",
+        "refactor"
+      ],
+      "capabilities": [],
+      "context_tokens": null,
+      "quality": null,
+      "latency_ms": null,
+      "cost_usd": null,
+      "usage_tokens": null,
+      "profile_revision": "starter-2026-09-27",
+      "qualification": null,
+      "measurements": [],
+      "facts_source": {
+        "kind": "unknown",
+        "reference": null
+      },
+      "routing_profile": {
+        "work_types": [],
+        "reasoning_depth": "extended",
+        "complexity": [],
+        "risk": [],
+        "efficiency": "balanced",
+        "basis": "documented",
+        "source": "https://code.claude.com/docs/en/model-config",
+        "revision": "2026-09-27"
+      }
+    },
+    {
+      "id": "opus",
+      "host": "claude-native",
+      "model": "opus",
+      "effort": null,
+      "roles": [
+        "accessibility-reviewer",
+        "architecture-reviewer",
+        "debug-investigator",
+        "docs-writer",
+        "feature-implementer",
+        "fog-cartographer",
+        "migration-safety-reviewer",
+        "observability-reviewer",
+        "ops-readiness-reviewer",
+        "performance-reviewer",
+        "plugin-validator",
+        "pr-author",
+        "prototype-builder",
+        "refactorer",
+        "reliability-reviewer",
+        "security-reviewer",
+        "test-author",
+        "ui-test-author"
+      ],
+      "categories": [
+        "docs",
+        "pr",
+        "implementation",
+        "tests",
+        "debug",
+        "review",
+        "prototype",
+        "refactor"
+      ],
+      "capabilities": [],
+      "context_tokens": null,
+      "quality": null,
+      "latency_ms": null,
+      "cost_usd": null,
+      "usage_tokens": null,
+      "profile_revision": "starter-2026-09-27",
+      "qualification": null,
+      "measurements": [],
+      "facts_source": {
+        "kind": "unknown",
+        "reference": null
+      },
+      "routing_profile": {
+        "work_types": [],
+        "reasoning_depth": "intensive",
+        "complexity": [],
+        "risk": [],
+        "efficiency": "thorough",
+        "basis": "documented",
+        "source": "https://code.claude.com/docs/en/model-config",
+        "revision": "2026-09-27"
+      }
+    }
+  ]
+}
