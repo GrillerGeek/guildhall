@@ -116,8 +116,11 @@ separate scoped action, not an automatic wizard step.
 
 Before enabling, review actual controls, supported fallback(s), locked roles and
 candidate preferences. Unknown hard facts cannot meet explicit constraints; do
-not guess capacity or weaken a constraint to finish setup. A task may leave an
-unestablished context minimum unknown, with that limitation visible. Effort is
+not guess capacity or weaken a constraint to finish setup. Task preparation must
+default `context_bucket` to `unknown` unless the permitted handoff establishes a
+hard minimum. Explain that `small` requires 4,096 tokens of known capacity; it is
+not a task-size estimate. For a hold, use local `receipt.eligibility` exclusions
+instead of paid discovery. Keep any real minimum enforced. Effort is
 omitted unless this host exposes that specific value. Missing served-model
 telemetry does not block Dynamic routing; known forced substitution does.
 

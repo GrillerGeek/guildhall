@@ -370,22 +370,54 @@ def settings(candidate):
     return {key: candidate[key] for key in ('model', 'effort')}
 
 
-def eligible(candidate, request):
+CONTEXT_MIN_TOKENS = {'small': 4096, 'medium': 32768, 'large': 131072}
+
+
+def exclusion_reasons(candidate, request):
+    """Explain hard eligibility locally; never infer or relax a task requirement."""
     p, h, t = (request[k] for k in ('policy', 'host', 'task'))
-    if (candidate['id'] not in p['allowed_candidates'] or candidate['host'] != h['route'] or
-        t['role'] not in candidate['roles'] or t['category'] not in candidate['categories'] or
-        not set(t['required_capabilities']) <= set(candidate['capabilities']) or
-        (t['context_bucket'] != 'unknown' and (candidate['context_tokens'] is None or
-         candidate['context_tokens'] < {'small': 4096, 'medium': 32768, 'large': 131072}[t['context_bucket']])) or
-        settings(candidate) not in h['allowed_settings'] or
-        not h['independent_workers'] or not h['fresh_context']):
-        return False
+    reasons = []
+    for failed, reason in [
+        (candidate['id'] not in p['allowed_candidates'], 'candidate_not_allowed'),
+        (candidate['host'] != h['route'], 'host_mismatch'),
+        (t['role'] not in candidate['roles'], 'role_unsupported'),
+        (t['category'] not in candidate['categories'], 'category_unsupported'),
+        (not set(t['required_capabilities']) <= set(candidate['capabilities']), 'required_capabilities_missing'),
+    ]:
+        if failed:
+            reasons.append(reason)
+    minimum = CONTEXT_MIN_TOKENS.get(t['context_bucket'])
+    if minimum is not None:
+        if candidate['context_tokens'] is None:
+            reasons.append('context_capacity_unknown')
+        elif candidate['context_tokens'] < minimum:
+            reasons.append('context_capacity_insufficient')
+    for failed, reason in [
+        (settings(candidate) not in h['allowed_settings'], 'settings_unsupported'),
+        (not h['independent_workers'], 'independent_workers_unavailable'),
+        (not h['fresh_context'], 'fresh_context_unavailable'),
+    ]:
+        if failed:
+            reasons.append(reason)
     if h['route'].startswith('claude') and re.search(r'(^|[^a-z])fable([^a-z]|$)', (candidate['model'] + ' ' + (resolved_model(candidate['model'], h) or '')).lower()):
-        return False
+        reasons.append('model_forbidden')
     for ceiling, metric in [('max_cost_usd', 'cost_usd'), ('max_latency_ms', 'latency_ms')]:
-        if p[ceiling] is not None and (metrics(candidate, request)[metric] is None or metrics(candidate, request)[metric] > p[ceiling]):
-            return False
-    return True
+        if p[ceiling] is not None:
+            value = metrics(candidate, request)[metric]
+            if value is None:
+                reasons.append(metric + '_unknown')
+            elif value > p[ceiling]:
+                reasons.append(metric + '_exceeds_limit')
+    if request['schema_version'] == 5:
+        if not h['model_selection']:
+            reasons.append('model_selection_unavailable')
+        if candidate['effort'] is not None and not h['effort_selection']:
+            reasons.append('effort_selection_unavailable')
+    return reasons
+
+
+def eligible(candidate, request):
+    return not exclusion_reasons(candidate, request)
 
 
 def controls(candidate, host):
@@ -583,8 +615,16 @@ def route(request, *, transport=None, now=None):
     phash = policy_hash(p)
     receipt.update(policy_hash=phash, baseline=baseline, host_snapshot=snapshot,
                    input_fingerprint=policy_hash(dict(task={k: v for k, v in t.items() if k != 'summary'}, policy_hash=phash, host=snapshot)))
-    candidates = [c for c in p['candidates'] if eligible(c, request)
-                  and (output_version < 5 or controls(c, h))]
+    exclusions = []
+    for candidate in p['candidates']:
+        reasons = exclusion_reasons(candidate, request)
+        if reasons:
+            exclusions.append(dict(id=candidate['id'], reasons=reasons))
+        else:
+            candidates.append(candidate)
+    if output_version == 5:
+        receipt['eligibility'] = dict(context_min_tokens=CONTEXT_MIN_TOKENS.get(t['context_bucket']),
+                                      excluded_candidates=exclusions)
     for selection, source in [('user_candidate', 'user_override'), ('role_candidate', 'role_override')]:
         cid = request['selection'][selection]
         if output_version == 5 and selection == 'role_candidate' and cid is None:

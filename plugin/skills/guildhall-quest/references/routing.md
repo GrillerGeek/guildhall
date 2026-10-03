@@ -35,7 +35,9 @@ sequence below with these version-specific rules:
   identity is unknown. Different role baselines share the same control approval.
 - Build the controlled task brief from only the permitted handoff and the pinned
   host catalog. The categories-v2 fields require review at activation. Use the
-  task-routing contract for provenance, priors, null metrics and privacy.
+  task-routing contract for provenance, priors, null metrics and privacy. Default
+  `context_bucket` to `unknown` unless that handoff establishes a hard capacity
+  minimum; `small` is a 4,096-token requirement, not an ordinary task-size label.
 - Initialize v5 state with `router_identity: null` alongside the original counters.
   Preserve it on resume/retry. A changed observed Jev identity suspends choices.
   Unknown served-worker identity alone does not suspend dynamic mode. Known
@@ -240,6 +242,30 @@ only route, client_version, provider, worker_tool, configuration_revision and
 attribution. Input fingerprint hashes `{task: task without summary, policy_hash,
 host: host_snapshot}`. It supports correlation, not secret anonymization. Null
 fields mean unavailable; do not invent billing from tokens or subscription usage.
+
+Valid v5 requests also receive local `receipt.eligibility`: `context_min_tokens`
+(null when no hard minimum is established) and `excluded_candidates`, each with
+its catalog `id` and all applicable `reasons`. These diagnostics never enter the
+Jev payload. Legacy receipt formats remain unchanged. Invalid requests do not
+receive eligibility diagnostics because their fields have not been validated.
+
+When the result is `hold`, explain the relevant exclusions from this receipt
+before taking action; do not spawn a diagnostic worker or call Jev to diagnose
+local eligibility. `context_capacity_unknown` means the catalog cannot establish
+the required capacity; `context_capacity_insufficient` means its known capacity
+is below the reported minimum. If a size label was mistakenly supplied without
+an established hard minimum, correct it to `unknown` and carry the returned state
+into the next attempt. Never erase a genuine requirement to obtain a dispatch.
+A catalog correction needs supported facts and renewed policy approval.
+
+Other exclusion codes identify `candidate_not_allowed`, `host_mismatch`,
+`role_unsupported`, `category_unsupported`, `required_capabilities_missing`,
+`settings_unsupported`, `independent_workers_unavailable`,
+`fresh_context_unavailable`, `model_forbidden`, `model_selection_unavailable`,
+and `effort_selection_unavailable`. Numeric ceilings distinguish `cost_usd_unknown`
+and `latency_ms_unknown` from `cost_usd_exceeds_limit` and
+`latency_ms_exceeds_limit`. Multiple constraints may exclude the same candidate;
+fixing one does not make the others optional.
 
 Stable reason codes:
 

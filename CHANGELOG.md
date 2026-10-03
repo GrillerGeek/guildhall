@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.17.5 — Unreleased
+
+- Default task preparation to unknown context requirements unless the handoff establishes a hard minimum, on Claude and Codex.
+- Explain candidate exclusions in local routing receipts without paid diagnostics; preserve hard constraints and legacy receipts.
+
 ## 0.17.4 — Unreleased
 
 - Add documented Sonnet 5.5 preferences to both Claude catalogs without changing native aliases.

@@ -37,8 +37,13 @@ and promise useful routing. Presets do not authorize any models or roles.
 
 `facts_source` records where capacity/capabilities came from. Unknown facts remain
 null/empty and cannot satisfy an enforced context/capability constraint. A task
-with no established hard context minimum can use `context_bucket: unknown`;
-never change a known requirement to unknown just to make a candidate eligible.
+with no established hard context minimum must use `context_bucket: unknown`.
+This is the default for ordinary assignments on every host. These buckets are
+capacity requirements, not descriptions of task size or complexity: `small`
+requires at least 4,096 tokens, `medium` 32,768 and `large` 131,072. Set a non-unknown
+bucket only when the permitted handoff establishes that hard minimum; record its
+basis locally. Use reasoning depth and change breadth to describe the task instead.
+Never change a known requirement to unknown just to make a candidate eligible.
 Unsupported settings are excluded. Recompile and obtain review when actual
 controls or the catalog changes. Catalog updates do not silently widen policy.
 
