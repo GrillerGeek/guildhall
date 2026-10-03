@@ -52,6 +52,11 @@ Schema v5 Dynamic routing uses [task briefs and catalogs](task-routing.md) and
 reviewed worker controls, without benchmark qualification. Preserve intentional
 role locks separately from fallback defaults. All paths below use this adapter;
 unknown execution identity does not disable dynamic mode, known substitution does.
+When preparing a task brief, default `context_bucket` to `unknown` unless the
+permitted handoff establishes a hard capacity minimum. Do not use `small` as an
+ordinary task-size estimate: it requires verified capacity of at least 4,096
+tokens. Explain a hold using local `receipt.eligibility` exclusions; no extra
+diagnostic agent or router call is needed, and real constraints remain enforced.
 
 
 Use [the shared routing contract](routing.md) for all Guildhall workers, including
