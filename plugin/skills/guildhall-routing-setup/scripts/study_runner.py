@@ -16,6 +16,7 @@ import time
 _S=runpy.run_path(str(Path(__file__).with_name('routing_study.py')),run_name='_study')
 need,shape,digest=_S['need'],_S['shape'],_S['digest']
 LIMIT=_S['LIMIT']
+_D=runpy.run_path(str(Path(__file__).with_name('routing_delivery.py')),run_name='_delivery')
 
 
 def git(root,*args):
@@ -80,7 +81,7 @@ def prepare(manifest,repository,directory,phase='development',observations=None)
     need(0<len(runs)<=manifest['max_runs'])
     random.Random(manifest['seed']).shuffle(runs)
     root.mkdir(parents=False,exist_ok=False)
-    state=dict(schema_version=1,status='preparing',manifest=manifest,manifest_hash=digest(manifest),
+    state=dict(schema_version=2,status='preparing',manifest=manifest,manifest_hash=digest(manifest),
                repository=str(repo),baseline=baseline,phase=phase,prior_usage_tokens=prior_usage,runs=runs)
     save(root,state)
     # Partial preparation is preserved for explicit recovery; never delete/replay automatically.
@@ -128,11 +129,56 @@ def select(directory,run_id,decision):
         return dict(run_id=run_id,candidate=run['candidate'])
 
 
+def delivery_plan(directory,run_id,manifest):
+    """Freeze expected authorized material before dispatch; no source reads."""
+    _D['_R']['validate'](manifest,_D['MANIFEST'])
+    with locked(directory) as (root,state):
+        run,_=selected(state,run_id)
+        need(run['status']=='pending' and 'delivery_manifest' not in run)
+        need(manifest['max_read_attempts']>=len(manifest['chunks']))
+        need(len({c['id'] for c in manifest['chunks']})==len(manifest['chunks']))
+        need(manifest['max_read_ms']<=state['manifest']['timeout_seconds']*1000)
+        peers=[r['delivery_manifest'] for r in state['runs'] if r['fixture_id']==run['fixture_id'] and 'delivery_manifest' in r]
+        need(all(p==manifest for p in peers))
+        run['delivery_manifest']=manifest;save(root,state)
+        return dict(run_id=run_id,manifest_hash=digest(manifest),dispatch=False)
+
+
+def delivery(directory,run_id,packet):
+    """Append visible-read evidence; never erase earlier attempts or reset budgets."""
+    assessment=_D['assess'](packet)
+    with locked(directory) as (root,state):
+        run,_=selected(state,run_id)
+        need(run['status']=='running' and run.get('delivery_manifest')==packet['manifest'])
+        need(packet['host']==state['manifest']['host']['route'])
+        hashes=[digest(o) for o in packet['observations']]
+        prior=run.get('delivery_observations',[])
+        need(hashes[:len(prior)]==prior)
+        need('delivery' not in run or run['delivery']['worker_id']==packet['worker_id'])
+        run['delivery']=assessment;run['delivery_observations']=hashes;save(root,state)
+        return assessment
+
+
+def delivery_status(state,run):
+    assessment=run.get('delivery')
+    if assessment is not None:
+        return assessment['status']
+    # Historical synthetic fixtures retain arithmetic coverage, not live proof.
+    return 'synthetic_unchecked' if state['manifest']['synthetic'] else 'unknown'
+
+
+def comparable(state,run):
+    return delivery_status(state,run) in ('complete','synthetic_unchecked')
+
+
 def claim(directory,run_id):
     with locked(directory) as (root,state):
         run,fixture=selected(state,run_id)
         need(run['status']=='pending' and run['candidate'] is not None)
         need(not any(r['status']=='running' for r in state['runs']))
+        if not state['manifest']['synthetic']:
+            need(state.get('schema_version',1)==1 or 'delivery_manifest' in run)
+            need(all(comparable(state,r) for r in state['runs'] if r['status']=='recorded'))
         recorded=[r['outcome'] for r in state['runs'] if r['status']=='recorded']
         need(all(r['usage_tokens'] is not None for r in recorded))
         need(state['prior_usage_tokens']+sum(r['usage_tokens'] for r in recorded)<state['manifest']['usage_budget_tokens'])
@@ -142,8 +188,9 @@ def claim(directory,run_id):
         return dict(run_id=run_id,cwd=str(tree),role=fixture['role'],task=fixture['prompt'],
             allowed_files=fixture['allowed_files'],settings={k:candidate[k] for k in ('model','effort')},
             timeout_seconds=state['manifest']['timeout_seconds'],host_requirements=state['manifest']['host'],
+            delivery_manifest=run.get('delivery_manifest'),
             remaining_usage_tokens=state['manifest']['usage_budget_tokens']-state['prior_usage_tokens']-sum(r['usage_tokens'] for r in recorded),
-            instruction='Use the original role contract and actual host worker. Enforce these budgets. A running claim is never automatically replayed.')
+            instruction='Use the original role contract and actual host worker. Verify bounded input delivery before evaluating model output. Enforce these budgets. A running claim is never automatically replayed.')
 
 
 def tree_evidence(tree,include_artifacts=False):
@@ -208,15 +255,19 @@ def record(directory,run_id,outcome):
             violations.append('<time-budget>')
         known=state['prior_usage_tokens']+sum(r['outcome']['usage_tokens'] or 0 for r in state['runs'] if r['status']=='recorded')
         if known+(outcome['usage_tokens'] or 0)>state['manifest']['usage_budget_tokens']:violations.append('<usage-budget>')
+        if 'delivery' in run:need(run['delivery']['worker_id']==outcome['worker_id'])
         run.update(status='recorded',outcome=outcome,tree_hash=tree_hash,violations=violations)
-        save(root,state);return dict(run_id=run_id,violations=violations,recorded=True)
+        save(root,state);return dict(run_id=run_id,violations=violations,recorded=True,
+            input_delivery=delivery_status(state,run),comparison_eligible=comparable(state,run))
 
 
 def blind(directory):
     with locked(directory) as (root,state):
-        packets=[]
+        packets=[];excluded=[]
         for run in state['runs']:
             if run['status']!='recorded':continue
+            if not comparable(state,run):
+                excluded.append(dict(run_id=run['id'],reason='input_delivery_'+delivery_status(state,run)));continue
             _,fixture=selected(state,run['id'])
             _,snapshot_hash,artifacts=tree_evidence(verify_tree(root,state,run),include_artifacts=True)
             need(snapshot_hash==run['tree_hash'])
@@ -226,7 +277,7 @@ def blind(directory):
             text=json.dumps(packet).lower()
             need(all(c['model'].lower() not in text for c in state['manifest']['candidates']))
             packets.append(packet)
-        return dict(schema_version=1,packets=packets,instruction='Grade accepted/critical_misses independently; do not inspect study.json, worktree names or strategy metadata.')
+        return dict(schema_version=2,packets=packets,excluded=excluded,instruction='Grade accepted/critical_misses independently; do not inspect study.json, worktree names or strategy metadata.')
 
 
 def grade(directory,grades):
@@ -237,7 +288,7 @@ def grade(directory,grades):
             shape(item,'blind_id accepted critical_misses reason')
             need(type(item['accepted']) is bool);_S['number'](item['critical_misses'],True);_S['string'](item['reason'])
             need(item['blind_id'] not in seen);seen.add(item['blind_id'])
-            run,_=selected(state,item['blind_id']);need(run['status']=='recorded' and 'grade' not in run)
+            run,_=selected(state,item['blind_id']);need(run['status']=='recorded' and 'grade' not in run and comparable(state,run))
             need(tree_evidence(verify_tree(root,state,run))[1]==run['tree_hash'])
             run['grade']=item
         save(root,state);return dict(frozen_grades=len(grades),qualification=False)
@@ -245,7 +296,15 @@ def grade(directory,grades):
 
 def export(directory):
     with locked(directory) as (root,state):
-        need(all(r['status']=='recorded' and 'grade' in r for r in state['runs']))
+        need(all(r['status']=='recorded' for r in state['runs']))
+        invalid=[dict(run_id=r['id'],reason='input_delivery_'+delivery_status(state,r)) for r in state['runs'] if not comparable(state,r)]
+        if invalid:
+            # Do not export a filtered, deceptively favorable comparison or regrade
+            # old outputs. Original outcomes/usage/grades stay unchanged on disk.
+            return dict(schema_version=2,status='invalid_input_delivery',qualification=False,
+                manifest_hash=state['manifest_hash'],invalid_trials=invalid,
+                reason='No model comparison exported; preserve original outcomes and consumed budget.')
+        need(all('grade' in r for r in state['runs']))
         records=[]
         for run in state['runs']:
             need(tree_evidence(verify_tree(root,state,run))[1]==run['tree_hash'])
@@ -266,7 +325,7 @@ def export(directory):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('operation',choices=['prepare','select','claim','record','blind','grade','export'])
+    parser.add_argument('operation',choices=['prepare','select','claim','delivery_plan','delivery','record','blind','grade','export'])
     parser.add_argument('--directory',required=True,type=Path)
     parser.add_argument('--manifest',type=Path);parser.add_argument('--repo',type=Path)
     parser.add_argument('--phase',default='development',choices=['development','holdout'])

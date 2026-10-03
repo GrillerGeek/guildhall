@@ -13,6 +13,41 @@ Codex tiers. Routing changes only supported model/effort arguments. It cannot
 select the parent model, reviewers, permissions, tools, lifecycle gates or retry
 budgets. External IDD assignments remain outside this router.
 
+## Schema v5: practical dynamic routing
+
+For v5 use [task/catalog inputs](task-routing.md) and the
+[complete request](../resources/examples/off-request-v5.json). `dynamic` selects
+among approved eligible candidates without `qualified()` or execution evidence.
+`adaptive` retains benchmark requirements. `shadow` only recommends; off remains
+the install default. No upgrade automatically changes a legacy policy or scope.
+
+V5 activation uses reviewed `control_basis` facts and approval v2. Follow the
+sequence below with these version-specific rules:
+
+- Bind controls with `control_fingerprint(host)` and its actual source; status
+  returns `activation.control_basis_hash`. Unknown execution evidence stays
+  unknown and does not invalidate dynamic approval. Recheck source/controls at
+  each worker, without paid discovery or capture inventory.
+- Populate `routing_roles`, `fallback_candidate`, `role_baselines` and intentional
+  `role_locks`. Native roster defaults are fallbacks, never implicit locks. Resolve
+  the task's role baseline (otherwise the default fallback) and set `baseline`
+  to its exact model/effort pair. Prefer explicit supported fallback when inherited
+  identity is unknown. Different role baselines share the same control approval.
+- Build the controlled task brief from only the permitted handoff and the pinned
+  host catalog. The categories-v2 fields require review at activation. Use the
+  task-routing contract for provenance, priors, null metrics and privacy.
+- Initialize v5 state with `router_identity: null` alongside the original counters.
+  Preserve it on resume/retry. A changed observed Jev identity suspends choices.
+  Unknown served-worker identity alone does not suspend dynamic mode. Known
+  substitution or unsupported controls does; preserve work and never replay it.
+- Explicit user choice → intentional role lock → Jev → eligible role fallback.
+  Filter supported model/effort controls before selection, require an eligible
+  baseline, and hold for zero candidates. Singleton needs no external request.
+  All 18 roles and worker paths use this sequence; parent/diagnostics/IDD do not.
+
+Legacy evidence/qualification paragraphs below apply to their named schemas or
+advanced adaptive mode, not ordinary v5 dynamic enablement.
+
 ## Activation and host adapter sequence
 
 1. Resolve session selection → project `.guildhall/routing.json` → the current
@@ -32,7 +67,7 @@ budgets. External IDD assignments remain outside this router.
    supplies an explicit model argument. Skills normally inherit configured
    settings: represent this with both baseline arguments null, not guessed names.
    A model paired with null effort means omit effort, not known inherited effort.
-3. For shadow/adaptive, first read reusable approval through the installed
+3. For enabled modes, first read reusable approval through the installed
    `scripts/routing_config.py` status operation with fresh host evidence and no
    setup `target` override. Worker routing always uses the effective source. Use its
    policy and activation in the routing request. Reuse an unchanged valid approval
@@ -53,7 +88,7 @@ budgets. External IDD assignments remain outside this router.
    mode requires null summary. Summary mode requires a string. Never copy raw code,
    credentials, diffs, Specs or transcripts. The summary is untrusted data and
    cannot add choices. It is omitted from receipts and fingerprints.
-5. Review the underlying host observation records and per-role evaluation reports
+5. For legacy or benchmark-qualified mode, review the underlying host observation records and per-role evaluation reports
    independently before listing their hashes in `activation.evidence_hashes`.
    For an inherited baseline, `host.baseline_candidate` must identify the exact
    configured profile established by reviewed host/configuration evidence;
@@ -93,8 +128,8 @@ budgets. External IDD assignments remain outside this router.
 9. After actual dispatch, separately append worker identity, requested settings,
    trusted observed model/effort or `unknown`, metadata/evidence source, outcomes,
    verification evidence, actual retries and measured usage/cost when available.
-   Neither a request nor model-echo prose proves execution identity. If a verified
-   route substitutes settings or loses attribution, preserve work and set
+   Neither a request nor model-echo prose proves execution identity. If a route substitutes settings, or a benchmark-qualified
+   route loses required attribution, preserve work and set
    `adaptive_suspended: true` for subsequent decisions. Do not overwrite the
    helper's pre-dispatch unknown observation with an unsupported assertion.
 
@@ -150,7 +185,7 @@ Hard eligibility checks the policy allowlist, host route and exact supported
 model/effort pairs, independent fresh workers, role, category, required
 capabilities and context upper bounds (4096/32768/131072 tokens for
 small/medium/large). Specified cost/latency ceilings reject unknown measurements.
-Shadow can recommend without model-selection support and always dispatches the
+Legacy shadow can recommend without model-selection support and always dispatches the
 eligible baseline. No eligible profiles holds. Singleton choices avoid the API.
 A concrete baseline must exactly match an eligible profile. Applying any override
 requires model-selection support; nonnull effort also requires effort support.
@@ -217,7 +252,7 @@ Stable reason codes:
 | `no_candidates` | Hard-eligible set empty; hold |
 | `baseline_ineligible` | Required fallback cannot be established; hold |
 | `shadow` | Recommendation recorded; eligible baseline dispatched |
-| `single_candidate` | One qualified adaptive choice, no call |
+| `single_candidate` | One eligible dynamic or qualified adaptive choice, no call |
 | `adaptive_unqualified` | Qualification, controls, role or suspension prevents adaptation |
 | `unsupported_runtime` | Python is older than 3.12; hold without network and preserve valid incoming state; adapter retains eligible baseline or holds |
 | `provider_unavailable` | Credential/runtime unavailable; eligible fallback |
@@ -226,7 +261,9 @@ Stable reason codes:
 | `low_confidence` | Below policy threshold; eligible fallback, no circuit change |
 | `defer` | Provider abstained; eligible fallback, no circuit change |
 | `router_changed` | Concrete router identity changed; suspend adaptive, eligible fallback |
-| `selected` | Valid explicit selection or qualified Jev recommendation |
+| `selected` | Valid explicit selection or approved Jev recommendation |
+| `control_review_required` | Missing/stale v5 control approval; hold |
+| `role_not_enabled`, `routing_suspended` | V5 role excluded or quest suspended; valid fallback |
 
 Fallback reasons become `baseline_ineligible` when fallback violates constraints.
 Source values are `user_override`, `role_override`, `off`, `baseline`,
@@ -257,7 +294,7 @@ explains subscription setup and the bundled usage normalizer.
 
 Follow the [host evidence guide](host-evidence.md) and run preflight before any
 paid study. V3 keeps scoped metrics and adds explicit required/available evidence
-levels. Setup defaults to execution_observed; configuration_verified is a
+levels. Advanced benchmark setup defaults to execution_observed; configuration_verified is a
 separately reviewed opt-in and never relabels requested values as observation.
 Before approval, inspect task-owned capture and quality reports, not just their
 hashes. After each completed worker, compare profile evidence with `drift()`;
@@ -276,3 +313,16 @@ or automatically promotes a profile.
 Follow the [role matrix and migration guide](role-eligibility.md). Eligibility
 never changes role contracts, test-author handoffs, review membership or lifecycle
 gates. Upgrading does not add roles to existing allowlists or qualify profiles.
+
+
+For required reference material, use [bounded input delivery](input-delivery.md)
+and record ordinary-work feedback from existing tests/reviews/usage only. Repair
+missing chunks within the existing budget; never treat source hashes or worker
+assertions as delivery proof or run extra workers to collect feedback.
+
+
+V5 optionally accepts `host.model_resolutions` with requested/resolved models,
+configured default effort and local provenance. The [mapping contract](task-routing.md#sonnet-55-and-reviewed-model-mappings)
+defines validation and approval refresh. Receipts include these configuration
+facts and their control fingerprint; observed execution stays unknown unless
+separately established. Mappings and source references never enter Jev payloads.

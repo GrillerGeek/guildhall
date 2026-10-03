@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.17.4 — Unreleased
+
+- Add documented Sonnet 5.5 preferences to both Claude catalogs without changing native aliases.
+- Bind optional reviewed alias versions and default effort to control approval; preserve unknown mappings and legacy v5 packets.
+- Refresh supported Claude profiles without studies or automatic effort overrides; keep Codex catalog discovery unchanged.
+- Integrate the already-approved routing stack into main after its PRs merged into their intermediate base branches.
+
+## 0.17.3 — Unreleased
+
+- Add bounded handoff chunks and host-visible completeness checks with budgeted recovery.
+- Exclude incomplete/unknown live inputs before optional grading and model comparisons.
+- Record ordinary-work feedback without extra model calls, automatic training or policy changes.
+
+## 0.17.2 — Unreleased
+
+- Make Dynamic routing the ordinary automatic-selection wizard path on Codex and Claude.
+- Separate intentional role locks from reviewed default/role fallbacks; preserve Claude roster defaults.
+- Ship complete independent setup/quest integration, migration and outbound-data guidance.
+
+## 0.17.1 — Unreleased
+
+- Supply Jev with controlled task briefs and distinct reviewed profile preferences.
+- Pin host-scoped catalogs; preserve unknown measurements and exclude unsupported profiles.
+- Keep model identities, arbitrary catalog prose and provenance local.
+
 ## 0.17.0 — Unreleased
 
 - Add schema-v5 dynamic routing with control-based approval and no study requirement.

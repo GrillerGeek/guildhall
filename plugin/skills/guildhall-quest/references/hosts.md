@@ -16,7 +16,7 @@ user-visible tasks as a substitute for workers unless the user requests them.
 
 Leave model/effort overrides unset to inherit user configuration unless the user
 has selected an available override for this role or has explicitly activated
-the [routing contract](routing.md) with reviewed qualification. Apply its validated
+the [routing contract](routing.md) with reviewed controls for dynamic mode or qualification for adaptive mode. Apply its validated
 nonnull dispatch settings only when the actual callable interface supports them. A role's Claude tier is not an
 instruction to pick a Codex model. The role's effort description explains the
 work; it is not evidence that any requested effort level was actually applied.
@@ -82,10 +82,10 @@ including fast lanes, pre-plan consultation, prototype/debug workers, review
 fan-out and PR drafting. Serialize helper decisions and carry its returned quest
 state forward before dispatching concurrent workers. A policy file or API key
 is not consent: capture explicit activation, exact summary preview consent when
-used, and hashes of reviewed baseline/qualification evidence. Only actual host
+used, and either reviewed v5 control facts or legacy/qualified evidence hashes. Only actual host
 metadata can establish observed identity. Keep requested, recommended and observed
-settings separate; lost attribution or substitution suspends further adaptive
-choices while preserving in-flight work. The model-echo diagnostic and external
+settings separate; known substitution suspends further dynamic/adaptive
+choices. Loss of evidence required by qualified mode suspends that mode while preserving in-flight work. The model-echo diagnostic and external
 IDD assignments remain outside adaptive routing.
 
 Use the helper at this installed skill's `scripts/route_model.py`; native Claude
@@ -96,3 +96,25 @@ shared contract. Absent/off policy skips Python entirely.
 
 Use [host preflight and evidence](host-evidence.md) for optional schema-v3 routing;
 retain worker scopes, gates, state and explicit activation.
+
+
+For v5 Dynamic routing, read [task/catalog inputs](task-routing.md). Native Claude
+maps roster defaults to role fallbacks, not locks; every Agent call keeps its
+literal model, specialist namespace and hooks. Standalone Claude uses a fresh
+worker and bundled role body without assuming native registration or hooks.
+Codex uses actual exposed model/effort arguments and a fresh independent context;
+missing served identity alone is not a reason to demand a study. Never copy effort
+names between hosts. Reuse the same control approval across role fallback choices.
+
+
+For required reference material, use [bounded input delivery](input-delivery.md)
+and record ordinary-work feedback from existing tests/reviews/usage only. Repair
+missing chunks within the existing budget; never treat source hashes or worker
+assertions as delivery proof or run extra workers to collect feedback.
+
+
+For versioned aliases, refresh optional `host.model_resolutions` from actual
+configuration before status/routing. Keep unknown resolutions null. Known changes
+invalidate control approval even if the requested alias is still `sonnet`.
+[Sonnet 5.5 setup](task-routing.md#sonnet-55-and-reviewed-model-mappings) distinguishes
+Claude Code's medium default from API defaults and per-worker effort support.

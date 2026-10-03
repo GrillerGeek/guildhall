@@ -229,8 +229,7 @@ class RoutingConfig:
                     reason='router_disabled' if policy['mode'] == 'off' else 'policy_selected')
 
     def _host_fingerprint(self, host, version):
-        schema = _R['REQUEST_SCHEMA_V5' if version == 5 else 'REQUEST_SCHEMA_V3' if version >= 3 else 'REQUEST_SCHEMA']['properties']['host']
-        validate(host, schema)
+        _R['validate_host'](host, version)
         need(host['route'] == self.host_route, 'host_route_mismatch')
         if version == 5:
             return _R['control_fingerprint'](host)
@@ -331,7 +330,8 @@ class RoutingConfig:
         need(expires_at is None or expires_at > current, 'approval_already_expired')
         v5 = result['policy']['schema_version'] == 5
         if v5:
-            need(_R['valid_controls'](host), 'valid_worker_controls_required')
+            issues = _R['activation_issues'](result['policy'], host)
+            need(not issues, ','.join(issues))
         else:
             need(host['evidence_hash'] is not None and host['evidence_hash'] in evidence_hashes,
                  'host_evidence_not_reviewed')

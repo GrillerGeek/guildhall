@@ -33,7 +33,7 @@ The eighteen adventurers:
 | **Wren Mistwalker** *(gated: fog + exploration lineage)* | `fog-cartographer` | Wayfinder. Writes quest-discovered unknowns back to the linked IDD Exploration. | Haiku |
 
 These Model entries mirror native Claude frontmatter defaults. Explicit user
-choices and qualified optional routing can override dispatch settings.
+choices and approved optional routing can override dispatch settings.
 
 Plus one diagnostic: **`model-echo`** — requested on a model different from its
 frontmatter to collect an unverified hint. Its self-report cannot establish
@@ -44,7 +44,7 @@ Full character sheets in [`CHARACTERS.md`](CHARACTERS.md).
 
 ## Installation
 
-Version **0.16.0 includes the installed routing tools**. The [installation guide](https://github.com/GrillerGeek/guildhall/blob/main/docs/installation.md)
+Version **0.17.4 includes the installed routing tools**. The [installation guide](https://github.com/GrillerGeek/guildhall/blob/main/docs/installation.md)
 covers this repository's Codex, Claude and standalone routes, updates and removal.
 The `main` route receives 0.16.0 after merge; the separate marketplace below is
 not updated by this change.
@@ -158,7 +158,8 @@ of precedence or cost.
 
 The single bundled helper serves native Claude and portable Claude/Codex.
 `off` is the default and skips the helper; `shadow` records recommendations while
-preserving baseline dispatch; `adaptive` can apply reviewed qualifications only
+preserving baseline dispatch; schema-v5 `dynamic` selects per task using reviewed
+host controls and profile preferences, without a study; `adaptive` can apply reviewed qualifications only
 for explicitly enabled specialists across all 18 roles with schema v4. Shadow
 does not require qualified profiles. See the [role matrix and migration guide](skills/guildhall-quest/references/role-eligibility.md).
 No live-qualified profiles ship, and no cost or quality improvement is claimed.
@@ -166,7 +167,8 @@ No live-qualified profiles ship, and no cost or quality improvement is claimed.
 Ask **“Set up Guildhall routing”** to use the bundled
 [`guildhall-routing-setup` wizard](skills/guildhall-routing-setup/SKILL.md). It guides
 scope, goal, supported candidates and mode, checks prerequisites, and previews the
-result before saving. It can also diagnose, change or disable existing routing.
+result before saving. Dynamic is the ordinary automatic-selection path for Codex
+and Claude; benchmark qualification is optional. It can also diagnose, change or disable existing routing.
 
 Set up [global defaults and persistent approvals](skills/guildhall-quest/references/global-routing.md)
 once per host, then inherit them across projects. Optional project policies

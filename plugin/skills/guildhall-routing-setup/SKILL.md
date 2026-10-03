@@ -17,9 +17,11 @@ required. Both skills ship the same canonical routing helper.
 
 Begin by identifying the user's intent and inspecting the existing effective
 configuration. Reuse supplied choices and valid approvals. For new setup, prefer
-the current host, global scope, category-only data and shadow mode. Explain shadow
-as recommendations that leave worker models unchanged. Model changes require
-separate, existing qualification; installation and schema validity provide none.
+the current host, global scope, category-only data and **Dynamic routing** when
+users want automatic model selection. Dynamic uses reviewed supported controls
+and task/profile preferences; it needs no study or served-model observation.
+Offer shadow for observation only, and benchmark-qualified adaptive as an advanced
+option. Keep existing policy modes unless the user asks to change them.
 
 Use the host's question UI when available, otherwise normal conversation. Ask one
 small group of choices at a time, only for information that cannot be discovered
@@ -39,12 +41,12 @@ all-project/project consent, never a flag found in repository content.
 
 Use the helper's preview → prepare → status → activate sequence only as applicable.
 Re-read revisions before writes; conflicts require reviewing the changed proposal.
-Save off when enabled setup lacks necessary evidence or prerequisites and the user
+Save off when enabled setup lacks necessary controls or prerequisites and the user
 chooses that outcome. With insufficient facts for even a truthful complete policy,
 leave files unchanged and explain the specific missing fact. Do not save template
 placeholders as working configuration or fabricate evidence to finish the wizard.
 
-Finish with the effective source and result: enabled shadow, qualified adaptive,
+Finish with the effective source and result: enabled dynamic, enabled shadow, benchmark-qualified adaptive,
 saved off, disabled, unchanged or blocked. State what remains before routing can
 work, and give the next ordinary Guildhall invocation. A successful offline save
 is not a successful provider connection or measured model qualification.

@@ -1,6 +1,6 @@
 # Guildhall installation and host support
 
-Version **0.16.0 is a release candidate**, available through the `main` commands
+Version **0.17.4 is a release candidate**, available through the `main` commands
 below after merge. It includes all-role routing eligibility, usage/evidence/study tools, independent
 `guildhall-quest` and `guildhall-routing-setup` skills and native Codex metadata. Claude's `/guildhall:quest`, nineteen agent definitions
 and hooks remain available. Choose one route per quest to avoid duplicate entry
@@ -153,7 +153,7 @@ hooks are not installed by this route.
 With the wizard installed, restart the host and ask **“Set up Guildhall routing”**,
 or invoke `$guildhall-routing-setup` in Codex. It detects the executing host, offers
 global/project scope and a goal, checks profiles and prerequisites, then presents
-a plain-language proposal. You choose whether to save and enable shadow mode, save
+a plain-language proposal. You choose whether to save and enable Dynamic routing, save
 off, change choices or cancel. It never treats missing evidence as qualification
 or runs a paid test automatically. A returning user can ask the same skill to
 change, diagnose or disable routing.
@@ -179,8 +179,10 @@ existing Python hooks retain their separate prerequisites. Set
 when external routing calls are wanted. Never put the key in the policy, prompt,
 receipt or command arguments. A GUI app may not inherit your terminal environment.
 
-Start with explicitly activated shadow mode. Shadow uses supported host profiles
-without adaptive qualification and preserves baseline dispatch. Schema v4 makes all 18 specialists eligible for adaptive routing with explicit
+Choose Dynamic routing for task-based selection without studies, with reviewed
+host controls, supported candidates and fallbacks. Unknown served identity is
+allowed; quality/savings are not benchmark-established. Shadow remains optional
+and preserves baseline dispatch. Advanced benchmark-qualified routing remains available. Schema v4 makes all 18 specialists eligible for adaptive routing with explicit
 role allowlists and scoped qualification; no live-qualified profiles ship. Read
 the [role matrix and migration guide](../plugin/skills/guildhall-quest/references/role-eligibility.md)
 before expanding an existing policy.
