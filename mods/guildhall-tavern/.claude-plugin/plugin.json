@@ -1,5 +1,5 @@
 {
-  "name": "guildhall-view",
+  "name": "guildhall-tavern",
   "version": "0.1.0",
   "author": { "name": "GrillerGeek" },
   "description": "A live pane of the Guildhall during a /quest: who is working, what they are up to in character, and who answers to whom.",

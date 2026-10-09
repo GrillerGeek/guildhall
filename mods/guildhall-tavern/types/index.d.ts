@@ -24,7 +24,7 @@ export type ChronicleEntry = { at: number; icon: string; text: string }
 
 declare module 'claude-code' {
   interface PluginState {
-    'guildhall-view': {
+    'guildhall-tavern': {
       quest: GuildQuest | null
       members: GuildMember[]
       chronicle: ChronicleEntry[]

@@ -3,7 +3,7 @@ import { expect, test } from 'claude-code/testing'
 import { classify, flavor, characterOf, guildRole } from './roster'
 
 const SURFACES = ['terminal', 'desktop'] as const
-const PANE = { title: 'The Guildhall', isFocused: false, bodyColumns: 100, placement: 'dock' } as never
+const PANE = { title: 'The Tavern', isFocused: false, bodyColumns: 100, placement: 'dock' } as never
 
 test('a guild agent maps to its character and voice', async () => {
   expect(guildRole('guildhall:test-author')).toBe('test-author')
@@ -43,7 +43,7 @@ test('a quest draws Mordain, the summoned adventurer and what they are doing', a
 
   const panes = []
   for (const surface of SURFACES) {
-    const pane = await $.ui.mount({ plugin: 'guildhall-view', surface, component: 'Pane', requestId: 'guildhall', props: PANE })
+    const pane = await $.ui.mount({ plugin: 'guildhall-tavern', surface, component: 'Pane', requestId: 'guildhall', props: PANE })
     panes.push(pane)
     expect(await pane.find({ text: /Add login rate limiting/ })).toBeDefined()
     expect(await pane.find({ text: /Build chain/ })).toBeDefined()

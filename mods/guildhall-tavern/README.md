@@ -1,6 +1,6 @@
-# guildhall-view
+# guildhall-tavern
 
-A Claude Code mod that draws the Guildhall as a live pane while a `/quest`
+A Claude Code mod that draws the Guildhall tavern as a live pane while a `/quest`
 runs: Mordain at the top, every adventurer he summons grouped by phase
 (Build chain, Review fan-out, Closer, Field work, Hirelings), each with an
 icon, a spinner while at work, the model the spawn resolved to, elapsed
@@ -18,7 +18,7 @@ plugin, its agents or `/quest`.
 Function-hook mods need Claude Code 2.1.295 or newer.
 
 ```bash
-claude --plugin-dir <repo>/plugin --plugin-dir <repo>/mods/guildhall-view
+claude --plugin-dir <repo>/plugin --plugin-dir <repo>/mods/guildhall-tavern
 ```
 
 Or name the folder in `CLAUDE_CODE_PLUGIN_DIRS` (in the environment or the
@@ -26,7 +26,7 @@ Or name the folder in `CLAUDE_CODE_PLUGIN_DIRS` (in the environment or the
 a desktop-app session.
 
 The pane opens itself when a `/quest` starts, or when a guild agent is
-dispatched outside one. `/guildhall-view` opens it any time.
+dispatched outside one. `/guildhall-tavern` opens it any time.
 
 ## Where things live
 
@@ -39,6 +39,6 @@ dispatched outside one. `/guildhall-view` opens it any time.
 ## Check it
 
 ```bash
-claude plugin validate mods/guildhall-view
-claude plugin test mods/guildhall-view
+claude plugin validate mods/guildhall-tavern
+claude plugin test mods/guildhall-tavern
 ```

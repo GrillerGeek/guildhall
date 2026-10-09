@@ -6,14 +6,14 @@ import { KEEPER, PHASES, characterOf, classify, flavor, guildRole } from './rost
 import type { Character } from './roster'
 
 const PANE = 'guildhall'
-const TITLE = 'The Guildhall'
+const TITLE = 'The Tavern'
 const SPINNER = ['◐', '◓', '◑', '◒']
 const CHRONICLE_LENGTH = 8
 
-const quest = atom({ plugin: 'guildhall-view', key: 'quest' } as const, null as GuildQuest | null)
-const members = atom({ plugin: 'guildhall-view', key: 'members' } as const, [] as GuildMember[])
-const chronicle = atom({ plugin: 'guildhall-view', key: 'chronicle' } as const, [] as ChronicleEntry[])
-const tick = atom({ plugin: 'guildhall-view', key: 'tick' } as const, 0)
+const quest = atom({ plugin: 'guildhall-tavern', key: 'quest' } as const, null as GuildQuest | null)
+const members = atom({ plugin: 'guildhall-tavern', key: 'members' } as const, [] as GuildMember[])
+const chronicle = atom({ plugin: 'guildhall-tavern', key: 'chronicle' } as const, [] as ChronicleEntry[])
+const tick = atom({ plugin: 'guildhall-tavern', key: 'tick' } as const, 0)
 
 const isQuestCommand = (command: string) => command === 'quest' || command === 'guildhall:quest'
 
@@ -38,7 +38,7 @@ async function beginQuest($: EngineInterface, title: string) {
   await update($, members, () => [])
   await update($, chronicle, () => [])
   await record($, KEEPER.icon, `${KEEPER.name}: “${KEEPER.catchphrase}”`)
-  // A surface that cannot seat the pane leaves the ledger kept; /guildhall-view opens it later.
+  // A surface that cannot seat the pane leaves the ledger kept; /guildhall-tavern opens it later.
   await $.ui.open({ id: PANE, title: TITLE }).catch(() => undefined)
 }
 
@@ -49,8 +49,8 @@ async function setKeeper($: EngineInterface, line: string, isKeeperBusy = true) 
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({
-      name: 'guildhall-view',
-      description: 'Open the Guildhall pane: who is on the quest and what they are doing',
+      name: 'guildhall-tavern',
+      description: 'Open the Guildhall tavern: who is on the quest and what they are doing',
     })
     // Spinners and running clocks advance only while someone is at work.
     $.clock.every(500, () => {
@@ -65,9 +65,9 @@ export const register: Register = on => {
     return next(e)
   })
 
-  on('command.run', { command: 'guildhall-view' }, async $ => {
+  on('command.run', { command: 'guildhall-tavern' }, async $ => {
     await $.ui.open({ id: PANE, title: TITLE })
-    return { text: 'The Guildhall doors swing open.' }
+    return { text: 'The tavern door swings open.' }
   })
 
   // A /quest begins a fresh ledger. The hook only watches; the command runs as typed.
@@ -180,7 +180,7 @@ export const register: Register = on => {
     if (q === null) {
       return (
         <Box flexDirection="column">
-          <Text bold>{KEEPER.icon} The hall is quiet.</Text>
+          <Text bold>{KEEPER.icon} The tavern is quiet.</Text>
           <Text dimColor>{KEEPER.name} waits by the hearth. Issue /quest to call the guild.</Text>
         </Box>
       )
