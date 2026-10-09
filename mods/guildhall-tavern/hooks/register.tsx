@@ -40,10 +40,45 @@ async function beginQuest($: EngineInterface, title: string) {
   await record($, KEEPER.icon, `${KEEPER.name}: “${KEEPER.catchphrase}”`)
   // A surface that cannot seat the pane leaves the ledger kept; /guildhall-tavern opens it later.
   await $.ui.open({ id: PANE, title: TITLE }).catch(() => undefined)
+  await refreshStatus($)
 }
 
 async function setKeeper($: EngineInterface, line: string, isKeeperBusy = true) {
   await update($, quest, q => (q ? { ...q, keeperLine: line, isKeeperBusy } : q))
+  await refreshStatus($)
+}
+
+/** The tavern as plain text: the command's answer where no surface draws the pane. */
+function tavernText(q: GuildQuest | null, list: GuildMember[], log: ChronicleEntry[], now: number): string {
+  if (q === null) return `${KEEPER.icon} The tavern is quiet. ${KEEPER.name} waits by the hearth.`
+  const mark = (m: GuildMember) => (m.status === 'working' ? '▶' : m.status === 'done' ? '✓' : '✗')
+  const lines = [
+    `⚔ ${q.title} (${elapsed(now - q.startedAt)} on the road)`,
+    `${q.isKeeperBusy ? '▶' : '·'} ${KEEPER.icon} ${KEEPER.name} ${KEEPER.title}: ${q.keeperLine}`,
+  ]
+  for (const p of PHASES) {
+    const group = list.filter(m => memberCharacter(m).phase === p.phase)
+    if (group.length === 0) continue
+    lines.push(`  ${p.label}`)
+    for (const m of group) {
+      const who = memberCharacter(m)
+      lines.push(`    ${mark(m)} ${who.icon} ${who.name} ${who.title} (${m.role}, ${elapsed((m.endedAt ?? now) - m.startedAt)}, ${m.deeds} deeds): ${m.line}`)
+    }
+  }
+  if (log.length > 0) lines.push('  Chronicle', ...log.map(entry => `    ${entry.icon} ${entry.text}`))
+  return lines.join('\n')
+}
+
+/** One status-line entry that follows the quest on every surface, pane or no pane. */
+async function refreshStatus($: EngineInterface) {
+  const q = await read($, quest)
+  if (q === null) return $.ui.status(undefined)
+  const list = (await read($, members)) ?? []
+  const working = list.filter(m => m.status === 'working')
+  if (working.length > 0) {
+    return $.ui.status(`⚔ ${working.map(m => `${memberCharacter(m).icon} ${m.line}`).join(' · ')}`)
+  }
+  $.ui.status(`⚔ ${KEEPER.icon} ${q.keeperLine}${list.length > 0 ? ` · ${list.length} summoned, all returned` : ''}`)
 }
 
 export const register: Register = on => {
@@ -66,8 +101,15 @@ export const register: Register = on => {
   })
 
   on('command.run', { command: 'guildhall-tavern' }, async $ => {
-    await $.ui.open({ id: PANE, title: TITLE })
-    return { text: 'The tavern door swings open.' }
+    const opened = await $.ui.open({ id: PANE, title: TITLE })
+    if (opened.isPlaced) return { text: 'The tavern door swings open.' }
+    const snapshot = tavernText(
+      await read($, quest),
+      (await read($, members)) ?? [],
+      (await read($, chronicle)) ?? [],
+      Date.now(),
+    )
+    return { text: `The pane could not be drawn here (${opened.reason}). The status line follows the quest; the tavern as it stands:\n\n${snapshot}` }
   })
 
   // A /quest begins a fresh ledger. The hook only watches; the command runs as typed.
@@ -104,6 +146,7 @@ export const register: Register = on => {
       startedAt: Date.now(),
     }
     await update($, members, list => [...(list ?? []), member])
+    await refreshStatus($)
     if (e.parentAgentId === undefined) {
       await setKeeper($, `${KEEPER.name} summons ${who.name}`)
     }
@@ -130,6 +173,7 @@ export const register: Register = on => {
     await update($, members, all =>
       (all ?? []).map(m => (m.id === agentId ? { ...m, line, deeds: m.deeds + 1 } : m)),
     )
+    await refreshStatus($)
     return next(e)
   }).catch(($, e, next) => next(e))
 
@@ -166,6 +210,7 @@ export const register: Register = on => {
       who.icon,
       fell ? `${who.name} returns empty-handed` : `${who.name} returns to the hall (${elapsed(Date.now() - member.startedAt)})`,
     )
+    await refreshStatus($)
     return done
   })
 

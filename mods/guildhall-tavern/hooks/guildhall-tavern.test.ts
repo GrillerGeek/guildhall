@@ -64,3 +64,32 @@ test('a quest draws Mordain, the summoned adventurer and what they are doing', a
     expect(await pane.find({ text: /Seraphine returns to the hall/ })).toBeDefined()
   }
 })
+
+test('where no surface places the pane, the command says why and prints the tavern', async ($, on) => {
+  on('command.run', () => ({ text: '' }))
+  on('agent.spawn', () => ({ model: 'opus', agentId: 'oriana-1' }))
+  on('tool.call', () => ({ result: '', text: '' }))
+  on('ui.open', () => ({ value: { isPlaced: false, reason: 'the attached surface places no panes' } }))
+
+  await $.agent.spawn({
+    tool_use_id: 't1',
+    prompt: 'Review the tavern mod',
+    description: 'Security review of the tavern',
+    subagentType: 'guildhall:security-reviewer',
+    provider: { plugin: 'guildhall', tier: 'user' },
+    parentModel: 'opus',
+    background: false,
+    fork: false,
+  } as never)
+  await $.tool.call({ tool: 'Grep', pattern: 'password', agentId: 'oriana-1' } as never)
+
+  const answer = await $.command.run({
+    command: 'guildhall-tavern',
+    args: '',
+    origin: { kind: 'composer' },
+    presentation: { isFullscreen: false, columns: 80 },
+  } as never)
+  expect(answer.text).toContain('the attached surface places no panes')
+  expect(answer.text).toContain('Review fan-out')
+  expect(answer.text).toContain('Oriana searches for unwatched gates: password')
+})
