@@ -55,6 +55,22 @@ async function beginQuest($: EngineInterface, title: string) {
   await refreshStatus($)
 }
 
+/**
+ * A guild agent dispatched outside /quest still gets a hall to work in. Created only
+ * when none exists, in one write, so agents dispatched together share one quest.
+ */
+async function ensureQuest($: EngineInterface, title: string) {
+  await update($, quest, current =>
+    current ?? {
+      title,
+      startedAt: Date.now(),
+      keeperLine: `${KEEPER.name} sends adventurers out on an errand`,
+      isKeeperBusy: true,
+    },
+  )
+  await $.ui.open({ id: PANE, title: TITLE }).catch(() => undefined)
+}
+
 async function setKeeper($: EngineInterface, line: string, isKeeperBusy = true) {
   await update($, quest, q => (q ? { ...q, keeperLine: line, isKeeperBusy } : q))
   await refreshStatus($)
@@ -140,16 +156,11 @@ export const register: Register = on => {
 
   on('agent.spawn', async ($, e, next) => {
     const role = guildRole(e.subagentType)
-    let q = await read($, quest)
-    if (role === undefined && q === null) return next(e)
-    if (q === null) {
-      // A guild agent dispatched outside /quest still gets a hall to work in.
-      await beginQuest($, shorten(e.description ?? '', 80) || 'An impromptu errand')
-      q = await read($, quest)
-    }
+    if (role === undefined && (await read($, quest)) === null) return next(e)
 
     const spawned = await next(e)
     if (spawned.deny !== undefined || spawned.agentId === undefined) return spawned
+    if (role !== undefined) await ensureQuest($, shorten(e.description ?? '', 80) || 'An impromptu errand')
 
     const who = role ? characterOf(role) : characterOf(e.subagentType)
     const member: GuildMember = {
@@ -274,6 +285,10 @@ export const register: Register = on => {
       for (const child of list.filter(c => c.parentId === m.id)) drawMember(child, indent + '   ')
     }
 
+    const withDescendants = (m: GuildMember): GuildMember[] => [
+      m,
+      ...list.filter(c => c.parentId === m.id).flatMap(withDescendants),
+    ]
     const ids = new Set(list.map(m => m.id))
     const roots = list.filter(m => m.parentId === undefined || !ids.has(m.parentId))
     const groups = PHASES.map(p => ({
@@ -283,7 +298,7 @@ export const register: Register = on => {
 
     groups.forEach((g, i) => {
       const last = i === groups.length - 1
-      const working = g.list.filter(m => m.status === 'working').length
+      const working = g.list.flatMap(withDescendants).filter(m => m.status === 'working').length
       rows.push(
         <Text>
           <Text dimColor>{last ? '└─ ' : '├─ '}</Text>

@@ -228,11 +228,11 @@ export function guildRole(subagentType: string): string | undefined {
   const role = subagentType.startsWith('guildhall:')
     ? subagentType.slice('guildhall:'.length)
     : subagentType
-  return role in ROSTER ? role : undefined
+  return Object.hasOwn(ROSTER, role) ? role : undefined
 }
 
 export function characterOf(role: string): Character {
-  return ROSTER[role] ?? hireling(role)
+  return Object.hasOwn(ROSTER, role) ? (ROSTER[role] as Character) : hireling(role)
 }
 
 /** One line of plain text: control characters (terminal escapes) dropped, cut to `max`. */

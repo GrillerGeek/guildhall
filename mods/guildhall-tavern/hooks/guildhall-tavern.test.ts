@@ -126,3 +126,66 @@ test('with no surface attached, a pane that reads as placed still prints the tav
   expect(answer.text).toContain('no surface that draws panes is attached')
   expect(answer.text).toContain('The tavern is quiet')
 })
+
+const spawnInput = (subagentType: string, description: string, parentAgentId?: string) =>
+  ({
+    tool_use_id: `t-${description}`,
+    prompt: description,
+    description,
+    subagentType,
+    provider: { plugin: 'guildhall', tier: 'user' },
+    parentModel: 'opus',
+    background: true,
+    fork: false,
+    parentAgentId,
+  }) as never
+
+const tavernCommand = {
+  command: 'guildhall-tavern',
+  args: '',
+  origin: { kind: 'composer' },
+  presentation: { isFullscreen: false, columns: 80 },
+} as never
+
+test('inherited object keys are not roles', async () => {
+  expect(guildRole('constructor')).toBe(undefined)
+  expect(guildRole('guildhall:toString')).toBe(undefined)
+  expect(characterOf('constructor').title).toBe('hireling')
+})
+
+test('a denied dispatch opens no quest', async ($, on) => {
+  on('command.run', () => ({ text: '' }))
+  on('agent.spawn', () => ({ deny: 'not now' }))
+  on('ui.open', () => ({ value: { isPlaced: true } }))
+  on('ui.panes', () => ({ value: [] }))
+  on('session.surfaces', () => ({ value: [] }))
+
+  await $.agent.spawn(spawnInput('guildhall:security-reviewer', 'Review'))
+  const answer = await $.command.run(tavernCommand)
+  expect(answer.text).toContain('The tavern is quiet')
+})
+
+test('adventurers dispatched together share one quest, and a working child keeps its phase at work', async ($, on) => {
+  let n = 0
+  on('command.run', () => ({ text: '' }))
+  on('agent.spawn', () => ({ model: 'sonnet', agentId: `a${++n}` }))
+  on('turn.complete', ($, e) => ({ text: e.answer }))
+  on('ui.open', () => ({ value: { isPlaced: true } }))
+  on('ui.panes', () => ({ value: [] }))
+  on('session.surfaces', () => ({ value: [] }))
+
+  await Promise.all([
+    $.agent.spawn(spawnInput('guildhall:security-reviewer', 'Security pass')),
+    $.agent.spawn(spawnInput('guildhall:docs-writer', 'Docs pass')),
+  ])
+  await $.agent.spawn(spawnInput('Explore', 'Look around', 'a1'))
+  await $.turn.complete({ answer: 'ok', durationMs: 1, isAborted: false, turnId: 't', agentId: 'a1', reason: 'answer' } as never)
+  await $.turn.complete({ answer: 'ok', durationMs: 1, isAborted: false, turnId: 't', agentId: 'a2', reason: 'answer' } as never)
+
+  const answer = await $.command.run(tavernCommand)
+  expect(answer.text).toContain('Oriana')
+  expect(answer.text).toContain('Cassian')
+
+  const pane = await $.ui.mount({ plugin: 'guildhall-tavern', surface: 'terminal', component: 'Pane', requestId: 'guildhall', props: PANE })
+  expect(await pane.find({ text: /Review fan-out\s+1 at work/ })).toBeDefined()
+})
