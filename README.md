@@ -40,21 +40,24 @@ require a local clone.
 
 ### Claude Code
 
-Run in a terminal from the project you want to work on, with Claude Code and Git installed:
+Guildhall is distributed through the
+[GrillerGeek plugin marketplace](https://github.com/GrillerGeek/skills). With
+Claude Code and Git installed:
 
 ```bash
-claude plugin marketplace add https://github.com/GrillerGeek/guildhall.git --scope project
-claude plugin install guildhall@guildhall-local --scope project
+claude plugin marketplace add https://github.com/GrillerGeek/skills.git
+claude plugin install guildhall@grillergeek-plugins
 ```
 
-Restart Claude Code in that project. These commands install the plugin for that
-project using the catalog maintained in this repository.
+Or inside a Claude Code session: `/plugin marketplace add GrillerGeek/skills`,
+then `/plugin install guildhall@grillergeek-plugins`. Restart Claude Code after
+installing. To install a single project from this repository's own catalog
+instead, see the [installation guide](docs/installation.md#native-claude-code).
 
 Optional: `guildhall-tavern` draws a live pane of the guild during a quest
-(who is working, what they are doing, in character). Install it from the
-[GrillerGeek plugin marketplace](https://github.com/GrillerGeek/skills) with
-`claude plugin install guildhall-tavern@grillergeek-plugins`; see
-[its README](mods/guildhall-tavern/README.md).
+(who is working, what they are doing, in character). It installs from the same
+marketplace with `claude plugin install guildhall-tavern@grillergeek-plugins`;
+see [its README](mods/guildhall-tavern/README.md).
 
 ### Alternative: `npx skills`
 
