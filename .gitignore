@@ -8,3 +8,7 @@ __pycache__/
 *.pyc
 .env
 .env.local
+
+# Types Claude Code lays beside a hot-reloaded mod
+mods/*/.claude-plugin/types/
+mods/*/tsconfig.json
