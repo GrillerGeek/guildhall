@@ -50,6 +50,11 @@ claude plugin install guildhall@guildhall-local --scope project
 Restart Claude Code in that project. These commands install the plugin for that
 project using the catalog maintained in this repository.
 
+Optional: `guildhall-tavern` draws a live pane of the guild during a quest
+(who is working, what they are doing, in character). Install it from the same
+catalog with `claude plugin install guildhall-tavern@guildhall-local --scope project`;
+see [its README](mods/guildhall-tavern/README.md).
+
 ### Alternative: `npx skills`
 
 With **Node.js 22.20.0+**, npm and Git available, run this in your project:

@@ -52,6 +52,13 @@ claude plugin marketplace update guildhall-local
 claude plugin update guildhall@guildhall-local --scope project
 ```
 
+The optional tavern pane installs from the same catalog
+([its README](../mods/guildhall-tavern/README.md)):
+
+```bash
+claude plugin install guildhall-tavern@guildhall-local --scope project
+```
+
 Restart again after updates. For a session using local development files:
 
 ```bash

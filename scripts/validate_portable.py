@@ -83,7 +83,9 @@ def validate(root: Path = ROOT) -> None:
                     raise ValueError(f'missing/escaped reference: {file}: {target}')
     for rel in ['.agents/plugins/marketplace.json','.claude-plugin/marketplace.json']:
         m = json.loads((root/rel).read_text())
-        if m['name'] != 'guildhall-local' or len(m['plugins']) != 1 or m['plugins'][0]['name'] != 'guildhall':
+        # Claude's catalog also lists the tavern mod (function hooks are Claude-only).
+        extras = [{'name':'guildhall-tavern','source':'./mods/guildhall-tavern'}] if rel.startswith('.claude-plugin/') else []
+        if m['name'] != 'guildhall-local' or m['plugins'][0]['name'] != 'guildhall' or m['plugins'][1:] != extras:
             raise ValueError('unexpected marketplace inventory')
         source = m['plugins'][0]['source']
         expected = {'source':'local','path':'./plugin'} if rel.startswith('.agents/') else './plugin'

@@ -7,6 +7,10 @@
     {
       "name": "guildhall",
       "source": "./plugin"
+    },
+    {
+      "name": "guildhall-tavern",
+      "source": "./mods/guildhall-tavern"
     }
   ]
 }
