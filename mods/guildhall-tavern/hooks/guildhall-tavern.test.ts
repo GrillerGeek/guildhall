@@ -2,7 +2,7 @@ import { expect, test } from 'claude-code/testing'
 
 import { classify, flavor, characterOf, guildRole } from './roster'
 
-const SURFACES = ['terminal', 'desktop'] as const
+const SURFACES = ['terminal', 'desktop', 'mobile', 'vscode'] as const
 const PANE = { title: 'The Tavern', isFocused: false, bodyColumns: 100, placement: 'dock' } as never
 
 test('a guild agent maps to its character and voice', async () => {
@@ -22,6 +22,8 @@ test('a quest draws Mordain, the summoned adventurer and what they are doing', a
   on('tool.call', () => ({ result: '', text: '' }))
   on('turn.complete', ($, e) => ({ text: e.answer }))
   on('ui.open', () => ({ value: { isPlaced: true } }))
+  on('ui.panes', () => ({ value: [] }))
+  on('session.surfaces', () => ({ value: ['desktop'] }))
 
   await $.command.run({
     command: 'quest',
@@ -70,6 +72,8 @@ test('where no surface places the pane, the command says why and prints the tave
   on('agent.spawn', () => ({ model: 'opus', agentId: 'oriana-1' }))
   on('tool.call', () => ({ result: '', text: '' }))
   on('ui.open', () => ({ value: { isPlaced: false, reason: 'the attached surface places no panes' } }))
+  on('ui.panes', () => ({ value: [] }))
+  on('session.surfaces', () => ({ value: ['desktop'] }))
 
   await $.agent.spawn({
     tool_use_id: 't1',
@@ -90,6 +94,7 @@ test('where no surface places the pane, the command says why and prints the tave
     presentation: { isFullscreen: false, columns: 80 },
   } as never)
   expect(answer.text).toContain('the attached surface places no panes')
+  expect(answer.text).toContain('Surfaces attached: desktop')
   expect(answer.text).toContain('Review fan-out')
   expect(answer.text).toContain('Oriana searches for unwatched gates: password')
 })

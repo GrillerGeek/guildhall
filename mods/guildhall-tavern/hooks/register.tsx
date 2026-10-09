@@ -16,6 +16,17 @@ const members = atom({ plugin: 'guildhall-tavern', key: 'members' } as const, []
 const chronicle = atom({ plugin: 'guildhall-tavern', key: 'chronicle' } as const, [] as ChronicleEntry[])
 const tick = atom({ plugin: 'guildhall-tavern', key: 'tick' } as const, 0)
 
+// Which surfaces have asked this module to draw the pane since it loaded: diagnostics only.
+const drawnOn = new Set<string>()
+
+async function whereText($: EngineInterface): Promise<string> {
+  const surfaces = await $.session.surfaces()
+  const pane = (await $.ui.panes()).find(p => p.id === PANE)
+  const state = pane ? `placed ${pane.isPlaced}, shown ${pane.isShown}` : 'not open'
+  const drawn = drawnOn.size > 0 ? [...drawnOn].join(', ') : 'none yet'
+  return `Surfaces attached: ${surfaces.join(', ') || 'none'} · pane: ${state} · drawn on: ${drawn}`
+}
+
 const isQuestCommand = (command: string) => command === 'quest' || command === 'guildhall:quest'
 
 const elapsed = (ms: number) => {
@@ -103,14 +114,14 @@ export const register: Register = on => {
 
   on('command.run', { command: 'guildhall-tavern' }, async $ => {
     const opened = await $.ui.open({ id: PANE, title: TITLE })
-    if (opened.isPlaced) return { text: 'The tavern door swings open.' }
+    if (opened.isPlaced) return { text: `The tavern door swings open. (${await whereText($)})` }
     const snapshot = tavernText(
       await read($, quest),
       (await read($, members)) ?? [],
       (await read($, chronicle)) ?? [],
       Date.now(),
     )
-    return { text: `The pane could not be drawn here (${opened.reason}). The status line follows the quest; the tavern as it stands:\n\n${snapshot}` }
+    return { text: `The pane could not be drawn here (${opened.reason}). ${await whereText($)}. The status line follows the quest; the tavern as it stands:\n\n${snapshot}` }
   })
 
   // A /quest begins a fresh ledger. The hook only watches; the command runs as typed.
@@ -217,6 +228,7 @@ export const register: Register = on => {
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
     const { Box, Text } = $.ui.resolve(e)
+    drawnOn.add(e.surface)
     const q = await read($, quest)
     const list = (await read($, members)) ?? []
     const log = (await read($, chronicle)) ?? []
