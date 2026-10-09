@@ -52,13 +52,15 @@ claude plugin marketplace update guildhall-local
 claude plugin update guildhall@guildhall-local --scope project
 ```
 
-The optional tavern pane installs from the same catalog
-([its README](../mods/guildhall-tavern/README.md)). If you added the catalog
-before the tavern was listed, refresh it first, or the install cannot find it:
+The optional tavern pane installs from the
+[GrillerGeek plugin marketplace](https://github.com/GrillerGeek/skills)
+([its README](../mods/guildhall-tavern/README.md)). If you added that
+marketplace before the tavern was listed, the update refreshes it:
 
 ```bash
-claude plugin marketplace update guildhall-local
-claude plugin install guildhall-tavern@guildhall-local --scope project
+claude plugin marketplace add https://github.com/GrillerGeek/skills.git
+claude plugin marketplace update grillergeek-plugins
+claude plugin install guildhall-tavern@grillergeek-plugins
 ```
 
 Restart again after updates. For a session using local development files:

@@ -51,9 +51,10 @@ Restart Claude Code in that project. These commands install the plugin for that
 project using the catalog maintained in this repository.
 
 Optional: `guildhall-tavern` draws a live pane of the guild during a quest
-(who is working, what they are doing, in character). Install it from the same
-catalog with `claude plugin install guildhall-tavern@guildhall-local --scope project`;
-see [its README](mods/guildhall-tavern/README.md).
+(who is working, what they are doing, in character). Install it from the
+[GrillerGeek plugin marketplace](https://github.com/GrillerGeek/skills) with
+`claude plugin install guildhall-tavern@grillergeek-plugins`; see
+[its README](mods/guildhall-tavern/README.md).
 
 ### Alternative: `npx skills`
 

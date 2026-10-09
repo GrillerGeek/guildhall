@@ -15,25 +15,21 @@ plugin, its agents or `/quest`.
 
 ## Install
 
-In a Claude Code session:
-
-```
-/plugin install guildhall-tavern --marketplace GrillerGeek/guildhall
-```
-
-Answer `y` to add the marketplace, then pick a scope. Or from a terminal, in the
-project where Guildhall is installed:
+From the [GrillerGeek plugin marketplace](https://github.com/GrillerGeek/skills),
+alongside Guildhall:
 
 ```bash
-claude plugin marketplace add https://github.com/GrillerGeek/guildhall.git --scope project
-claude plugin install guildhall-tavern@guildhall-local --scope project
+claude plugin marketplace add https://github.com/GrillerGeek/skills.git
+claude plugin install guildhall-tavern@grillergeek-plugins
 ```
 
-Already have the `guildhall-local` catalog from installing Guildhall? A copy
-added before the tavern was listed does not show it until refreshed:
+Or in a Claude Code session: `/plugin install guildhall-tavern --marketplace GrillerGeek/skills`.
+
+Already have the marketplace from installing Guildhall? A copy added before the
+tavern was listed does not show it until refreshed:
 
 ```bash
-claude plugin marketplace update guildhall-local
+claude plugin marketplace update grillergeek-plugins
 ```
 
 It is a function-hook mod, written and tested against Claude Code 2.1.295.
