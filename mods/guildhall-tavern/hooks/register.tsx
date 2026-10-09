@@ -116,7 +116,7 @@ export const register: Register = on => {
   // A /quest begins a fresh ledger. The hook only watches; the command runs as typed.
   on('command.run', async ($, e, next) => {
     if (isQuestCommand(e.command)) {
-      await beginQuest($, shorten(e.args, 80) || 'An unnamed quest')
+      await beginQuest($, shorten(e.args ?? '', 80) || 'An unnamed quest')
     }
     return next(e)
   }).catch(($, e, next) => next(e))
@@ -127,7 +127,7 @@ export const register: Register = on => {
     if (role === undefined && q === null) return next(e)
     if (q === null) {
       // A guild agent dispatched outside /quest still gets a hall to work in.
-      await beginQuest($, shorten(e.description, 80) || 'An impromptu errand')
+      await beginQuest($, shorten(e.description ?? '', 80) || 'An impromptu errand')
       q = await read($, quest)
     }
 
@@ -140,7 +140,7 @@ export const register: Register = on => {
       role: role ?? e.subagentType,
       parentId: e.parentAgentId,
       status: 'working',
-      task: shorten(e.description, 80),
+      task: shorten(e.description ?? '', 80),
       line: `${who.name} answers the summons`,
       deeds: 0,
       model: spawned.model,

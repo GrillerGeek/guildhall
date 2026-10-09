@@ -214,7 +214,7 @@ const GENERIC: Record<Deed, string> = {
 /** A subagent type the guild does not employ: `Explore`, `general-purpose`. */
 export function hireling(subagentType: string): Character {
   return {
-    name: subagentType,
+    name: shorten(subagentType, 40),
     title: 'hireling',
     icon: '🧳',
     phase: 'hireling',
@@ -237,12 +237,19 @@ export function characterOf(role: string): Character {
 
 /** One line of plain text: control characters (terminal escapes) dropped, cut to `max`. */
 export const shorten = (text: string, max = 48) => {
-  const one = text.replace(/[\u0000-\u001f\u007f-\u009f]+/g, ' ').replace(/\s+/g, ' ').trim()
+  const one = text.replace(/[\u0000-\u001f\u007f-\u009f\u200e\u200f\u202a-\u202e\u2066-\u2069]+/g, ' ').replace(/\s+/g, ' ').trim()
   return one.length > max ? one.slice(0, max - 1) + '…' : one
 }
 
 // A URL's query and fragment can carry tokens: only its host and path are shown.
-const withoutQuery = (url: string) => url.split(/[?#]/)[0] ?? ''
+const withoutQuery = (url: string) => {
+  try {
+    const parsed = new URL(url)
+    return parsed.origin + parsed.pathname // drops user:pass@ too
+  } catch {
+    return url.split(/[?#]/)[0]?.replace(/\/\/[^/@]*@/, '//') ?? ''
+  }
+}
 
 const basename = (path: string) => shorten(path.split('/').filter(Boolean).pop() ?? path)
 
@@ -278,7 +285,7 @@ export function classify(
     case 'TaskUpdate':
       return { deed: 'ledger', target: '' }
     default:
-      return { deed: 'idle', target: tool }
+      return { deed: 'idle', target: shorten(tool, 40) }
   }
 }
 

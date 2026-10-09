@@ -102,5 +102,6 @@ test('what reaches the screen carries no command text, URL query or terminal esc
   expect(classify('WebFetch', { url: 'https://api.example.com/v1/items?token=abc#frag' }).target).toBe(
     'https://api.example.com/v1/items',
   )
+  expect(classify('WebFetch', { url: 'https://user:pass@example.com/a?b=c' }).target).toBe('https://example.com/a')
   expect(classify('Read', { file_path: '/repo/evil\u001b]52;c;aGk=\u0007.md' }).target).toBe('evil ]52;c;aGk= .md')
 })
