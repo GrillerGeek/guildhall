@@ -53,9 +53,11 @@ claude plugin update guildhall@guildhall-local --scope project
 ```
 
 The optional tavern pane installs from the same catalog
-([its README](../mods/guildhall-tavern/README.md)):
+([its README](../mods/guildhall-tavern/README.md)). If you added the catalog
+before the tavern was listed, refresh it first, or the install cannot find it:
 
 ```bash
+claude plugin marketplace update guildhall-local
 claude plugin install guildhall-tavern@guildhall-local --scope project
 ```
 

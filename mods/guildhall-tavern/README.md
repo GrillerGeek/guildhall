@@ -29,6 +29,13 @@ claude plugin marketplace add https://github.com/GrillerGeek/guildhall.git --sco
 claude plugin install guildhall-tavern@guildhall-local --scope project
 ```
 
+Already have the `guildhall-local` catalog from installing Guildhall? A copy
+added before the tavern was listed does not show it until refreshed:
+
+```bash
+claude plugin marketplace update guildhall-local
+```
+
 It is a function-hook mod, written and tested against Claude Code 2.1.295.
 For local development, load the folder directly:
 
