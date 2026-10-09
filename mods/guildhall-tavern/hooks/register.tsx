@@ -114,14 +114,20 @@ export const register: Register = on => {
 
   on('command.run', { command: 'guildhall-tavern' }, async $ => {
     const opened = await $.ui.open({ id: PANE, title: TITLE })
-    if (opened.isPlaced) return { text: `The tavern door swings open. (${await whereText($)})` }
+    // With no surface attached (a cloud session viewed from an app) every pane reads
+    // as placed, yet nothing draws it: only this command's text reaches the person.
+    const surfaces = await $.session.surfaces()
+    if (opened.isPlaced && surfaces.length > 0) {
+      return { text: `The tavern door swings open. (${await whereText($)})` }
+    }
+    const why = opened.isPlaced ? 'no surface that draws panes is attached to this session' : opened.reason
     const snapshot = tavernText(
       await read($, quest),
       (await read($, members)) ?? [],
       (await read($, chronicle)) ?? [],
       Date.now(),
     )
-    return { text: `The pane could not be drawn here (${opened.reason}). ${await whereText($)}. The status line follows the quest; the tavern as it stands:\n\n${snapshot}` }
+    return { text: `The pane cannot be drawn here (${why}). Run /guildhall-tavern again for a fresh look.\n\n${snapshot}` }
   })
 
   // A /quest begins a fresh ledger. The hook only watches; the command runs as typed.

@@ -28,6 +28,12 @@ a desktop-app session.
 The pane opens itself when a `/quest` starts, or when a guild agent is
 dispatched outside one. `/guildhall-tavern` opens it any time.
 
+The pane needs a surface that draws mod UI: the Claude Code terminal (a pane
+you did not ask for waits for 144 columns; asked for, it opens at any width)
+or a local session in the desktop app. A cloud session viewed from the
+Claude app attaches no such surface, so there `/guildhall-tavern` prints the
+tavern as text instead; run it again for a fresh look.
+
 ## Where things live
 
 - `hooks/roster.ts`: one entry per agent in `plugin/agents/`, voiced from

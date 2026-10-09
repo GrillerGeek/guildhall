@@ -94,7 +94,7 @@ test('where no surface places the pane, the command says why and prints the tave
     presentation: { isFullscreen: false, columns: 80 },
   } as never)
   expect(answer.text).toContain('the attached surface places no panes')
-  expect(answer.text).toContain('Surfaces attached: desktop')
+
   expect(answer.text).toContain('Review fan-out')
   expect(answer.text).toContain('Oriana searches for unwatched gates: password')
 })
@@ -109,4 +109,20 @@ test('what reaches the screen carries no command text, URL query or terminal esc
   )
   expect(classify('WebFetch', { url: 'https://user:pass@example.com/a?b=c' }).target).toBe('https://example.com/a')
   expect(classify('Read', { file_path: '/repo/evil\u001b]52;c;aGk=\u0007.md' }).target).toBe('evil ]52;c;aGk= .md')
+})
+
+test('with no surface attached, a pane that reads as placed still prints the tavern as text', async ($, on) => {
+  on('command.run', () => ({ text: '' }))
+  on('ui.open', () => ({ value: { isPlaced: true } }))
+  on('ui.panes', () => ({ value: [] }))
+  on('session.surfaces', () => ({ value: [] }))
+
+  const answer = await $.command.run({
+    command: 'guildhall-tavern',
+    args: '',
+    origin: { kind: 'composer' },
+    presentation: { isFullscreen: false, columns: 80 },
+  } as never)
+  expect(answer.text).toContain('no surface that draws panes is attached')
+  expect(answer.text).toContain('The tavern is quiet')
 })
