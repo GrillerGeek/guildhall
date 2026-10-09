@@ -13,17 +13,28 @@ It is a spectator. It reads `agent.spawn`, `tool.call`, `turn.complete` and
 engine if its own bookkeeping fails. It does not touch the `guildhall`
 plugin, its agents or `/quest`.
 
-## Run it
+## Install
 
-Function-hook mods need Claude Code 2.1.295 or newer.
+In a Claude Code session:
+
+```
+/plugin install guildhall-tavern --marketplace GrillerGeek/guildhall
+```
+
+Answer `y` to add the marketplace, then pick a scope. Or from a terminal, in the
+project where Guildhall is installed:
+
+```bash
+claude plugin marketplace add https://github.com/GrillerGeek/guildhall.git --scope project
+claude plugin install guildhall-tavern@guildhall-local --scope project
+```
+
+It is a function-hook mod, written and tested against Claude Code 2.1.295.
+For local development, load the folder directly:
 
 ```bash
 claude --plugin-dir <repo>/plugin --plugin-dir <repo>/mods/guildhall-tavern
 ```
-
-Or name the folder in `CLAUDE_CODE_PLUGIN_DIRS` (in the environment or the
-`env` block of `~/.claude/settings.json`) where no flag can be given, as in
-a desktop-app session.
 
 The pane opens itself when a `/quest` starts, or when a guild agent is
 dispatched outside one. `/guildhall-tavern` opens it any time.

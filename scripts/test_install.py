@@ -108,12 +108,14 @@ def main():
         if args.native_claude:
             case=temp/'native-claude';env=environment(case);source=case/'source';source.mkdir()
             project=case/'project';project.mkdir()
-            for rel in ['plugin','.claude-plugin']:
+            for rel in ['plugin','.claude-plugin','mods']:
                 shutil.copytree(ROOT/rel,source/rel)
             expected=snapshot(source/'plugin')
             run(['claude','plugin','marketplace','add',source,'--scope','project'],env,project)
             result=json.loads(run(['claude','plugin','install','guildhall@guildhall-local','--scope','project','--json'],env,project))
             assert result['outcome']=='ok' and result['pluginId']=='guildhall@guildhall-local'
+            tavern=json.loads(run(['claude','plugin','install','guildhall-tavern@guildhall-local','--scope','project','--json'],env,project))
+            assert tavern['outcome']=='ok' and tavern['pluginId']=='guildhall-tavern@guildhall-local'
             listing=json.loads(run(['claude','plugin','list','--json'],env,project))
             entries=[x for x in listing if x['id']=='guildhall@guildhall-local']
             assert len(entries)==1
