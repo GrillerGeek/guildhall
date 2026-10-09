@@ -32,7 +32,8 @@ dispatched outside one. `/guildhall-tavern` opens it any time.
 
 - `hooks/roster.ts`: one entry per agent in `plugin/agents/`, voiced from
   `plugin/CHARACTERS.md`. A new adventurer needs a row here or it shows as a
-  hireling.
+  hireling; `tests/test_tavern_roster.py` fails CI until it has one, and when
+  a roster name drifts from its character sheet.
 - `hooks/register.tsx`: the hooks and the pane.
 - `types/index.d.ts`: the session state the pane draws from.
 
