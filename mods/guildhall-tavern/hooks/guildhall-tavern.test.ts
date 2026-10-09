@@ -93,3 +93,14 @@ test('where no surface places the pane, the command says why and prints the tave
   expect(answer.text).toContain('Review fan-out')
   expect(answer.text).toContain('Oriana searches for unwatched gates: password')
 })
+
+test('what reaches the screen carries no command text, URL query or terminal escapes', async () => {
+  const bare = classify('Bash', { command: 'curl -H "Authorization: Bearer sk-secret" https://x' })
+  expect(flavor(characterOf('feature-implementer'), bare.deed, bare.target)).toBe('Bruga quenches the blade')
+  const described = classify('Bash', { command: 'npm test', description: 'Run unit tests' })
+  expect(described.target).toBe('Run unit tests')
+  expect(classify('WebFetch', { url: 'https://api.example.com/v1/items?token=abc#frag' }).target).toBe(
+    'https://api.example.com/v1/items',
+  )
+  expect(classify('Read', { file_path: '/repo/evil\u001b]52;c;aGk=\u0007.md' }).target).toBe('evil ]52;c;aGk= .md')
+})

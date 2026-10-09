@@ -2,13 +2,14 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register, RenderChildren } from 'claude-code'
 
 import type { ChronicleEntry, GuildMember, GuildQuest } from '../types'
-import { KEEPER, PHASES, characterOf, classify, flavor, guildRole } from './roster'
+import { KEEPER, PHASES, characterOf, classify, flavor, guildRole, shorten } from './roster'
 import type { Character } from './roster'
 
 const PANE = 'guildhall'
 const TITLE = 'The Tavern'
 const SPINNER = ['◐', '◓', '◑', '◒']
 const CHRONICLE_LENGTH = 8
+const MEMBER_LIMIT = 40
 
 const quest = atom({ plugin: 'guildhall-tavern', key: 'quest' } as const, null as GuildQuest | null)
 const members = atom({ plugin: 'guildhall-tavern', key: 'members' } as const, [] as GuildMember[])
@@ -115,7 +116,7 @@ export const register: Register = on => {
   // A /quest begins a fresh ledger. The hook only watches; the command runs as typed.
   on('command.run', async ($, e, next) => {
     if (isQuestCommand(e.command)) {
-      await beginQuest($, e.args.trim() || 'An unnamed quest')
+      await beginQuest($, shorten(e.args, 80) || 'An unnamed quest')
     }
     return next(e)
   }).catch(($, e, next) => next(e))
@@ -126,7 +127,7 @@ export const register: Register = on => {
     if (role === undefined && q === null) return next(e)
     if (q === null) {
       // A guild agent dispatched outside /quest still gets a hall to work in.
-      await beginQuest($, e.description || 'An impromptu errand')
+      await beginQuest($, shorten(e.description, 80) || 'An impromptu errand')
       q = await read($, quest)
     }
 
@@ -139,18 +140,18 @@ export const register: Register = on => {
       role: role ?? e.subagentType,
       parentId: e.parentAgentId,
       status: 'working',
-      task: e.description,
+      task: shorten(e.description, 80),
       line: `${who.name} answers the summons`,
       deeds: 0,
       model: spawned.model,
       startedAt: Date.now(),
     }
-    await update($, members, list => [...(list ?? []), member])
+    await update($, members, list => [...(list ?? []), member].slice(-MEMBER_LIMIT))
     await refreshStatus($)
     if (e.parentAgentId === undefined) {
       await setKeeper($, `${KEEPER.name} summons ${who.name}`)
     }
-    await record($, who.icon, `${who.name} ${who.title} takes up: ${e.description}`)
+    await record($, who.icon, `${who.name} ${who.title} takes up: ${member.task}`)
     return spawned
   }).catch(($, e, next) => next(e)) // the pane is a spectator: a bookkeeping failure never blocks a dispatch
 
@@ -212,7 +213,7 @@ export const register: Register = on => {
     )
     await refreshStatus($)
     return done
-  })
+  }).catch(($, e, next) => next(e)) // replays the turn's own answer; nothing runs twice
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
     const { Box, Text } = $.ui.resolve(e)

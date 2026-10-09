@@ -32,7 +32,7 @@ export const KEEPER: Character = {
     read: 'reads the whole scroll before speaking: {x}',
     search: 'consults the archives for {x}',
     write: 'inks the plan: {x}',
-    run: 'sends a runner to fetch {x}',
+    run: 'sends a runner on an errand: {x}',
     ask: 'awaits the patron’s word',
     ledger: 'updates the ledger',
     idle: 'rests in the high chair by the hearth',
@@ -132,7 +132,7 @@ export const ROSTER: Record<string, Character> = {
     catchphrase: 'The wind will come. The wall must hold.',
     lines: {
       read: 'tests the walls of {x}', search: 'searches for cracks: {x}',
-      run: 'summons a squall at {x}', idle: 'reads the sky',
+      run: 'summons a squall: {x}', idle: 'reads the sky',
     },
   },
   'performance-reviewer': {
@@ -205,7 +205,7 @@ const GENERIC: Record<Deed, string> = {
   read: 'reads {x}',
   search: 'searches for {x}',
   write: 'scribbles notes: {x}',
-  run: 'runs {x}',
+  run: 'runs a command: {x}',
   ask: 'asks the patron a question',
   ledger: 'updates the ledger',
   idle: 'is at work',
@@ -235,12 +235,16 @@ export function characterOf(role: string): Character {
   return ROSTER[role] ?? hireling(role)
 }
 
-const shorten = (text: string, max = 48) => {
-  const one = text.replace(/\s+/g, ' ').trim()
+/** One line of plain text: control characters (terminal escapes) dropped, cut to `max`. */
+export const shorten = (text: string, max = 48) => {
+  const one = text.replace(/[\u0000-\u001f\u007f-\u009f]+/g, ' ').replace(/\s+/g, ' ').trim()
   return one.length > max ? one.slice(0, max - 1) + '…' : one
 }
 
-const basename = (path: string) => path.split('/').filter(Boolean).pop() ?? path
+// A URL's query and fragment can carry tokens: only its host and path are shown.
+const withoutQuery = (url: string) => url.split(/[?#]/)[0] ?? ''
+
+const basename = (path: string) => shorten(path.split('/').filter(Boolean).pop() ?? path)
 
 /** Which kind of deed a tool call is, and what it is done to. */
 export function classify(
@@ -261,11 +265,12 @@ export function classify(
     case 'Glob':
       return { deed: 'search', target: shorten(str('pattern'), 32) }
     case 'WebFetch':
-      return { deed: 'search', target: shorten(str('url'), 40) }
+      return { deed: 'search', target: shorten(withoutQuery(str('url')), 40) }
     case 'WebSearch':
       return { deed: 'search', target: shorten(str('query'), 40) }
     case 'Bash':
-      return { deed: 'run', target: shorten(str('description') || str('command'), 40) }
+      // A bare command can hold a credential; only the call's own description is shown.
+      return { deed: 'run', target: shorten(str('description'), 40) }
     case 'AskUserQuestion':
       return { deed: 'ask', target: '' }
     case 'TodoWrite':
@@ -280,5 +285,7 @@ export function classify(
 /** The in-character line for a character doing one deed. */
 export function flavor(who: Character, deed: Deed, target: string): string {
   const template = who.lines[deed] ?? GENERIC[deed]
-  return `${who.name} ${template.replace('{x}', target || 'something')}`
+  // A deed with no target to show drops its trailing `: {x}`.
+  const line = target ? template.replace('{x}', target) : template.replace(/:\s*\{x\}$/, '').replace('{x}', 'something')
+  return `${who.name} ${line}`
 }
