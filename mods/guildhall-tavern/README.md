@@ -8,9 +8,24 @@ time, a deed count, and one in-character line for what they are doing right
 now ("Bruga forges rate_limit.ts", "Oriana searches for unwatched gates:
 password"). A short chronicle under the tree records summons and returns.
 
-It is a spectator. It reads `agent.spawn`, `tool.call`, `turn.complete` and
-`command.run`, never changes them, and every hook falls through to the
-engine if its own bookkeeping fails. It does not touch the `guildhall`
+When Mordain's turn ends with nobody left in the field, a recap appears: who
+answered and who fell, the wall-clock time each phase held the road, and the
+gating verdicts from the plan scroll's `## Reviewers selected` (the scroll is
+the `docs/guildhall/plans/*.md` file Mordain himself wrote this quest). A
+reviewer the scroll planned but nobody summoned, or skipped yet summoned, is
+flagged with ⚠. A fast-lane quest has no scroll and says so.
+
+With the pane closed (or behind another tab), a one-line band above the prompt
+keeps the quest in sight: `⚔ Review fan-out · 🦉📖 at work`, Mordain's own
+line between dispatches, then `recap ready` once the hall is quiet, with a
+`Tavern` button that opens the pane. It steps aside for surveys and goes
+quiet when you send your next prompt after the quest settles. The band draws
+on the terminal and desktop surfaces.
+
+It is a spectator. It reads `agent.spawn`, `tool.call`, `turn.complete`,
+`command.run`, `prompt.submit` and `ui.close` (and the quest's plan scroll),
+never changes them, and every hook falls through to the engine if its own
+bookkeeping fails. It does not touch the `guildhall`
 plugin, its agents or `/quest`.
 
 ## Install

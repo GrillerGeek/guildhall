@@ -1,7 +1,8 @@
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register, RenderChildren } from 'claude-code'
 
-import type { ChronicleEntry, GuildMember, GuildQuest } from '../types'
+import type { ChronicleEntry, GuildMember, GuildQuest, Recap } from '../types'
+import { isPlanScroll, phaseSpans, planStatus, reviewerVerdicts, rootPhase } from './recap'
 import { KEEPER, PHASES, characterOf, classify, flavor, guildRole, shorten } from './roster'
 import type { Character } from './roster'
 
@@ -15,6 +16,9 @@ const quest = atom({ plugin: 'guildhall-tavern', key: 'quest' } as const, null a
 const members = atom({ plugin: 'guildhall-tavern', key: 'members' } as const, [] as GuildMember[])
 const chronicle = atom({ plugin: 'guildhall-tavern', key: 'chronicle' } as const, [] as ChronicleEntry[])
 const tick = atom({ plugin: 'guildhall-tavern', key: 'tick' } as const, 0)
+const recap = atom({ plugin: 'guildhall-tavern', key: 'recap' } as const, null as Recap | null)
+// Set once the person moves on from a settled quest: the band has said its piece.
+const bandQuiet = atom({ plugin: 'guildhall-tavern', key: 'bandQuiet' } as const, false)
 
 // Which surfaces have asked this module to draw the pane since it loaded: diagnostics only.
 const drawnOn = new Set<string>()
@@ -49,6 +53,8 @@ async function beginQuest($: EngineInterface, title: string) {
   }))
   await update($, members, () => [])
   await update($, chronicle, () => [])
+  await update($, recap, () => null)
+  await update($, bandQuiet, () => false)
   await record($, KEEPER.icon, `${KEEPER.name}: “${KEEPER.catchphrase}”`)
   // A surface that cannot seat the pane leaves the ledger kept; /guildhall-tavern opens it later.
   await $.ui.open({ id: PANE, title: TITLE }).catch(() => undefined)
@@ -76,8 +82,87 @@ async function setKeeper($: EngineInterface, line: string, isKeeperBusy = true) 
   await refreshStatus($)
 }
 
+type RecapRow = { text: string; tone: 'head' | 'ok' | 'skip' | 'warn' | 'dim' }
+
+const fileName = (path: string) => shorten(path.split('/').pop() ?? path, 60)
+
+/** The recap as rows both the pane and the text fallback draw; none while anyone works. */
+function recapRows(r: Recap | null, list: GuildMember[], now: number): RecapRow[] {
+  if (r === null || list.some(m => m.status === 'working')) return []
+  const fallen = list.filter(m => m.status === 'fallen').length
+  const icons = list.map(m => memberCharacter(m).icon).join('')
+  const rows: RecapRow[] = [
+    { text: `Recap · ${r.status ?? 'the hall is quiet'}`, tone: 'head' },
+    { text: `  Summoned ${icons || 'nobody'} · ${list.length - fallen} returned, ${fallen} fallen`, tone: 'dim' },
+  ]
+  const spans = phaseSpans(list, now)
+  if (spans.length > 0) {
+    rows.push({ text: `  Time     ${spans.map(s => `${s.label} ${elapsed(s.ms)}`).join(' · ')}`, tone: 'dim' })
+  }
+  const summoned = new Set(list.map(m => m.role))
+  for (const v of r.reviewers) {
+    const who = characterOf(v.role)
+    const label = `${who.icon} ${who.name}`
+    const why = v.reason ? ` — ${v.reason}` : ''
+    if (v.fired && summoned.has(v.role)) rows.push({ text: `  ✓ ${label}${why}`, tone: 'ok' })
+    else if (!v.fired && !summoned.has(v.role)) rows.push({ text: `  · ${label} skipped${why}`, tone: 'skip' })
+    else if (v.fired) rows.push({ text: `  ⚠ ${label} planned, never summoned${why}`, tone: 'warn' })
+    else rows.push({ text: `  ⚠ ${label} skipped in the scroll, yet summoned${why}`, tone: 'warn' })
+  }
+  const scroll =
+    r.planPath === undefined
+      ? 'no plan scroll (fast lane or prototype)'
+      : r.problem !== undefined
+        ? `could not read ${fileName(r.planPath)}: ${r.problem}`
+        : `Scroll ${fileName(r.planPath)}`
+  rows.push({ text: `  ${scroll}`, tone: 'dim' })
+  return rows
+}
+
+/** Mordain's turn ended with nobody in the field: read the scroll and settle the recap. */
+async function settle($: EngineInterface) {
+  const q = await read($, quest)
+  const list = (await read($, members)) ?? []
+  if (q === null || list.some(m => m.status === 'working')) return
+  const planPath = q.planPath
+  let next: Recap = { at: Date.now(), planPath, reviewers: [] }
+  if (planPath !== undefined) {
+    try {
+      const text = await $.fs.read(planPath)
+      next = { ...next, status: planStatus(text), reviewers: reviewerVerdicts(text) }
+    } catch (error) {
+      next = { ...next, problem: shorten(error instanceof Error ? error.message : String(error), 60) }
+    }
+  }
+  await update($, recap, () => next)
+}
+
+/**
+ * The band's one line, for when the pane is out of view: the phases at work and
+ * who is in them, else Mordain's own line, else a pointer to the recap.
+ */
+function bandText(q: GuildQuest | null, list: GuildMember[], r: Recap | null, isQuiet: boolean): string | undefined {
+  if (q === null || isQuiet) return undefined
+  const working = list.filter(m => m.status === 'working')
+  if (working.length > 0) {
+    const phases = PHASES.flatMap(p => {
+      const here = working.filter(m => rootPhase(list, m) === p.phase)
+      return here.length > 0 ? [`${p.label} · ${here.map(m => memberCharacter(m).icon).join('')} at work`] : []
+    })
+    return `⚔ ${phases.join(' · ')}`
+  }
+  if (r !== null) return `⚔ ${shorten(q.title, 40)} · recap ready${r.status ? ` (${r.status})` : ''}`
+  return `⚔ ${shorten(q.title, 40)} · ${KEEPER.icon} ${q.keeperLine}`
+}
+
+/** The pane is in view somewhere: the band would only repeat it. */
+async function isPaneInView($: EngineInterface): Promise<boolean> {
+  const pane = (await $.ui.panes()).find(p => p.id === PANE)
+  return pane !== undefined && pane.isShown && pane.isPlaced
+}
+
 /** The tavern as plain text: the command's answer where no surface draws the pane. */
-function tavernText(q: GuildQuest | null, list: GuildMember[], log: ChronicleEntry[], now: number): string {
+function tavernText(q: GuildQuest | null, list: GuildMember[], log: ChronicleEntry[], r: Recap | null, now: number): string {
   if (q === null) return `${KEEPER.icon} The tavern is quiet. ${KEEPER.name} waits by the hearth.`
   const mark = (m: GuildMember) => (m.status === 'working' ? '▶' : m.status === 'done' ? '✓' : '✗')
   const lines = [
@@ -93,6 +178,7 @@ function tavernText(q: GuildQuest | null, list: GuildMember[], log: ChronicleEnt
       lines.push(`    ${mark(m)} ${who.icon} ${who.name} ${who.title} (${m.role}, ${elapsed((m.endedAt ?? now) - m.startedAt)}, ${m.deeds} deeds): ${m.line}`)
     }
   }
+  lines.push(...recapRows(r, list, now).map(row => `  ${row.text}`))
   if (log.length > 0) lines.push('  Chronicle', ...log.map(entry => `    ${entry.icon} ${entry.text}`))
   return lines.join('\n')
 }
@@ -130,6 +216,7 @@ export const register: Register = on => {
 
   on('command.run', { command: 'guildhall-tavern' }, async $ => {
     const opened = await $.ui.open({ id: PANE, title: TITLE })
+    await update($, tick, n => (n ?? 0) + 1) // the band redraws: the pane may now be in view
     // With no surface attached (a cloud session viewed from an app) every pane reads
     // as placed, yet nothing draws it: only this command's text reaches the person.
     const surfaces = await $.session.surfaces()
@@ -141,6 +228,7 @@ export const register: Register = on => {
       await read($, quest),
       (await read($, members)) ?? [],
       (await read($, chronicle)) ?? [],
+      await read($, recap),
       Date.now(),
     )
     return { text: `The pane cannot be drawn here (${why}). Run /guildhall-tavern again for a fresh look.\n\n${snapshot}` }
@@ -175,6 +263,7 @@ export const register: Register = on => {
       startedAt: Date.now(),
     }
     await update($, members, list => [...(list ?? []), member].slice(-MEMBER_LIMIT))
+    await update($, bandQuiet, () => false)
     await refreshStatus($)
     if (e.parentAgentId === undefined) {
       await setKeeper($, `${KEEPER.name} summons ${who.name}`)
@@ -191,7 +280,14 @@ export const register: Register = on => {
     if (e.agentId === undefined) {
       // The main loop is Mordain; his summons are drawn by agent.spawn.
       if (e.tool !== 'Agent') await setKeeper($, flavor(KEEPER, deed, target))
-      return next(e)
+      const path = (e as { file_path?: unknown }).file_path
+      if (deed !== 'write' || typeof path !== 'string' || !isPlanScroll(path)) return next(e)
+      // Only a scroll that was actually written is the one the recap reads.
+      const wrote = await next(e)
+      if (wrote.deny === undefined && wrote.isError !== true) {
+        await update($, quest, current => (current ? { ...current, planPath: path } : current))
+      }
+      return wrote
     }
 
     const agentId = e.agentId
@@ -213,6 +309,7 @@ export const register: Register = on => {
 
     if (e.agentId === undefined) {
       await setKeeper($, flavor(KEEPER, 'idle', ''), false)
+      await settle($)
       return done
     }
 
@@ -240,8 +337,45 @@ export const register: Register = on => {
       fell ? `${who.name} returns empty-handed` : `${who.name} returns to the hall (${elapsed(Date.now() - member.startedAt)})`,
     )
     await refreshStatus($)
+    // The last of a background fan-out may return after Mordain's turn has ended.
+    if ((await read($, quest))?.isKeeperBusy === false) await settle($)
     return done
   }).catch(($, e, next) => next(e)) // replays the turn's own answer; nothing runs twice
+
+  // A settled quest's band stands down once the person moves on.
+  on('prompt.submit', async ($, e, next) => {
+    const list = (await read($, members)) ?? []
+    if ((await read($, recap)) !== null && !list.some(m => m.status === 'working')) {
+      await update($, bandQuiet, () => true)
+    }
+    return next(e)
+  }).catch(($, e, next) => next(e))
+
+  // Closing the pane brings the band back: redraw it.
+  on('ui.close', async ($, e, next) => {
+    const closed = await next(e)
+    if (e.id === PANE) await update($, tick, n => (n ?? 0) + 1)
+    return closed
+  }).catch(($, e, next) => next(e))
+
+  on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
+    if (e.props.hasSurvey) return next(e)
+    await read($, tick) // redraw with the pane's comings and goings
+    const line = bandText(
+      await read($, quest),
+      (await read($, members)) ?? [],
+      await read($, recap),
+      (await read($, bandQuiet)) ?? false,
+    )
+    if (line === undefined || (await isPaneInView($))) return next(e)
+    const { Box, Text, Button } = $.ui.resolve(e)
+    return (
+      <Box>
+        <Text wrap="truncate-end">{line} </Text>
+        <Button key="open-tavern" label="Tavern" onPress={() => $.ui.open({ id: PANE, title: TITLE })} />
+      </Box>
+    )
+  })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
     const { Box, Text } = $.ui.resolve(e)
@@ -249,6 +383,7 @@ export const register: Register = on => {
     const q = await read($, quest)
     const list = (await read($, members)) ?? []
     const log = (await read($, chronicle)) ?? []
+    const settled = recapRows(await read($, recap), list, Date.now())
     const frame = SPINNER[((await read($, tick)) ?? 0) % SPINNER.length]
     const now = Date.now()
 
@@ -326,6 +461,17 @@ export const register: Register = on => {
           {'     '}{q.keeperLine}
         </Text>
         {rows}
+        {settled.length > 0 && <Text> </Text>}
+        {settled.map(row => (
+          <Text
+            wrap="truncate-end"
+            bold={row.tone === 'head'}
+            dimColor={row.tone === 'dim' || row.tone === 'skip'}
+            color={row.tone === 'ok' ? 'success' : row.tone === 'warn' ? 'warning' : undefined}
+          >
+            {row.text}
+          </Text>
+        ))}
         {log.length > 0 && <Text> </Text>}
         {log.length > 0 && <Text bold dimColor>Chronicle</Text>}
         {log.map(entry => (
