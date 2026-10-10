@@ -45,6 +45,7 @@ declare module 'claude-code' {
       chronicle: ChronicleEntry[]
       tick: number
       recap: Recap | null
+      bandQuiet: boolean
     }
   }
 }

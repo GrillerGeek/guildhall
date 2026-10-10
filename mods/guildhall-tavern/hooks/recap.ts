@@ -74,21 +74,24 @@ export function planStatus(markdown: string): string | undefined {
   return status || undefined
 }
 
+/** The phase a member works in: its root's, so a hireling counts with whoever hired it. */
+export function rootPhase(list: GuildMember[], m: GuildMember): Phase {
+  let at = m
+  for (let hops = 0; at.parentId !== undefined && hops < list.length; hops++) {
+    const parent = list.find(p => p.id === at.parentId)
+    if (parent === undefined) break
+    at = parent
+  }
+  return characterOf(at.role).phase
+}
+
 /**
  * Wall-clock time each phase held the road: first summons to last return, so a
  * parallel fan-out counts once, not once per reviewer. A child counts with its root.
  */
 export function phaseSpans(list: GuildMember[], now: number): { phase: Phase; label: string; ms: number }[] {
-  const ids = new Set(list.map(m => m.id))
-  const rootOf = (m: GuildMember): GuildMember => {
-    let at = m
-    for (let hops = 0; at.parentId !== undefined && ids.has(at.parentId) && hops < list.length; hops++) {
-      at = list.find(p => p.id === at.parentId) ?? at
-    }
-    return at
-  }
   return PHASES.flatMap(p => {
-    const group = list.filter(m => characterOf(rootOf(m).role).phase === p.phase)
+    const group = list.filter(m => rootPhase(list, m) === p.phase)
     if (group.length === 0) return []
     const start = Math.min(...group.map(m => m.startedAt))
     const end = Math.max(...group.map(m => m.endedAt ?? now))

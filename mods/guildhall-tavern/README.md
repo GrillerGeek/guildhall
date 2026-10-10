@@ -15,9 +15,17 @@ the `docs/guildhall/plans/*.md` file Mordain himself wrote this quest). A
 reviewer the scroll planned but nobody summoned, or skipped yet summoned, is
 flagged with ⚠. A fast-lane quest has no scroll and says so.
 
-It is a spectator. It reads `agent.spawn`, `tool.call`, `turn.complete` and
-`command.run`, never changes them, and every hook falls through to the
-engine if its own bookkeeping fails. It does not touch the `guildhall`
+With the pane closed (or behind another tab), a one-line band above the prompt
+keeps the quest in sight: `⚔ Review fan-out · 🦉📖 at work`, Mordain's own
+line between dispatches, then `recap ready` once the hall is quiet, with a
+`Tavern` button that opens the pane. It steps aside for surveys and goes
+quiet when you send your next prompt after the quest settles. The band draws
+on the terminal and desktop surfaces.
+
+It is a spectator. It reads `agent.spawn`, `tool.call`, `turn.complete`,
+`command.run`, `prompt.submit` and `ui.close` (and the quest's plan scroll),
+never changes them, and every hook falls through to the engine if its own
+bookkeeping fails. It does not touch the `guildhall`
 plugin, its agents or `/quest`.
 
 ## Install

@@ -327,3 +327,86 @@ test('a quest with no plan scroll, or an unreadable one, still recaps who was su
   answer = await $.command.run(tavernCommand)
   expect(answer.text).toContain('could not read 2026-10-10-big.md')
 })
+
+// ── The band above the prompt ─────────────────────────────────────────────
+
+const BAND_SURFACES = ['terminal', 'desktop'] as const
+const BAND = (hasSurvey = false) =>
+  ({ hasSurvey, isWorking: true, maxRows: 6, bodyColumns: 100, scroll: { offset: 0, bodyRows: 5 }, view: {} }) as never
+// The engine's own band, beneath the tavern: what shows when the tavern passes.
+const engineBand = (on: never) =>
+  (on as (event: string, hook: ($: never, e: never) => unknown) => void)('ui.render', ($, e) => {
+    const { Text } = ($ as { ui: { resolve: (e: never) => { Text: never } } }).ui.resolve(e)
+    return h(Text, {}, 'the engine band')
+  })
+const mountBand = ($: never, surface: (typeof BAND_SURFACES)[number], hasSurvey = false) =>
+  ($ as { ui: { mount: (a: unknown) => Promise<{ find: (q: unknown) => Promise<unknown>; press: (q: unknown) => Promise<void> }> } }).ui.mount({
+    plugin: 'guildhall-tavern', surface, component: 'AbovePrompt', props: BAND(hasSurvey),
+  })
+
+test('with the pane closed, the band names the phase at work and who', async ($, on) => {
+  let n = 0
+  let panes: { id: string; title: string; isShown: boolean; isFocused: boolean; isPlaced: boolean }[] = []
+  const opened: string[] = []
+  on('command.run', () => ({ text: '' }))
+  on('agent.spawn', () => ({ model: 'opus', agentId: `r${++n}` }))
+  on('ui.open', ($, e) => {
+    opened.push(e.id)
+    return { value: { isPlaced: true } }
+  })
+  on('ui.panes', () => ({ value: panes }))
+  on('session.surfaces', () => ({ value: ['terminal'] }))
+  engineBand(on as never)
+
+  for (const surface of BAND_SURFACES) {
+    // No quest, nothing to say.
+    expect(await (await mountBand($ as never, surface)).find({ text: /⚔/ })).toBe(undefined)
+  }
+
+  await $.command.run(questCommand('Add login rate limiting'))
+  await $.agent.spawn(spawnInput('guildhall:security-reviewer', 'Security pass'))
+  await $.agent.spawn(spawnInput('guildhall:docs-writer', 'Docs pass'))
+
+  for (const surface of BAND_SURFACES) {
+    const band = await mountBand($ as never, surface)
+    expect(await band.find({ text: /⚔ Review fan-out · 🦉📖 at work/ })).toBeDefined()
+    opened.length = 0
+    await band.press({ key: 'open-tavern' })
+    expect(opened).toEqual(['guildhall'])
+    // A survey holds the band: the tavern yields.
+    expect(await (await mountBand($ as never, surface, true)).find({ text: /⚔/ })).toBe(undefined)
+  }
+
+  // The pane in view says it all; the band stays out of the way.
+  panes = [{ id: 'guildhall', title: 'The Tavern', isShown: true, isFocused: false, isPlaced: true }]
+  for (const surface of BAND_SURFACES) {
+    expect(await (await mountBand($ as never, surface)).find({ text: /⚔/ })).toBe(undefined)
+  }
+})
+
+test('once the hall is quiet the band offers the recap, until the next prompt', async ($, on) => {
+  on('command.run', () => ({ text: '' }))
+  on('agent.spawn', () => ({ model: 'sonnet', agentId: 'pip-1' }))
+  on('turn.complete', ($, e) => ({ text: e.answer }))
+  on('prompt.submit', ($, e) => ({ text: e.text }))
+  on('ui.open', () => ({ value: { isPlaced: true } }))
+  on('ui.panes', () => ({ value: [] }))
+  on('session.surfaces', () => ({ value: ['terminal'] }))
+  engineBand(on as never)
+
+  await $.command.run(questCommand('Fix a README typo'))
+  for (const surface of BAND_SURFACES) {
+    expect(await (await mountBand($ as never, surface)).find({ text: /⚔ Fix a README typo · 🧙/ })).toBeDefined()
+  }
+  await $.agent.spawn(spawnInput('guildhall:prototype-builder', 'Docs fast lane'))
+  await $.turn.complete({ answer: 'ok', durationMs: 1, isAborted: false, turnId: 't1', agentId: 'pip-1', reason: 'answer' } as never)
+  await $.turn.complete({ answer: 'done', durationMs: 1, isAborted: false, turnId: 't0', reason: 'answer' } as never)
+  for (const surface of BAND_SURFACES) {
+    expect(await (await mountBand($ as never, surface)).find({ text: /⚔ Fix a README typo · recap ready/ })).toBeDefined()
+  }
+
+  await $.prompt.submit({ text: 'thanks' } as never)
+  for (const surface of BAND_SURFACES) {
+    expect(await (await mountBand($ as never, surface)).find({ text: /⚔/ })).toBe(undefined)
+  }
+})
