@@ -1,7 +1,7 @@
 {
   "name": "guildhall-tavern",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": { "name": "GrillerGeek" },
-  "description": "A live pane of the Guildhall during a /quest: who is working, what they are up to in character, and who answers to whom.",
+  "description": "A live pane of the Guildhall during a /quest: who is working, what they are up to in character, and who answers to whom; a recap of phase times and reviewer verdicts when the quest settles, and a band above the prompt while the pane is closed.",
   "types": "./types/index.d.ts"
 }
