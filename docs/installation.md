@@ -38,25 +38,27 @@ refresh local-path catalogs.
 
 ## Native Claude Code
 
-From the project you want to work on:
+Guildhall is distributed through the
+[GrillerGeek plugin marketplace](https://github.com/GrillerGeek/skills):
 
 ```bash
-claude plugin marketplace add https://github.com/GrillerGeek/guildhall.git --scope project
-claude plugin install guildhall@guildhall-local --scope project
+claude plugin marketplace add https://github.com/GrillerGeek/skills.git
+claude plugin install guildhall@grillergeek-plugins
 ```
 
 Restart Claude Code and use `/guildhall:quest`. To update:
 
 ```bash
-claude plugin marketplace update guildhall-local
-claude plugin update guildhall@guildhall-local --scope project
+claude plugin marketplace update grillergeek-plugins
+claude plugin update guildhall@grillergeek-plugins
 ```
 
-The optional tavern pane installs from the same catalog
-([its README](../mods/guildhall-tavern/README.md)):
+The optional tavern pane installs from the same marketplace
+([its README](../mods/guildhall-tavern/README.md)). A copy of the marketplace
+added before the tavern was listed needs the `marketplace update` above first:
 
 ```bash
-claude plugin install guildhall-tavern@guildhall-local --scope project
+claude plugin install guildhall-tavern@grillergeek-plugins
 ```
 
 Restart again after updates. For a session using local development files:
@@ -65,9 +67,19 @@ Restart again after updates. For a session using local development files:
 claude --plugin-dir /absolute/path/to/guildhall/plugin
 ```
 
-The separate `GrillerGeek/skills` marketplace remains another distribution route;
-the commands above use this repository directly. Do not install both copies in
-the same client merely to update one.
+### From this repository's catalog
+
+To install one project straight from this repository's own catalog, the route
+`scripts/test_install.py --native-claude` checks:
+
+```bash
+claude plugin marketplace add https://github.com/GrillerGeek/guildhall.git --scope project
+claude plugin install guildhall@guildhall-local --scope project
+```
+
+Update it with `claude plugin marketplace update guildhall-local` and
+`claude plugin update guildhall@guildhall-local --scope project`. Choose one
+route: do not install both copies in the same client merely to update one.
 
 Claude's existing native model aliases and hooks belong to this native route;
 installing the standalone skill does not install its native agents or hooks.
