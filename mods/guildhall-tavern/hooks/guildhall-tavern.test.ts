@@ -410,3 +410,64 @@ test('once the hall is quiet the band offers the recap, until the next prompt', 
     expect(await (await mountBand($ as never, surface)).find({ text: /⚔/ })).toBe(undefined)
   }
 })
+
+// ── PR Lens review on #55 ──────────────────────────────────────────────────
+
+test('a bullet that skips several reviewers in turn records each with its own reason', async () => {
+  expect(parseReviewerLine('Skip Ysolde: no persistence migration. Skip Vera/Lior: no visual UI changes.')).toEqual([
+    { role: 'migration-safety-reviewer', fired: false, reason: 'no persistence migration.' },
+    { role: 'ui-test-author', fired: false, reason: 'no visual UI changes.' },
+    { role: 'accessibility-reviewer', fired: false, reason: 'no visual UI changes.' },
+  ])
+})
+
+test('background adventurers returning after Mordain settle the recap, and the fallen are not counted as returned', async ($, on) => {
+  let n = 0
+  on('command.run', () => ({ text: '' }))
+  on('agent.spawn', () => ({ model: 'opus', agentId: `b${++n}` }))
+  on('turn.complete', ($, e) => ({ text: e.answer }))
+  on('ui.open', () => ({ value: { isPlaced: true } }))
+  on('ui.panes', () => ({ value: [] }))
+  on('session.surfaces', () => ({ value: [] }))
+
+  await $.command.run(questCommand('Review fan-out'))
+  await $.agent.spawn(spawnInput('guildhall:security-reviewer', 'Security pass'))
+  // Mordain is still at the table: a return mid-quest is no recap.
+  await $.turn.complete({ answer: 'ok', durationMs: 1, isAborted: false, turnId: 't1', agentId: 'b1', reason: 'answer' } as never)
+  expect((await $.command.run(tavernCommand)).text).not.toContain('Recap')
+
+  await $.agent.spawn(spawnInput('guildhall:docs-writer', 'Docs pass'))
+  await $.agent.spawn(spawnInput('guildhall:observability-reviewer', 'Logs pass'))
+  await $.turn.complete({ answer: 'waiting', durationMs: 1, isAborted: false, turnId: 't0', reason: 'answer' } as never)
+  await $.turn.complete({ answer: '', durationMs: 1, isAborted: true, turnId: 't2', agentId: 'b2', reason: 'answer' } as never)
+  expect((await $.command.run(tavernCommand)).text).not.toContain('Recap')
+  await $.turn.complete({ answer: 'ok', durationMs: 1, isAborted: false, turnId: 't3', agentId: 'b3', reason: 'answer' } as never)
+
+  const answer = (await $.command.run(tavernCommand)).text
+  expect(answer).toContain('Recap')
+  expect(answer).toContain('2 returned, 1 fallen')
+})
+
+test('a plan write that fails does not become the scroll the recap reads', async ($, on) => {
+  const reads: string[] = []
+  on('command.run', () => ({ text: '' }))
+  on('tool.call', ($, e) =>
+    String((e as { file_path?: string }).file_path).includes('broken')
+      ? { isError: true, result: 'EACCES', text: 'EACCES' }
+      : { result: '', text: '' },
+  )
+  on('turn.complete', ($, e) => ({ text: e.answer }))
+  on('fs.read', ($, e) => {
+    reads.push(e.path)
+    return { value: PLAN }
+  })
+  on('ui.open', () => ({ value: { isPlaced: true } }))
+  on('ui.panes', () => ({ value: [] }))
+  on('session.surfaces', () => ({ value: [] }))
+
+  await $.command.run(questCommand('Add login rate limiting'))
+  await $.tool.call({ tool: 'Write', file_path: 'docs/guildhall/plans/2026-10-10-good.md', content: '' } as never)
+  await $.tool.call({ tool: 'Write', file_path: 'docs/guildhall/plans/2026-10-10-broken.md', content: '' } as never)
+  await $.turn.complete({ answer: 'done', durationMs: 1, isAborted: false, turnId: 't0', reason: 'answer' } as never)
+  expect(reads.map(path => path.split('/').pop())).toEqual(['2026-10-10-good.md'])
+})

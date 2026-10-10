@@ -41,6 +41,12 @@ export function reviewerBullets(markdown: string): string[] {
  * A bullet naming nobody on the roster (`Always-on:` stray text) yields [].
  */
 export function parseReviewerLine(line: string): ReviewerVerdict[] {
+  // "Skip Ysolde: no migration. Skip Vera/Lior: no UI." is one bullet holding two clauses.
+  const clauses = line.split(/(?<=[.;])\s+(?=skip\b)/i)
+  return clauses.flatMap(parseClause)
+}
+
+function parseClause(line: string): ReviewerVerdict[] {
   // Names are read from the head only, so a reviewer mentioned in a reason is not a verdict.
   // A bullet with no separator ("Tink only if a refactor is needed") records no verdict.
   const dashed = line.split(/\s+[—–]\s+/)

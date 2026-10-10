@@ -93,7 +93,7 @@ function recapRows(r: Recap | null, list: GuildMember[], now: number): RecapRow[
   const icons = list.map(m => memberCharacter(m).icon).join('')
   const rows: RecapRow[] = [
     { text: `Recap · ${r.status ?? 'the hall is quiet'}`, tone: 'head' },
-    { text: `  Summoned ${icons || 'nobody'} · ${list.length} answered, ${fallen} fallen`, tone: 'dim' },
+    { text: `  Summoned ${icons || 'nobody'} · ${list.length - fallen} returned, ${fallen} fallen`, tone: 'dim' },
   ]
   const spans = phaseSpans(list, now)
   if (spans.length > 0) {
@@ -281,10 +281,13 @@ export const register: Register = on => {
       // The main loop is Mordain; his summons are drawn by agent.spawn.
       if (e.tool !== 'Agent') await setKeeper($, flavor(KEEPER, deed, target))
       const path = (e as { file_path?: unknown }).file_path
-      if (deed === 'write' && typeof path === 'string' && isPlanScroll(path)) {
+      if (deed !== 'write' || typeof path !== 'string' || !isPlanScroll(path)) return next(e)
+      // Only a scroll that was actually written is the one the recap reads.
+      const wrote = await next(e)
+      if (wrote.deny === undefined && wrote.isError !== true) {
         await update($, quest, current => (current ? { ...current, planPath: path } : current))
       }
-      return next(e)
+      return wrote
     }
 
     const agentId = e.agentId
@@ -334,6 +337,8 @@ export const register: Register = on => {
       fell ? `${who.name} returns empty-handed` : `${who.name} returns to the hall (${elapsed(Date.now() - member.startedAt)})`,
     )
     await refreshStatus($)
+    // The last of a background fan-out may return after Mordain's turn has ended.
+    if ((await read($, quest))?.isKeeperBusy === false) await settle($)
     return done
   }).catch(($, e, next) => next(e)) // replays the turn's own answer; nothing runs twice
 
