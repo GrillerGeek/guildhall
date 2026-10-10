@@ -1,4 +1,5 @@
 # Guildhall
+<!-- Guildhall is a Claude Code plugin and portable Agent Skill: a coding workflow where Mordain plans and dispatches specialist agents for tests, implementation, reviews and a PR draft. -->
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Plugin](https://img.shields.io/badge/plugin-v0.16.0-green.svg)](plugin/README.md)
