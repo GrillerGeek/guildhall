@@ -189,3 +189,141 @@ test('adventurers dispatched together share one quest, and a working child keeps
   const pane = await $.ui.mount({ plugin: 'guildhall-tavern', surface: 'terminal', component: 'Pane', requestId: 'guildhall', props: PANE })
   expect(await pane.find({ text: /Review fan-out\s+1 at work/ })).toBeDefined()
 })
+
+// ── End-of-quest recap ────────────────────────────────────────────────────
+
+import { parseReviewerLine, phaseSpans, planStatus, reviewerVerdicts } from './recap'
+
+const PLAN = `---
+quest: Add login rate limiting
+status: completed
+---
+
+# Plan
+
+## Reviewers selected
+
+Always-on:
+- Oriana (\`security-reviewer\`) — fires
+- Cassian (\`docs-writer\`) — fires
+
+Gated:
+- Vance (\`observability-reviewer\`) — fired — request-time code path
+- Thalia (\`reliability-reviewer\`) — skipped — no network I/O
+
+## Decisions made by Mordain
+- Skip Bruga: not a reviewer line
+`
+
+test('a reviewer bullet in either dialect becomes verdicts', async () => {
+  expect(parseReviewerLine('Vance (`observability-reviewer`) — skipped — docs-only change')).toEqual([
+    { role: 'observability-reviewer', fired: false, reason: 'docs-only change' },
+  ])
+  expect(parseReviewerLine('Oriana (`security-reviewer`) — fires')).toEqual([
+    { role: 'security-reviewer', fired: true, reason: '' },
+  ])
+  expect(parseReviewerLine('Oriana security: API credential handling, untrusted input')).toEqual([
+    { role: 'security-reviewer', fired: true, reason: 'API credential handling, untrusted input' },
+  ])
+  expect(parseReviewerLine('Skip Vera/Lior: no visual UI changes.')).toEqual([
+    { role: 'ui-test-author', fired: false, reason: 'no visual UI changes.' },
+    { role: 'accessibility-reviewer', fired: false, reason: 'no visual UI changes.' },
+  ])
+  expect(parseReviewerLine('Always-on:')).toEqual([])
+})
+
+test('the scroll is read only under Reviewers selected, with its status', async () => {
+  const verdicts = reviewerVerdicts(PLAN)
+  expect(verdicts.map(v => v.role)).toEqual([
+    'security-reviewer', 'docs-writer', 'observability-reviewer', 'reliability-reviewer',
+  ])
+  expect(planStatus(PLAN)).toBe('completed')
+  expect(planStatus('# no frontmatter')).toBe(undefined)
+})
+
+test('a parallel fan-out counts its wall-clock span once', async () => {
+  const m = (id: string, role: string, startedAt: number, endedAt: number, parentId?: string) =>
+    ({ id, role, status: 'done', task: '', line: '', deeds: 0, startedAt, endedAt, parentId }) as const
+  const spans = phaseSpans(
+    [
+      m('a', 'test-author', 0, 60_000),
+      m('b', 'feature-implementer', 60_000, 180_000),
+      m('c', 'security-reviewer', 200_000, 260_000),
+      m('d', 'docs-writer', 200_000, 230_000),
+      m('e', 'Explore', 210_000, 290_000, 'c'), // Oriana's hireling stays in the fan-out
+    ],
+    999_999,
+  )
+  expect(spans).toEqual([
+    { phase: 'build', label: 'Build chain', ms: 180_000 },
+    { phase: 'review', label: 'Review fan-out', ms: 90_000 },
+  ])
+})
+
+const questCommand = (args: string) =>
+  ({ command: 'guildhall:quest', args, origin: { kind: 'composer' }, presentation: { isFullscreen: false, columns: 120 } }) as never
+
+test('when the hall falls quiet, the pane recaps the quest from its plan scroll', async ($, on) => {
+  const reads: string[] = []
+  on('command.run', () => ({ text: '' }))
+  on('agent.spawn', () => ({ model: 'opus', agentId: 'oriana-1' }))
+  on('tool.call', () => ({ result: '', text: '' }))
+  on('turn.complete', ($, e) => ({ text: e.answer }))
+  on('fs.read', ($, e) => {
+    reads.push(e.path)
+    return { value: PLAN }
+  })
+  on('ui.open', () => ({ value: { isPlaced: true } }))
+  on('ui.panes', () => ({ value: [] }))
+  on('session.surfaces', () => ({ value: [] }))
+
+  await $.command.run(questCommand('Add login rate limiting'))
+  // Mordain inks the scroll; a subagent's write elsewhere is not the plan.
+  await $.tool.call({ tool: 'Write', file_path: '/repo/docs/guildhall/plans/2026-10-10-login.md', content: '' } as never)
+  await $.agent.spawn(spawnInput('guildhall:security-reviewer', 'Security pass'))
+  await $.tool.call({ tool: 'Write', file_path: '/repo/docs/guildhall/plans/other.md', content: '', agentId: 'oriana-1' } as never)
+  await $.turn.complete({ answer: 'ok', durationMs: 1, isAborted: false, turnId: 't1', agentId: 'oriana-1', reason: 'answer' } as never)
+  await $.turn.complete({ answer: 'done', durationMs: 1, isAborted: false, turnId: 't0', reason: 'answer' } as never)
+
+  expect(reads).toEqual(['/repo/docs/guildhall/plans/2026-10-10-login.md'])
+  for (const surface of SURFACES) {
+    const pane = await $.ui.mount({ plugin: 'guildhall-tavern', surface, component: 'Pane', requestId: 'guildhall', props: PANE })
+    expect(await pane.find({ text: /Recap · completed/ })).toBeDefined()
+    expect(await pane.find({ text: /Review fan-out \d+s/ })).toBeDefined()
+    expect(await pane.find({ text: /✓ 🦉 Oriana/ })).toBeDefined()
+    expect(await pane.find({ text: /· ⚡ Thalia.*no network I\/O/ })).toBeDefined()
+    // Planned in the scroll, never summoned: the recap says so rather than trusting either side.
+    expect(await pane.find({ text: /⚠ 📜 Vance.*planned, never summoned/ })).toBeDefined()
+    expect(await pane.find({ text: /2026-10-10-login\.md/ })).toBeDefined()
+  }
+  const answer = await $.command.run(tavernCommand)
+  expect(answer.text).toContain('Recap · completed')
+})
+
+test('a quest with no plan scroll, or an unreadable one, still recaps who was summoned', async ($, on) => {
+  on('command.run', () => ({ text: '' }))
+  on('agent.spawn', () => ({ model: 'sonnet', agentId: 'pip-1' }))
+  on('tool.call', () => ({ result: '', text: '' }))
+  on('turn.complete', ($, e) => ({ text: e.answer }))
+  on('fs.read', () => {
+    throw new Error('ENOENT')
+  })
+  on('ui.open', () => ({ value: { isPlaced: true } }))
+  on('ui.panes', () => ({ value: [] }))
+  on('session.surfaces', () => ({ value: [] }))
+
+  await $.command.run(questCommand('Fix a README typo'))
+  await $.agent.spawn(spawnInput('guildhall:prototype-builder', 'Docs fast lane'))
+  await $.turn.complete({ answer: 'ok', durationMs: 1, isAborted: false, turnId: 't1', agentId: 'pip-1', reason: 'answer' } as never)
+  await $.turn.complete({ answer: 'done', durationMs: 1, isAborted: false, turnId: 't0', reason: 'answer' } as never)
+  let answer = await $.command.run(tavernCommand)
+  expect(answer.text).toContain('Recap')
+  expect(answer.text).toContain('🎒')
+  expect(answer.text).toContain('no plan scroll')
+
+  await $.command.run(questCommand('Bigger quest'))
+  await $.tool.call({ tool: 'Write', file_path: 'docs/guildhall/plans/2026-10-10-big.md', content: '' } as never)
+  await $.turn.complete({ answer: 'done', durationMs: 1, isAborted: false, turnId: 't2', reason: 'answer' } as never)
+  answer = await $.command.run(tavernCommand)
+  expect(answer.text).toContain('could not read 2026-10-10-big.md')
+})

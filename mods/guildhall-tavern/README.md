@@ -8,6 +8,13 @@ time, a deed count, and one in-character line for what they are doing right
 now ("Bruga forges rate_limit.ts", "Oriana searches for unwatched gates:
 password"). A short chronicle under the tree records summons and returns.
 
+When Mordain's turn ends with nobody left in the field, a recap appears: who
+answered and who fell, the wall-clock time each phase held the road, and the
+gating verdicts from the plan scroll's `## Reviewers selected` (the scroll is
+the `docs/guildhall/plans/*.md` file Mordain himself wrote this quest). A
+reviewer the scroll planned but nobody summoned, or skipped yet summoned, is
+flagged with ⚠. A fast-lane quest has no scroll and says so.
+
 It is a spectator. It reads `agent.spawn`, `tool.call`, `turn.complete` and
 `command.run`, never changes them, and every hook falls through to the
 engine if its own bookkeeping fails. It does not touch the `guildhall`
