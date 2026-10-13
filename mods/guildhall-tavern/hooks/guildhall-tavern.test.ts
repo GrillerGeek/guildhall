@@ -491,6 +491,7 @@ test('a quest started through the Skill tool, or a new plan scroll, clears the h
   await $.tool.call({ tool: 'Skill', skill: 'guildhall:quest', args: 'Second' } as never)
   answer = await $.command.run(tavernCommand)
   expect(answer.text).not.toContain('Audit the login flow')
+  expect(answer.text).toMatch(/Earlier: First · 1 summoned/)
 
   await $.tool.call({ tool: 'Write', file_path: '/repo/docs/guildhall/plans/2026-10-10-a.md', content: '' } as never)
   await $.agent.spawn(spawnInput('guildhall:security-reviewer', 'Second quest task'))
