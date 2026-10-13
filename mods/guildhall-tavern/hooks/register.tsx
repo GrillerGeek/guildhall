@@ -11,10 +11,13 @@ const TITLE = 'The Tavern'
 const SPINNER = ['◐', '◓', '◑', '◒']
 const CHRONICLE_LENGTH = 8
 const MEMBER_LIMIT = 40
+const EARLIER_LIMIT = 5
 
 const quest = atom({ plugin: 'guildhall-tavern', key: 'quest' } as const, null as GuildQuest | null)
 const members = atom({ plugin: 'guildhall-tavern', key: 'members' } as const, [] as GuildMember[])
 const chronicle = atom({ plugin: 'guildhall-tavern', key: 'chronicle' } as const, [] as ChronicleEntry[])
+// One collapsed line per finished quest, oldest first.
+const earlier = atom({ plugin: 'guildhall-tavern', key: 'earlier' } as const, [] as string[])
 const tick = atom({ plugin: 'guildhall-tavern', key: 'tick' } as const, 0)
 const recap = atom({ plugin: 'guildhall-tavern', key: 'recap' } as const, null as Recap | null)
 // Set once the person moves on from a settled quest: the band has said its piece.
@@ -44,9 +47,16 @@ async function record($: EngineInterface, icon: string, text: string) {
   await update($, chronicle, list => [...(list ?? []), { at: Date.now(), icon, text }].slice(-CHRONICLE_LENGTH))
 }
 
-async function beginQuest($: EngineInterface, title: string) {
+async function beginQuest($: EngineInterface, title: string, planPath?: string) {
+  const previous = await read($, quest)
+  const band = (await read($, members)) ?? []
+  if (previous !== null && band.length > 0) {
+    const line = `${shorten(previous.title, 60)} · ${band.length} summoned`
+    await update($, earlier, list => [...(list ?? []), line].slice(-EARLIER_LIMIT))
+  }
   await update($, quest, () => ({
     title,
+    ...(planPath !== undefined ? { planPath } : {}),
     startedAt: Date.now(),
     keeperLine: `${KEEPER.name} reads the whole scroll before speaking`,
     isKeeperBusy: true,
@@ -162,7 +172,14 @@ async function isPaneInView($: EngineInterface): Promise<boolean> {
 }
 
 /** The tavern as plain text: the command's answer where no surface draws the pane. */
-function tavernText(q: GuildQuest | null, list: GuildMember[], log: ChronicleEntry[], r: Recap | null, now: number): string {
+function tavernText(
+  q: GuildQuest | null,
+  list: GuildMember[],
+  log: ChronicleEntry[],
+  r: Recap | null,
+  now: number,
+  past: string[] = [],
+): string {
   if (q === null) return `${KEEPER.icon} The tavern is quiet. ${KEEPER.name} waits by the hearth.`
   const mark = (m: GuildMember) => (m.status === 'working' ? '▶' : m.status === 'done' ? '✓' : '✗')
   const lines = [
@@ -175,9 +192,10 @@ function tavernText(q: GuildQuest | null, list: GuildMember[], log: ChronicleEnt
     lines.push(`  ${p.label}`)
     for (const m of group) {
       const who = memberCharacter(m)
-      lines.push(`    ${mark(m)} ${who.icon} ${who.name} ${who.title} (${m.role}, ${elapsed((m.endedAt ?? now) - m.startedAt)}, ${m.deeds} deeds): ${m.line}`)
+      lines.push(`    ${mark(m)} ${who.icon} ${who.name} ${who.title} (${m.role}, ${elapsed((m.endedAt ?? now) - m.startedAt)}, ${m.deeds} deeds): ${m.task ? `${m.task} — ` : ''}${m.line}`)
     }
   }
+  if (past.length > 0) lines.push(`  Earlier: ${past.join(' · ')}`)
   lines.push(...recapRows(r, list, now).map(row => `  ${row.text}`))
   if (log.length > 0) lines.push('  Chronicle', ...log.map(entry => `    ${entry.icon} ${entry.text}`))
   return lines.join('\n')
@@ -230,6 +248,7 @@ export const register: Register = on => {
       (await read($, chronicle)) ?? [],
       await read($, recap),
       Date.now(),
+      (await read($, earlier)) ?? [],
     )
     return { text: `The pane cannot be drawn here (${why}). Run /guildhall-tavern again for a fresh look.\n\n${snapshot}` }
   })
@@ -280,11 +299,23 @@ export const register: Register = on => {
     if (e.agentId === undefined) {
       // The main loop is Mordain; his summons are drawn by agent.spawn.
       if (e.tool !== 'Agent') await setKeeper($, flavor(KEEPER, deed, target))
+      if (e.tool === 'Skill') {
+        const skill = (e as { skill?: unknown }).skill
+        if (typeof skill === 'string' && isQuestCommand(skill)) {
+          const args = (e as { args?: unknown }).args
+          await beginQuest($, shorten(typeof args === 'string' ? args : '', 80) || 'An unnamed quest')
+        }
+        return next(e)
+      }
       const path = (e as { file_path?: unknown }).file_path
       if (deed !== 'write' || typeof path !== 'string' || !isPlanScroll(path)) return next(e)
       // Only a scroll that was actually written is the one the recap reads.
       const wrote = await next(e)
       if (wrote.deny === undefined && wrote.isError !== true) {
+        if (q.planPath !== undefined && q.planPath !== path) {
+          await beginQuest($, q.title, path)
+          return wrote
+        }
         await update($, quest, current => (current ? { ...current, planPath: path } : current))
       }
       return wrote
@@ -383,6 +414,7 @@ export const register: Register = on => {
     const q = await read($, quest)
     const list = (await read($, members)) ?? []
     const log = (await read($, chronicle)) ?? []
+    const past = (await read($, earlier)) ?? []
     const settled = recapRows(await read($, recap), list, Date.now())
     const frame = SPINNER[((await read($, tick)) ?? 0) % SPINNER.length]
     const now = Date.now()
@@ -412,6 +444,13 @@ export const register: Register = on => {
           <Text dimColor> {who.title} · {m.role}{m.model ? ` · ${m.model}` : ''} · {clock} · {m.deeds} deeds</Text>
         </Text>,
       )
+      if (m.task) {
+        rows.push(
+          <Text wrap="truncate-end">
+            {indent}     {m.task}
+          </Text>,
+        )
+      }
       rows.push(
         <Text wrap="truncate-end" dimColor={m.status !== 'working'} italic>
           {indent}     {m.line}
@@ -461,6 +500,12 @@ export const register: Register = on => {
           {'     '}{q.keeperLine}
         </Text>
         {rows}
+        {past.length > 0 && <Text> </Text>}
+        {past.length > 0 && (
+          <Text wrap="truncate-end" dimColor>
+            Earlier: {past.join(' · ')}
+          </Text>
+        )}
         {settled.length > 0 && <Text> </Text>}
         {settled.map(row => (
           <Text
