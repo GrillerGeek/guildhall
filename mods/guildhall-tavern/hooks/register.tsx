@@ -44,9 +44,10 @@ async function record($: EngineInterface, icon: string, text: string) {
   await update($, chronicle, list => [...(list ?? []), { at: Date.now(), icon, text }].slice(-CHRONICLE_LENGTH))
 }
 
-async function beginQuest($: EngineInterface, title: string) {
+async function beginQuest($: EngineInterface, title: string, planPath?: string) {
   await update($, quest, () => ({
     title,
+    ...(planPath !== undefined ? { planPath } : {}),
     startedAt: Date.now(),
     keeperLine: `${KEEPER.name} reads the whole scroll before speaking`,
     isKeeperBusy: true,
@@ -175,7 +176,7 @@ function tavernText(q: GuildQuest | null, list: GuildMember[], log: ChronicleEnt
     lines.push(`  ${p.label}`)
     for (const m of group) {
       const who = memberCharacter(m)
-      lines.push(`    ${mark(m)} ${who.icon} ${who.name} ${who.title} (${m.role}, ${elapsed((m.endedAt ?? now) - m.startedAt)}, ${m.deeds} deeds): ${m.line}`)
+      lines.push(`    ${mark(m)} ${who.icon} ${who.name} ${who.title} (${m.role}, ${elapsed((m.endedAt ?? now) - m.startedAt)}, ${m.deeds} deeds): ${m.task ? `${m.task} — ` : ''}${m.line}`)
     }
   }
   lines.push(...recapRows(r, list, now).map(row => `  ${row.text}`))
@@ -280,11 +281,23 @@ export const register: Register = on => {
     if (e.agentId === undefined) {
       // The main loop is Mordain; his summons are drawn by agent.spawn.
       if (e.tool !== 'Agent') await setKeeper($, flavor(KEEPER, deed, target))
+      if (e.tool === 'Skill') {
+        const skill = (e as { skill?: unknown }).skill
+        if (typeof skill === 'string' && isQuestCommand(skill)) {
+          const args = (e as { args?: unknown }).args
+          await beginQuest($, shorten(typeof args === 'string' ? args : '', 80) || 'An unnamed quest')
+        }
+        return next(e)
+      }
       const path = (e as { file_path?: unknown }).file_path
       if (deed !== 'write' || typeof path !== 'string' || !isPlanScroll(path)) return next(e)
       // Only a scroll that was actually written is the one the recap reads.
       const wrote = await next(e)
       if (wrote.deny === undefined && wrote.isError !== true) {
+        if (q.planPath !== undefined && q.planPath !== path) {
+          await beginQuest($, q.title, path)
+          return wrote
+        }
         await update($, quest, current => (current ? { ...current, planPath: path } : current))
       }
       return wrote
@@ -412,6 +425,13 @@ export const register: Register = on => {
           <Text dimColor> {who.title} · {m.role}{m.model ? ` · ${m.model}` : ''} · {clock} · {m.deeds} deeds</Text>
         </Text>,
       )
+      if (m.task) {
+        rows.push(
+          <Text wrap="truncate-end">
+            {indent}     {m.task}
+          </Text>,
+        )
+      }
       rows.push(
         <Text wrap="truncate-end" dimColor={m.status !== 'working'} italic>
           {indent}     {m.line}

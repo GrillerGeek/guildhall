@@ -471,3 +471,30 @@ test('a plan write that fails does not become the scroll the recap reads', async
   await $.turn.complete({ answer: 'done', durationMs: 1, isAborted: false, turnId: 't0', reason: 'answer' } as never)
   expect(reads.map(path => path.split('/').pop())).toEqual(['2026-10-10-good.md'])
 })
+
+test('a quest started through the Skill tool, or a new plan scroll, clears the hall; finished rows keep their task', async ($, on) => {
+  on('command.run', () => ({ text: '' }))
+  on('agent.spawn', () => ({ model: 'opus', agentId: 'oriana-1' }))
+  on('tool.call', () => ({ result: '', text: '' }))
+  on('turn.complete', ($, e) => ({ text: e.answer }))
+  on('fs.read', () => ({ value: PLAN }))
+  on('ui.open', () => ({ value: { isPlaced: true } }))
+  on('ui.panes', () => ({ value: [] }))
+  on('session.surfaces', () => ({ value: [] }))
+
+  await $.command.run(questCommand('First'))
+  await $.agent.spawn(spawnInput('guildhall:security-reviewer', 'Audit the login flow'))
+  await $.turn.complete({ answer: 'ok', durationMs: 1, isAborted: false, turnId: 't1', agentId: 'oriana-1', reason: 'answer' } as never)
+  let answer = await $.command.run(tavernCommand)
+  expect(answer.text).toContain('Audit the login flow')
+
+  await $.tool.call({ tool: 'Skill', skill: 'guildhall:quest', args: 'Second' } as never)
+  answer = await $.command.run(tavernCommand)
+  expect(answer.text).not.toContain('Audit the login flow')
+
+  await $.tool.call({ tool: 'Write', file_path: '/repo/docs/guildhall/plans/2026-10-10-a.md', content: '' } as never)
+  await $.agent.spawn(spawnInput('guildhall:security-reviewer', 'Second quest task'))
+  await $.tool.call({ tool: 'Write', file_path: '/repo/docs/guildhall/plans/2026-10-11-b.md', content: '' } as never)
+  answer = await $.command.run(tavernCommand)
+  expect(answer.text).not.toContain('Second quest task')
+})
