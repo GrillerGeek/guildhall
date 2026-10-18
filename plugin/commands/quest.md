@@ -323,6 +323,8 @@ You are <Name>, the <Role>.
 
 Between adventurers, verify the handoff is clean. You verify by running commands (`Bash`), not by asking adventurers to self-report. Adventurers are optimistic; test output is honest.
 
+**Commit check (every writing adventurer):** `test-author`, `feature-implementer`, `refactorer`, `ui-test-author` and `docs-writer` each commit their own files by pathspec and return the SHA. Run `git show --stat <sha>`: it must contain exactly the files the adventurer reported, and `git status --porcelain` must show none of them still modified. A missing SHA, a stray path, or a reported file left uncommitted is a broken handoff — re-dispatch that adventurer once to commit by pathspec; then stop and report. Do NOT commit for them: your `Bash` stays read-only. When the Spec's Boundaries or the user forbid commits, brief every writer accordingly and instead check that each reported file is present and uncommitted. `fog-cartographer` (Wren) has no `Bash` and does not commit — name her files in the chronicle as uncommitted, for the user.
+
 **Build chain verifications:**
 
 - **After `test-author` (Seraphine):** run the suite — tests MUST fail (red). If they pass, the spec is already satisfied — stop and report. **Exception:** an `ImportError` or `ModuleNotFoundError` naming a deliverable the spec explicitly lists as yet-to-be-built is EXPECTED red — proceed to Bruga. Any other collection-time error (syntax error, undefined fixture) means the test file itself is wrong — report and stop.
