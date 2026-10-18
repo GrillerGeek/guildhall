@@ -152,10 +152,10 @@ Before dispatching adventurers, produce an implementation plan. This is the desi
 
 #### Mordain's brief — the dispatch prompt template
 
-When dispatching an adventurer, structure the `prompt` field so load-bearing context arrives inline. The spec file path still appears in the prompt as authoritative fallback for surrounding context (Problem statement, Background); but the **Expectations**, **Boundaries**, **Inputs/Outputs**, and **Local conventions** blocks are quoted verbatim, eliminating N×re-reads on a long spec. Order:
+When dispatching an adventurer, structure the `prompt` field so load-bearing context arrives inline. The spec file path still appears in the prompt as authoritative fallback for surrounding context (Problem statement, Background); but the **Expectations**, **edge cases**, **Boundaries**, **Inputs/Outputs**, and **Local conventions** blocks are quoted verbatim, eliminating N×re-reads on a long spec. Order:
 
 1. Quest framing — one or two sentences on what this adventurer is being asked to do and why.
-2. `## Spec excerpt (verbatim from <spec path>)` — paste the Expectations block, then Boundaries, then Inputs/Outputs, each under their own subheading. Verbatim. No paraphrasing.
+2. `## Spec excerpt (verbatim from <spec path>)` — paste the Expectations block, then the spec's edge cases (its edge-case table, or the per-Expectation edge cases — wherever the spec states them), then Boundaries, then Inputs/Outputs, each under their own subheading. Verbatim. No paraphrasing. The edge cases go to every adventurer, post-green reviewers included: they are the spec's own statement of which paths are reachable, and a reviewer without them can report a deliberate branch as dead.
 3. `## Local conventions (verbatim from CLAUDE.md)` — paste the section relevant to this quest. Skip if no `CLAUDE.md` exists or no section applies.
 4. `## Other handoff details` — spec path (for fallback), failing-test path (for Bruga), scope notes (for Tink), running-app URL (for Vera), error trace (for Kael).
 
@@ -334,6 +334,8 @@ You are <Name>, the <Role>.
 
 Between adventurers, verify the handoff is clean. You verify by running commands (`Bash`), not by asking adventurers to self-report. Adventurers are optimistic; test output is honest.
 
+**Commit check (every writing adventurer):** `test-author`, `feature-implementer`, `refactorer`, `ui-test-author` and `docs-writer` each commit their own files by pathspec and return the SHA. Run `git show --stat <sha>`: it must contain exactly the files the adventurer reported, and `git status --porcelain` must show none of them still modified. A missing SHA, a stray path, or a reported file left uncommitted is a broken handoff — re-dispatch that adventurer once to commit by pathspec; then stop and report. Do NOT commit for them: your `Bash` stays read-only. When the Spec's Boundaries or the user forbid commits, brief every writer accordingly and instead check that each reported file is present and uncommitted. `fog-cartographer` (Wren) has no `Bash` and does not commit — name her files in the chronicle as uncommitted, for the user.
+
 **Build chain verifications:**
 
 - **After `test-author` (Seraphine):** run the suite — tests MUST fail (red). If they pass, the spec is already satisfied — stop and report. **Exception:** an `ImportError` or `ModuleNotFoundError` naming a deliverable the spec explicitly lists as yet-to-be-built is EXPECTED red — proceed to Bruga. Any other collection-time error (syntax error, undefined fixture) means the test file itself is wrong — report and stop.
@@ -351,7 +353,8 @@ Between adventurers, verify the handoff is clean. You verify by running commands
 **Parallel-review verifications (post-green):**
 
 - **After `security-reviewer` (Oriana):** read the findings. Any `high` severity finding: STOP and surface to the user before proceeding to Rook. `med` findings: note in the plan's Open items and continue. `low` / `info` findings: include in the PR body's reviewer notes.
-- **Review-fix rounds touching untrusted-input patterns:** when a fix round adds or changes a regex, pattern or parser that runs on untrusted input, re-dispatch the reviewer whose finding it fixes on the fix diff, plus `security-reviewer` (Oriana). Do NOT close the round until a hostile-input timing probe (multiple sizes, input reaching the quantified path) passes. A fix diff never skips review: e.g. `" *\s*[\r\n\t]\s* *"` on untrusted text must be flagged before the PR draft.
+- **Review-fix rounds touching untrusted-input patterns:** when a fix round adds or changes a regex, pattern or parser that runs on untrusted input, re-dispatch the reviewer whose finding it fixes on the fix diff, plus `security-reviewer` (Oriana). If the reviewers name a missing probe, dispatch `test-author` (Seraphine) to write it from the spec — a timing guard at three or more sizes whose input reaches the quantified path — then run it yourself. Do NOT close the round until that probe passes. A fix diff never skips review: e.g. `" *\s*[\r\n\t]\s* *"` on untrusted text must be flagged before the PR draft.
+- **Any reviewer finding that a path is unreachable, redundant or dead:** check it against the quoted edge cases before acting on it. A finding that contradicts a quoted row is rejected — record the rejection in the plan's `## Decisions made by Mordain`, citing the row. Never route a fix that removes a branch the edge cases name.
 - **After `docs-writer` (Cassian):** verify the docs he touched compile / render (if the repo has doc-build tooling — `mkdocs build`, `sphinx-build`, etc.). If no doc-build exists, skim the diff for obviously-wrong claims.
 - **After `observability-reviewer` (Vance):** read the findings. Any `high` severity (silent failure on a request path, swallowed exception in a critical handler, secret leaking into logs): STOP and surface to the user. `med` / `low` / `info`: include in the PR body's reviewer notes.
 - **After `reliability-reviewer` (Thalia):** read the findings. Any `high` severity (no timeout on a critical-path call, unbounded retry, mutating op without idempotency on money / data integrity): STOP and surface to the user. `med` / `low` / `info`: include in the PR body's reviewer notes.

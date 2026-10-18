@@ -106,6 +106,9 @@ verbatim Spec Expectations/Boundaries and relevant conventions, allowed writes,
 non-goals and an explicit completion condition. Test-author gets no implementation
 context. Other workers may receive the implementation information they need.
 Quote contract text accurately; do not paraphrase away an edge case or Boundary.
+Quote the Spec's edge cases verbatim in every brief, reviewer briefs included. A
+reviewer finding that calls a path unreachable, redundant or dead and contradicts
+a quoted edge case is rejected and recorded in the plan with the row cited.
 
 ## Sequential build and evidence
 
@@ -173,6 +176,9 @@ UI verification; it does not turn the UI trigger off.
 Select and record each role before fan-out; revisit gates when the actual diff
 changes. Independent stdout-only reviewers can overlap. Cassian writes only the
 named docs and Vera only named UI tests; reserve their output paths explicitly.
+Writers commit only their own files by pathspec (never `-a` or `add .`) and
+return the SHA, unless committing is not authorized; then they report the
+uncommitted paths. Verify each commit contains exactly the reported files.
 Use fresh contexts, respect host capacity and await every selected result.
 
 Any high-severity security, observability, reliability, performance, migration
@@ -181,8 +187,10 @@ owners/follow-up. Validate docs with existing tooling when available; run Vera's
 actual UI tests. UI failures need a new feature cycle or a user decision.
 A review-fix round that adds or changes a regex, pattern or parser running on
 untrusted input re-dispatches the reviewer whose finding it fixes on the fix
-diff, plus security-reviewer. Do not close the round until a multi-size
-hostile-input timing probe, with input reaching the quantified path, passes.
+diff, plus security-reviewer. Reviewers stay read-only and name a missing
+probe; test-author writes it from the spec. Do not close the round until a
+multi-size hostile-input timing probe, with input reaching the quantified path,
+passes.
 Tabs' structural errors stop closure; warnings are reported. Tabs' bundled
 legacy checklist covers Claude packages; do not apply its Claude-only schema as
 a Codex schema. Prefer the target project's declared package validator.
