@@ -2,6 +2,7 @@
 
 ## 0.17.5 — Unreleased
 
+- Add a pre-RED drift check: when commits since the spec's approval base (`approved_at`, or the last commit touching the spec) touch named paths, Mordain reports stale lines, moved targets, flipping tests, changed counts and design drift, and routes corrections through docs-writer before RED. Briefs quote API names from the spec or plan, never from memory.
 - Default task preparation to unknown context requirements unless the handoff establishes a hard minimum, on Claude and Codex.
 - Explain candidate exclusions in local routing receipts without paid diagnostics; preserve hard constraints and legacy receipts.
 

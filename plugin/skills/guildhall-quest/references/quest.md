@@ -81,6 +81,14 @@ instructions), existing patterns and the full Spec. Preserve existing edits by
 recording relevant file contents/modes and Git state before dispatch. Do not
 reset or remove pre-existing work.
 
+Before RED in feature mode, check for drift: take the Spec's approval base from
+`approved_at: <sha>` or, as a recorded proxy, the last commit touching the Spec.
+If commits since then touch paths the Spec or plan names, report stale lines,
+moved targets, flipping tests, changed counts and design-changing behaviour.
+Route corrections through Cassian, committed, before test-author starts; a
+design change goes to the user. Quote API names and signatures in briefs from
+the Spec or plan, never from memory.
+
 Consult Aldric for genuinely novel or cross-cutting architecture before settling
 the plan; surface consequential choices to the user. Routine choices matching
 existing patterns can proceed with a recorded rationale.

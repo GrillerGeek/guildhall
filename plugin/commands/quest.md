@@ -116,8 +116,17 @@ is written; no additional project writes are authorized.
 
 Before dispatching adventurers, produce an implementation plan. This is the design-thinking layer — YOU do this work, on Opus.
 
-1. **Read the spec** (if feature mode) entirely. Quote the Expectations block back to yourself. Then **prepare verbatim quotes** of the load-bearing blocks — Expectations, Boundaries, Inputs/Outputs. You will inline these in each adventurer's dispatch prompt under a `## Spec excerpt` heading so they don't all re-read the full spec from disk. **Quote, don't paraphrase** — adventurers treat your quotes as authoritative.
+1. **Read the spec** (if feature mode) entirely. Quote the Expectations block back to yourself. Then **prepare verbatim quotes** of the load-bearing blocks — Expectations, Boundaries, Inputs/Outputs. You will inline these in each adventurer's dispatch prompt under a `## Spec excerpt` heading so they don't all re-read the full spec from disk. **Quote, don't paraphrase** — adventurers treat your quotes as authoritative. The same holds for every API name and signature you put in any brief: copy it from the spec or plan, never write it from memory. A misremembered signature handed to Seraphine becomes the contract Bruga must bend to.
 2. **Read the relevant code.** Use `Grep` / `Glob` to find existing patterns. Your plan MUST cite the patterns you are matching — no inventing patterns that do not exist in the codebase.
+
+   **Drift check (feature mode, before RED).** A spec or plan approved against an older base may no longer match the tree the quest builds on. Take the approval base from the spec frontmatter's `approved_at: <sha>` if present; otherwise use the last commit that changed the spec file (`git log -1 --format=%H -- <spec>`) and record it as a proxy. Do the same for a pre-existing plan. Then list the intervening commits that touch files the spec or plan names: `git log --name-status <approval_base>..HEAD -- <named paths>`. Empty → record "drift check: base unchanged" and continue. Otherwise, walk the range read-only and report:
+   - stale line numbers;
+   - moved or renamed targets;
+   - existing tests whose expectations now flip, including any the spec claims will not;
+   - derived counts that changed (entries, tools, cases);
+   - intervening behaviour that changes the design. That is a decision, not a correction — surface it to the user (or route to Aldric under item 4) before going on.
+
+   Route the spec and plan corrections through `docs-writer` (Cassian) — Seraphine sees only the spec, so they must land before RED — confirm they are committed, and record each one in the plan's `## Context`. Do NOT dispatch `test-author` against an uncorrected spec.
 3. **Read `CLAUDE.md`** at the project root if present — it holds local conventions. Note the section relevant to this quest; you'll inline it in dispatch prompts under a `## Local conventions` heading so adventurers don't all re-read the file.
 4. **Decide whether you need Aldric.** If the work is novel or cross-cutting — new module, new schema, new cross-project convention, a choice between two patterns that both exist in the codebase — dispatch `architecture-reviewer` BEFORE producing the plan. Aldric returns 2–3 alternatives with trade-offs and a recommendation. Use that to inform your plan. Do NOT dispatch Aldric for routine features that match an existing pattern — that is overkill.
 5. **Identify files to touch.** List them. Be specific.
@@ -162,6 +171,7 @@ quest: <one-line restatement of the ask>
 mode: feature | prototype | debug
 started: <ISO8601 timestamp>
 spec: <path to IDD spec, if feature mode>
+approval_base: <sha the spec was approved against — `approved_at`, or the proxy commit; "n/a" outside feature mode>
 slug: <kebab-case slug used in the filename>
 status: in_progress
 model_check: <unverified diagnostic hint from Step 2; trusted host attribution recorded separately>
@@ -174,6 +184,7 @@ parent_model: <trusted host metadata from Step 2, or "unknown">
 - Spec Expectations (quoted verbatim)
 - Cited patterns from the codebase (with file paths)
 - Any pre-dispatch decisions (Aldric's recommendation, if dispatched)
+- Drift check: "base unchanged", or each finding with the correction's commit SHA
 
 ## Dispatch sequence
 
