@@ -2,6 +2,7 @@
 
 ## 0.17.5 — Unreleased
 
+- Require multi-size hostile-input timing guards for regex/parser Expectations on untrusted input; security and performance reviewers flag overlapping quantifiers `high` unless such a test exists, and review-fix rounds that touch these patterns are re-reviewed and stay open until the probe passes.
 - Default task preparation to unknown context requirements unless the handoff establishes a hard minimum, on Claude and Codex.
 - Explain candidate exclusions in local routing receipts without paid diagnostics; preserve hard constraints and legacy receipts.
 
