@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guildhall planning adapter spike</title>
+<style>
+:root { color-scheme: light dark; font: 16px system-ui; }
+body { max-width: 800px; margin: 32px auto; padding: 0 20px; }
+textarea { display: block; box-sizing: border-box; width: 100%; min-height: 100px; margin: 8px 0 16px; font: inherit; }
+button { font: inherit; padding: 10px 14px; margin: 0 8px 10px 0; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+#proposal { padding: 20px 0; line-height: 1.7; }
+label { display: block; margin-top: 16px; }
+</style>
+<h1>Planning review</h1>
+<p>Local adapter experiment. Responses come from a synthetic transport fixture. Feedback remains proposed.</p>
+<p id="session"></p>
+<h2>Proposal</h2>
+<p id="proposal"></p>
+<button id="anchor">Attach selected passage</button>
+<p id="selection" aria-live="polite">No passage selected</p>
+<label for="comment">Comment or chat message</label>
+<textarea id="comment"></textarea>
+<button id="send">Send to harness</button>
+<button id="reload">Reload review</button>
+<button id="save">Save proposal checkpoint</button>
+<p id="status" role="status"></p>
+<h2>Review conversation</h2>
+<div id="conversation"></div>
+<script>
+const token = '__TOKEN__';
+let state, selected = '', submission;
+const el = id => document.getElementById(id);
+async function load() {
+  const response = await fetch('/state');
+  state = await response.json();
+  el('proposal').textContent = state.proposal;
+  el('session').textContent = 'Session ' + state.session;
+  el('conversation').replaceChildren();
+  for (const item of Object.values(state.feedback)) {
+    const text = document.createElement('pre');
+    text.textContent = (item.input.selection ? 'Passage: ' + item.input.selection + '\n' : '') +
+      item.input.comment + '\n' + (item.response || item.status) + '\nDisposition: ' + item.disposition;
+    el('conversation').append(text);
+  }
+}
+async function post(path, data) {
+  const response = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json',
+    'X-Review-Token': token }, body: JSON.stringify(data) });
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error);
+  return result;
+}
+el('anchor').onclick = () => {
+  const selection = window.getSelection();
+  if (!selection || !el('proposal').contains(selection.anchorNode) || !el('proposal').contains(selection.focusNode)) {
+    el('status').textContent = 'Select a passage within the proposal first.'; return;
+  }
+  selected = selection.toString();
+  el('selection').textContent = selected || 'No passage selected';
+  submission = undefined;
+};
+el('comment').oninput = () => { submission = undefined; };
+el('send').onclick = async () => {
+  el('send').disabled = true;
+  try {
+    submission ||= { id: crypto.randomUUID(), session: state.session, revision: state.revision,
+      selection: selected, comment: el('comment').value };
+    const result = await post('/feedback', submission);
+    el('status').textContent = result.status === 'received' ? 'Harness response saved. Decision remains proposed.' :
+      'Submission is ' + result.status + '; inspect history before retrying.';
+    await load();
+  } catch (error) { el('status').textContent = error.message; }
+  finally { el('send').disabled = false; }
+};
+el('reload').onclick = () => load().catch(error => { el('status').textContent = error.message; });
+el('save').onclick = async () => {
+  try { await post('/checkpoint', {revision: state.revision, session: state.session});
+    el('status').textContent = 'Proposal checkpoint saved. No approval inferred.';
+  } catch (error) { el('status').textContent = error.message; }
+};
+load().catch(error => { el('status').textContent = error.message; });
+</script>
+</html>
