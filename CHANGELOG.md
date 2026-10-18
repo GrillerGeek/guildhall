@@ -3,6 +3,7 @@
 ## 0.17.5 — Unreleased
 
 - State commit authority in every writing role: test-author, feature-implementer, refactorer, ui-test-author and docs-writer commit only their own files by pathspec and return the SHA (unless Boundaries forbid commits); fog-cartographer does not commit. Mordain verifies each commit's file set.
+- Require multi-size hostile-input timing guards for regex/parser Expectations on untrusted input; security and performance reviewers flag overlapping quantifiers `high` unless such a test exists, and review-fix rounds that touch these patterns are re-reviewed and stay open until the probe passes.
 - Default task preparation to unknown context requirements unless the handoff establishes a hard minimum, on Claude and Codex.
 - Explain candidate exclusions in local routing receipts without paid diagnostics; preserve hard constraints and legacy receipts.
 
