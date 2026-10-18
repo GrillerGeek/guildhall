@@ -2,6 +2,7 @@
 
 ## 0.17.5 — Unreleased
 
+- State commit authority in every writing role: test-author, feature-implementer, refactorer, ui-test-author and docs-writer commit only their own files by pathspec and return the SHA (unless Boundaries forbid commits); fog-cartographer does not commit. Mordain verifies each commit's file set.
 - Default task preparation to unknown context requirements unless the handoff establishes a hard minimum, on Claude and Codex.
 - Explain candidate exclusions in local routing receipts without paid diagnostics; preserve hard constraints and legacy receipts.
 

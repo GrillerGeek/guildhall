@@ -165,6 +165,9 @@ UI verification; it does not turn the UI trigger off.
 Select and record each role before fan-out; revisit gates when the actual diff
 changes. Independent stdout-only reviewers can overlap. Cassian writes only the
 named docs and Vera only named UI tests; reserve their output paths explicitly.
+Writers commit only their own files by pathspec (never `-a` or `add .`) and
+return the SHA, unless committing is not authorized; then they report the
+uncommitted paths. Verify each commit contains exactly the reported files.
 Use fresh contexts, respect host capacity and await every selected result.
 
 Any high-severity security, observability, reliability, performance, migration
