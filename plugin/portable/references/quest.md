@@ -98,6 +98,9 @@ verbatim Spec Expectations/Boundaries and relevant conventions, allowed writes,
 non-goals and an explicit completion condition. Test-author gets no implementation
 context. Other workers may receive the implementation information they need.
 Quote contract text accurately; do not paraphrase away an edge case or Boundary.
+Quote the Spec's edge cases verbatim in every brief, reviewer briefs included. A
+reviewer finding that calls a path unreachable, redundant or dead and contradicts
+a quoted edge case is rejected and recorded in the plan with the row cited.
 
 ## Sequential build and evidence
 

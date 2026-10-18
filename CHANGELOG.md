@@ -2,6 +2,7 @@
 
 ## 0.17.5 — Unreleased
 
+- Quote the spec's edge cases verbatim in every brief; post-green reviewers check them before calling a path dead, and Mordain rejects findings that contradict a quoted row, recording the rejection in the plan.
 - Default task preparation to unknown context requirements unless the handoff establishes a hard minimum, on Claude and Codex.
 - Explain candidate exclusions in local routing receipts without paid diagnostics; preserve hard constraints and legacy receipts.
 
