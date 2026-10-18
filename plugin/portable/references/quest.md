@@ -171,6 +171,10 @@ Any high-severity security, observability, reliability, performance, migration
 or accessibility finding stops closure. Record medium/low/info findings with
 owners/follow-up. Validate docs with existing tooling when available; run Vera's
 actual UI tests. UI failures need a new feature cycle or a user decision.
+A review-fix round that adds or changes a regex, pattern or parser running on
+untrusted input re-dispatches the reviewer whose finding it fixes on the fix
+diff, plus security-reviewer. Do not close the round until a multi-size
+hostile-input timing probe, with input reaching the quantified path, passes.
 Tabs' structural errors stop closure; warnings are reported. Tabs' bundled
 legacy checklist covers Claude packages; do not apply its Claude-only schema as
 a Codex schema. Prefer the target project's declared package validator.
