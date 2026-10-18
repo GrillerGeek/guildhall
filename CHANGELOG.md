@@ -2,6 +2,7 @@
 
 ## 0.17.5 — Unreleased
 
+- Add a pre-RED drift check: when commits since the spec's approval base (`approved_at`, or the last commit touching the spec) touch named paths, Mordain reports stale lines, moved targets, flipping tests, changed counts and design drift, and routes corrections through docs-writer before RED. Briefs quote API names from the spec or plan, never from memory.
 - Quote the spec's edge cases verbatim in every brief; post-green reviewers check them before calling a path dead, and Mordain rejects findings that contradict a quoted row, recording the rejection in the plan.
 - State commit authority in every writing role: test-author, feature-implementer, refactorer, ui-test-author and docs-writer commit only their own files by pathspec and return the SHA (unless Boundaries forbid commits); fog-cartographer does not commit. Mordain verifies each commit's file set.
 - Require multi-size hostile-input timing guards for regex/parser Expectations on untrusted input; security and performance reviewers flag overlapping quantifiers `high` unless such a test exists, and review-fix rounds that touch these patterns are re-reviewed and stay open until the probe passes.
