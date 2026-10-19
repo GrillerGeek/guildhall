@@ -7,10 +7,7 @@ import re
 
 ROOT = Path(__file__).resolve().parent.parent
 DEST = Path('plugin/skills/guildhall-quest')
-SETUP_DEST = Path('plugin/skills/guildhall-routing-setup')
-DESTINATIONS = (DEST, SETUP_DEST)
-SETUP_REFERENCES = ('global-routing', 'model-routing', 'routing', 'host-evidence',
-                    'role-eligibility', 'qualification-study', 'task-routing', 'input-delivery')
+DESTINATIONS = (DEST,)
 
 
 def outputs(root: Path) -> dict[Path, bytes]:
@@ -99,24 +96,6 @@ def outputs(root: Path) -> dict[Path, bytes]:
     roster += ''.join(f'| [{name}](roles/{name}.md) | {tier} |\n' for name,tier in roles)
     result[DEST / 'references/roster.md'] = roster.encode()
     result[DEST / 'LICENSE'] = (root/'LICENSE').read_bytes()
-    # Setup must remain usable as the only installed skill. Shared routing tools
-    # and their linked resources are copied from one canonical source, not forks.
-    for relative, data in list(result.items()):
-        local = relative.relative_to(DEST)
-        if (local.parts[0] in {'scripts', 'resources'} or local == Path('LICENSE')
-            or local in {Path('references') / (name + '.md') for name in SETUP_REFERENCES}):
-            result[SETUP_DEST / local] = data
-    setup = root / 'plugin/routing-setup'
-    if setup.is_symlink() or not setup.is_dir():
-        raise ValueError(f'invalid source directory: {setup}')
-    for file in sorted(setup.rglob('*')):
-        if file.is_symlink():
-            raise ValueError(f'symlink source: {file}')
-        if file.is_file():
-            destination = SETUP_DEST / file.relative_to(setup)
-            if destination in result:
-                raise ValueError(f'setup source shadows shared resource: {file}')
-            result[destination] = file.read_bytes()
     return result
 
 

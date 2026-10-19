@@ -46,33 +46,22 @@ writer contract. Author/reviewer ambiguity returns to the author; it is not an
 excuse to have a different worker guess. Wren uses existing Exploration lineage,
 never creates an absent map, and leaves decisions to `idd-resolve`.
 
-## Optional routing at every worker boundary
+## Model choices at every worker boundary
 
-Schema v5 Dynamic routing uses [task briefs and catalogs](task-routing.md) and
-reviewed worker controls, without benchmark qualification. Preserve intentional
-role locks separately from fallback defaults. All paths below use this adapter;
-unknown execution identity does not disable dynamic mode, known substitution does.
-When preparing a task brief, default `context_bucket` to `unknown` unless the
-permitted handoff establishes a hard capacity minimum. Do not use `small` as an
-ordinary task-size estimate: it requires verified capacity of at least 4,096
-tokens. Explain a hold using local `receipt.eligibility` exclusions; no extra
-diagnostic agent or router call is needed, and real constraints remain enforced.
+Use a supported explicit per-dispatch user choice before an explicit role choice,
+then the host's native roster/default configuration. Invalid or unsupported
+explicit choices hold dispatch rather than silently falling back. Claude native
+agents retain literal model arguments and roster/frontmatter baselines; Claude
+adventurers never use Fable, including full model IDs. Other hosts inherit the
+user's configured model/effort unless a supported explicit override was chosen.
+Do not translate Claude tiers or effort names into another host's settings.
 
-
-Use [the shared routing contract](routing.md) for all Guildhall workers, including
-fast lanes and pre-plan consultations. Absent/off policy leaves ordinary dispatch
-unchanged and never invokes Python. Explicit user choice precedes role override,
-then active routing, then eligible baseline; invalid explicit choices hold.
-Before enabled calls, resolve session/project/global policy and reuse valid
-source-bound approval under [global setup](global-routing.md). Recheck source,
-approval and fresh host/profile evidence before each worker; when approval is
-missing, obtain explicit activation through setup outside quest execution. Then
-prepare permitted bounded facts, and carry returned routing state serially across
-all workers. Test-author routing sees only its permitted Spec/API/test handoff.
-Buffer pre-plan receipts, then record them in the plan; no-plan fast lanes include
-them in their final response. Append worker/outcome/retry and trustworthy model
-metadata after execution. Routing cannot alter this protocol's gates, independent
-contexts, permissions, retry limits, selected reviewers or lifecycle ownership.
+Apply the same rule to fast lanes, pre-plan consultations, prototype/debug,
+build, reviews and PR drafting. Record requested settings and trusted observed
+host metadata separately; without trusted metadata, observed identity is
+`unknown`. Worker self-reports do not prove applied overrides or billing.
+Model choices cannot change gates, independent contexts, permissions, retry
+limits, selected reviewers or lifecycle ownership.
 
 ## Plan and brief
 
@@ -231,14 +220,9 @@ concrete suggested amendments, not automatic edits to project rules.
 
 Report in Mordain's chronicle voice with concrete artifacts, actual verification,
 selected/skipped reviewers, limitations, partial work, open items and applicable
-recovery decisions. Never report completed independence, enforcement or model
-routing solely from a role's own assertion.
+recovery decisions. Never report completed independence, enforcement or applied
+model settings solely from a role's own assertion.
 
-Use [host preflight and evidence](host-evidence.md) for optional schema-v3 routing;
-retain worker scopes, gates, state and explicit activation.
-
-
-For required reference material, use [bounded input delivery](input-delivery.md)
-and record ordinary-work feedback from existing tests/reviews/usage only. Repair
-missing chunks within the existing budget; never treat source hashes or worker
-assertions as delivery proof or run extra workers to collect feedback.
+For required reference material, use [bounded input delivery](input-delivery.md).
+Repair missing chunks within the existing authorized budget; never treat source
+hashes or worker assertions as delivery proof.

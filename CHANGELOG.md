@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.18.0 — Unreleased
+
+- Remove Jev-assisted model routing, its setup skill, policy/approval helpers, catalogs, qualification studies and bundled routing resources.
+- Restore ordinary host dispatch with explicit supported user/role choices and native Claude roster defaults; preserve specialist roles, hooks and workflow gates.
+- Stop reading legacy global/project routing policies or requiring routing credentials. Existing personal configuration files remain untouched.
+
 ## 0.17.5 — Unreleased
 
 - Add a pre-RED drift check: when commits since the spec's approval base (`approved_at`, or the last commit touching the spec) touch named paths, Mordain reports stale lines, moved targets, flipping tests, changed counts and design drift, and routes corrections through docs-writer before RED. Briefs quote API names from the spec or plan, never from memory.
