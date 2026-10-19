@@ -46,33 +46,22 @@ writer contract. Author/reviewer ambiguity returns to the author; it is not an
 excuse to have a different worker guess. Wren uses existing Exploration lineage,
 never creates an absent map, and leaves decisions to `idd-resolve`.
 
-## Optional routing at every worker boundary
+## Model choices at every worker boundary
 
-Schema v5 Dynamic routing uses [task briefs and catalogs](task-routing.md) and
-reviewed worker controls, without benchmark qualification. Preserve intentional
-role locks separately from fallback defaults. All paths below use this adapter;
-unknown execution identity does not disable dynamic mode, known substitution does.
-When preparing a task brief, default `context_bucket` to `unknown` unless the
-permitted handoff establishes a hard capacity minimum. Do not use `small` as an
-ordinary task-size estimate: it requires verified capacity of at least 4,096
-tokens. Explain a hold using local `receipt.eligibility` exclusions; no extra
-diagnostic agent or router call is needed, and real constraints remain enforced.
+Use a supported explicit per-dispatch user choice before an explicit role choice,
+then the host's native roster/default configuration. Invalid or unsupported
+explicit choices hold dispatch rather than silently falling back. Claude native
+agents retain literal model arguments and roster/frontmatter baselines; Claude
+adventurers never use Fable, including full model IDs. Other hosts inherit the
+user's configured model/effort unless a supported explicit override was chosen.
+Do not translate Claude tiers or effort names into another host's settings.
 
-
-Use [the shared routing contract](routing.md) for all Guildhall workers, including
-fast lanes and pre-plan consultations. Absent/off policy leaves ordinary dispatch
-unchanged and never invokes Python. Explicit user choice precedes role override,
-then active routing, then eligible baseline; invalid explicit choices hold.
-Before enabled calls, resolve session/project/global policy and reuse valid
-source-bound approval under [global setup](global-routing.md). Recheck source,
-approval and fresh host/profile evidence before each worker; when approval is
-missing, obtain explicit activation through setup outside quest execution. Then
-prepare permitted bounded facts, and carry returned routing state serially across
-all workers. Test-author routing sees only its permitted Spec/API/test handoff.
-Buffer pre-plan receipts, then record them in the plan; no-plan fast lanes include
-them in their final response. Append worker/outcome/retry and trustworthy model
-metadata after execution. Routing cannot alter this protocol's gates, independent
-contexts, permissions, retry limits, selected reviewers or lifecycle ownership.
+Apply the same rule to fast lanes, pre-plan consultations, prototype/debug,
+build, reviews and PR drafting. Record requested settings and trusted observed
+host metadata separately; without trusted metadata, observed identity is
+`unknown`. Worker self-reports do not prove applied overrides or billing.
+Model choices cannot change gates, independent contexts, permissions, retry
+limits, selected reviewers or lifecycle ownership.
 
 ## Plan and brief
 
@@ -80,6 +69,14 @@ Read applicable project guidance (`AGENTS.md`, scoped rules and the active host'
 instructions), existing patterns and the full Spec. Preserve existing edits by
 recording relevant file contents/modes and Git state before dispatch. Do not
 reset or remove pre-existing work.
+
+Before RED in feature mode, check for drift: take the Spec's approval base from
+`approved_at: <sha>` or, as a recorded proxy, the last commit touching the Spec.
+If commits since then touch paths the Spec or plan names, report stale lines,
+moved targets, flipping tests, changed counts and design-changing behaviour.
+Route corrections through Cassian, committed, before test-author starts; a
+design change goes to the user. Quote API names and signatures in briefs from
+the Spec or plan, never from memory.
 
 Consult Aldric for genuinely novel or cross-cutting architecture before settling
 the plan; surface consequential choices to the user. Routine choices matching
@@ -98,6 +95,9 @@ verbatim Spec Expectations/Boundaries and relevant conventions, allowed writes,
 non-goals and an explicit completion condition. Test-author gets no implementation
 context. Other workers may receive the implementation information they need.
 Quote contract text accurately; do not paraphrase away an edge case or Boundary.
+Quote the Spec's edge cases verbatim in every brief, reviewer briefs included. A
+reviewer finding that calls a path unreachable, redundant or dead and contradicts
+a quoted edge case is rejected and recorded in the plan with the row cited.
 
 ## Sequential build and evidence
 
@@ -165,6 +165,9 @@ UI verification; it does not turn the UI trigger off.
 Select and record each role before fan-out; revisit gates when the actual diff
 changes. Independent stdout-only reviewers can overlap. Cassian writes only the
 named docs and Vera only named UI tests; reserve their output paths explicitly.
+Writers commit only their own files by pathspec (never `-a` or `add .`) and
+return the SHA, unless committing is not authorized; then they report the
+uncommitted paths. Verify each commit contains exactly the reported files.
 Use fresh contexts, respect host capacity and await every selected result.
 
 Any high-severity security, observability, reliability, performance, migration
@@ -173,8 +176,10 @@ owners/follow-up. Validate docs with existing tooling when available; run Vera's
 actual UI tests. UI failures need a new feature cycle or a user decision.
 A review-fix round that adds or changes a regex, pattern or parser running on
 untrusted input re-dispatches the reviewer whose finding it fixes on the fix
-diff, plus security-reviewer. Do not close the round until a multi-size
-hostile-input timing probe, with input reaching the quantified path, passes.
+diff, plus security-reviewer. Reviewers stay read-only and name a missing
+probe; test-author writes it from the spec. Do not close the round until a
+multi-size hostile-input timing probe, with input reaching the quantified path,
+passes.
 Tabs' structural errors stop closure; warnings are reported. Tabs' bundled
 legacy checklist covers Claude packages; do not apply its Claude-only schema as
 a Codex schema. Prefer the target project's declared package validator.
@@ -215,18 +220,12 @@ concrete suggested amendments, not automatic edits to project rules.
 
 Report in Mordain's chronicle voice with concrete artifacts, actual verification,
 selected/skipped reviewers, limitations, partial work, open items and applicable
-recovery decisions. Never report completed independence, enforcement or model
-routing solely from a role's own assertion.
+recovery decisions. Never report completed independence, enforcement or applied
+model settings solely from a role's own assertion.
 
-Use [host preflight and evidence](host-evidence.md) for optional schema-v3 routing;
-retain worker scopes, gates, state and explicit activation.
-
-
-For required reference material, use [bounded input delivery](input-delivery.md)
-and record ordinary-work feedback from existing tests/reviews/usage only. Repair
-missing chunks within the existing budget; never treat source hashes or worker
-assertions as delivery proof or run extra workers to collect feedback.
-
+For required reference material, use [bounded input delivery](input-delivery.md).
+Repair missing chunks within the existing authorized budget; never treat source
+hashes or worker assertions as delivery proof.
 
 ## Collaborative planning handoff
 

@@ -32,22 +32,22 @@ The eighteen adventurers:
 | **Kael the Tracker** | `debug-investigator` | Ranger. Finds root cause; does NOT fix. | Sonnet |
 | **Wren Mistwalker** *(gated: fog + exploration lineage)* | `fog-cartographer` | Wayfinder. Writes quest-discovered unknowns back to the linked IDD Exploration. | Haiku |
 
-These Model entries mirror native Claude frontmatter defaults. Explicit user
-choices and approved optional routing can override dispatch settings.
+These Model entries mirror native Claude frontmatter defaults. Explicit supported
+user model choices can override dispatch settings.
 
 Plus one diagnostic: **`model-echo`** — requested on a model different from its
 frontmatter to collect an unverified hint. Its self-report cannot establish
-which model executed or which routing mechanism took precedence. Trusted host
+which model executed or which host setting took precedence. Trusted host
 metadata is required; otherwise observed identity stays `unknown`.
 
 Full character sheets in [`CHARACTERS.md`](CHARACTERS.md).
 
 ## Installation
 
-Version **0.17.5 includes the installed routing tools**. The [installation guide](https://github.com/GrillerGeek/guildhall/blob/main/docs/installation.md)
+Version **0.18.0 removes optional Jev-assisted routing and its setup skill**.
+The [installation guide](https://github.com/GrillerGeek/guildhall/blob/main/docs/installation.md)
 covers this repository's Codex, Claude and standalone routes, updates and removal.
-The `main` route receives 0.16.0 after merge; the separate marketplace below is
-not updated by this change.
+The separate marketplace below is not updated by this change.
 
 ### From the marketplace (recommended)
 
@@ -146,49 +146,16 @@ alone. Plan records retain evidence, but requested settings and model self-repor
 do not establish execution identity or billing. Missing usage/cost stays unknown;
 subscription usage cannot be converted into an assumed API bill.
 
-**How routing works:** valid per-dispatch user selection precedes a role override,
-then activated routing, then the eligible roster/frontmatter baseline. Native
-Claude always receives the resolved literal model argument, including a full ID
-when actually supported. Frontmatter aliases remain defaults. Host settings may
-override or substitute the request; record trusted observed settings separately
-or `unknown`. Earlier model-echo observations were diagnostic history, not proof
-of precedence or cost.
+Supported explicit per-dispatch user selections take precedence over role model
+choices and native roster/frontmatter defaults. Portable workers use supported
+host/user settings without inventing equivalents for Claude aliases. Host
+settings may override or substitute a request; record trusted observed settings
+separately or `unknown`. Model-echo self-reports are diagnostic hints, not proof
+of execution identity or cost.
 
-## Optional Jev-assisted routing
+## Portable quest skill
 
-The single bundled helper serves native Claude and portable Claude/Codex.
-`off` is the default and skips the helper; `shadow` records recommendations while
-preserving baseline dispatch; schema-v5 `dynamic` selects per task using reviewed
-host controls and profile preferences, without a study; `adaptive` can apply reviewed qualifications only
-for explicitly enabled specialists across all 18 roles with schema v4. Shadow
-does not require qualified profiles. See the [role matrix and migration guide](skills/guildhall-quest/references/role-eligibility.md).
-No live-qualified profiles ship, and no cost or quality improvement is claimed.
-
-Ask **“Set up Guildhall routing”** to use the bundled
-[`guildhall-routing-setup` wizard](skills/guildhall-routing-setup/SKILL.md). It guides
-scope, goal, supported candidates and mode, checks prerequisites, and previews the
-result before saving. Dynamic is the ordinary automatic-selection path for Codex
-and Claude; benchmark qualification is optional. It can also diagnose, change or disable existing routing.
-
-Set up [global defaults and persistent approvals](skills/guildhall-quest/references/global-routing.md)
-once per host, then inherit them across projects. Optional project policies
-replace global defaults; explicit project opt-out disables them. Removing a
-project policy restores inheritance.
-
-Use [the setup and operations guide](skills/guildhall-quest/references/model-routing.md) before a quest.
-Enabled routing needs Python 3.12+ and explicit policy activation; external calls
-read `TYPESAFE_API_KEY` from the host process environment. An API key alone enables
-nothing. Ordinary Guildhall needs neither Jev nor IDD. The
-[shared contract](skills/guildhall-quest/references/routing.md) defines data,
-qualification, fallback, receipts and serial per-quest state. The helper cannot
-change reviewers, permissions, lifecycle gates or retry budgets.
-
-## Portable quest candidate
-
-Version 0.16.0 ships `skills/guildhall-quest/SKILL.md` for capable
+Version 0.18.0 ships `skills/guildhall-quest/SKILL.md` for capable
 non-Claude hosts. It bundles its role references and uses host-native independent
 workers. The Claude command/agent/hook route documented above is preserved;
 standalone installation does not register those native Claude components.
-
-For subscriptions, select the optional `usage` routing objective; measured tokens
-remain separate from dollar billing and unknown quota limits.

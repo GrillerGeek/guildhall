@@ -74,6 +74,13 @@ class PortableTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'repository-owned'):
             validate(self.root)
 
+    def test_unexpected_skill_refuses_distribution(self):
+        extra=self.root/'plugin/skills/retired-skill'
+        extra.mkdir()
+        (extra/'SKILL.md').write_text('A skill no longer shipped by this plugin.\n')
+        with self.assertRaisesRegex(ValueError,'unexpected skill inventory'):
+            validate(self.root)
+
     def test_broken_reference_is_detected_after_build(self):
         p=self.root/'plugin/portable/SKILL.md';p.write_text(p.read_text()+'\n[missing](references/missing.md)\n');build(self.root)
         with self.assertRaisesRegex(ValueError,'missing/escaped'):

@@ -2,7 +2,7 @@
 <!-- Guildhall is a Claude Code plugin and portable Agent Skill: a coding workflow where Mordain plans and dispatches specialist agents for tests, implementation, reviews and a PR draft. -->
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Plugin](https://img.shields.io/badge/plugin-v0.16.0-green.svg)](plugin/README.md)
+[![Plugin](https://img.shields.io/badge/plugin-v0.18.0-green.svg)](plugin/README.md)
 
 **Give a coding task to a team of AI specialists that writes tests, implements the
 change, reviews it and prepares a PR draft.**
@@ -21,8 +21,8 @@ code, tests, review evidence and a PR draft. Publishing a PR is a separate actio
 ## Install
 
 The commands below install Guildhall from its published main branch. This branch
-prepares **0.16.0**, adding a conversational specialist-routing setup wizard
-alongside global defaults and persistent approvals; those changes reach the main install route after merge.
+prepares **0.18.0**, removing optional Jev-assisted routing and its setup skill;
+those changes reach the main install route after merge.
 Choose one route for your coding app. No repository clone, build or IDD
 installation is required.
 
@@ -73,8 +73,8 @@ Choose **project** to keep the skill with this project; choose **global** if you
 want it available across projects. Version `1.5.25` is the tested installer pin,
 not the Guildhall version.
 
-Choose `guildhall-quest` for coding workflows and `guildhall-routing-setup` for
-the optional conversational routing wizard. Each skill is independently installable. Standalone skills do not install Claude's native
+Choose `guildhall-quest`, the generated skill for coding workflows.
+Standalone skill installation does not install Claude's native
 agents or hooks. After restarting your app, ask it to use `guildhall-quest` to
 prototype a small task. The `/guildhall:quest` examples below are native Claude
 plugin commands; skill-only installs use `guildhall-quest` instead.
@@ -100,8 +100,9 @@ $guildhall-quest Prototype a Python CLI that summarizes a local CSV file.
 
 For feature work, describe the desired behavior and how it should be tested.
 Guildhall plans the work, dispatches a separate test author before the implementer,
-and selects reviews based on the change. It uses your host's configured model;
-Claude's native route also retains its role-specific model aliases.
+and selects reviews based on the change. It uses ordinary host dispatch and
+supported explicit user/role model choices. Claude's native route retains its
+frontmatter defaults; portable hosts do not invent equivalents for Claude aliases.
 
 A concrete task description is enough to start. You do not need IDD artifacts or
 an IDD plugin installation to use these prototype, feature or debug workflows.
@@ -118,43 +119,6 @@ an IDD plugin installation to use these prototype, feature or debug workflows.
 The test → build → refactor sequence stays ordered. Independent reviews may run
 in parallel when the host supports it. Mordain's own edits remain limited to the
 plan; specialists carry out the implementation and review work.
-
-## Optional: Jev-assisted model routing
-
-The optional routing helper is shared by native Claude and the portable
-Claude/Codex skill. Routing is **off by default**. Ordinary quests retain their
-existing model defaults without a Jev key or the routing Python runtime.
-
-- **Shadow** records recommendations while keeping baseline dispatch. It needs
-  explicit activation, supported candidate profiles and Python 3.12+; it does
-  not require adaptive qualification.
-- **Dynamic** selects per task among reviewed supported model/effort pairs without
-  a qualification study. Available on Codex and both Claude routes under schema v5.
-- **Benchmark-qualified adaptive** can route any of the 18 specialists under schema v4, but only
-  when that role is explicitly enabled and independently qualified for its host,
-  task category and objective. No qualified profiles ship with this release.
-
-To use the wizard, ask **“Set up Guildhall routing”** or invoke:
-
-```text
-$guildhall-routing-setup Set up model routing across my projects.
-```
-
-The wizard detects the host, asks short choices, previews settings and saves them
-after your selected action. Automatic-selection setup recommends Dynamic routing; shadow is optional.
-No study or paid setup probe is required. It also handles changes, diagnosis and disabling routing. Native
-plugins include the skill; standalone users select it during installation.
-
-Configure routing once per host with [global defaults](plugin/skills/guildhall-quest/references/global-routing.md)
-in `~/.config/guildhall/routing.json` (or XDG_CONFIG_HOME). Approve the selected
-policy for all projects once; unchanged approvals persist across sessions. Optional
-`.guildhall/routing.json` project policies override it in full, and a project opt-out
-can disable routing. Deleting a project policy restores global inheritance.
-An API key alone enables nothing. The [routing guide](docs/model-routing.md)
-includes a setup prompt, safe smoke command, data-sharing details, receipts and
-disable instructions. The [role matrix and migration guide](plugin/skills/guildhall-quest/references/role-eligibility.md)
-explains explicit role scope, fallback defaults and migration. There are no measured Jev savings or live qualification
-claims; see the [verification report](docs/reviews/2026-09-21-jev-routing.md).
 
 ## Optional: use with IDD
 
@@ -199,20 +163,15 @@ for evidence and remaining limits.
 - [Plugin reference](plugin/README.md): native Claude usage and detailed workflows.
 - [Character roster](plugin/CHARACTERS.md): eighteen specialists and one diagnostic agent.
 - [Portable workflow](plugin/portable/references/quest.md): host-neutral execution contract.
-- [Model routing](docs/model-routing.md): optional Jev setup and operation.
 - [Contributor guide](docs/contributing-agents.md) and [AGENTS.md](AGENTS.md): source ownership and checks.
 - [Design history](docs/superpowers/): previous architecture and model-routing decisions.
 
 Native Claude components live in `plugin/agents/`, `plugin/commands/` and
 `plugin/hooks/`. Portable sources live in `plugin/portable/`; the complete
-`plugin/skills/` bundles are generated by `scripts/build_portable.py` from the
-portable quest source and `plugin/routing-setup/`. Shared routing tools have one
-canonical source and ship in both independently usable skills.
+`plugin/skills/guildhall-quest/` bundle is generated by `scripts/build_portable.py`
+from the portable quest source.
 Contributors use Python 3.12+; users do not need the build tooling to load the skill.
 
 ## License
 
 [MIT](LICENSE).
-
-For subscriptions, select the optional `usage` routing objective; measured tokens
-remain separate from dollar billing and unknown quota limits.

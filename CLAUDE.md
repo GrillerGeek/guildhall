@@ -52,43 +52,29 @@ host's capabilities instead of inferring them from this historical observation.
 
 When editing `quest.md`, preserve this three-phase shape. Serializing the review fan-out wastes the whole point of those agents' independence; parallelizing the TDD build chain breaks the independence guardrail.
 
-### Explicit dispatch settings and optional routing
-
-Resolve session/project/global defaults through the installed
-[global routing contract](plugin/skills/guildhall-quest/references/global-routing.md).
-Reuse unchanged source-bound approval with fresh host controls/evidence; recheck each
-worker boundary. Setup writes stay outside Mordain's plan-only execution scope.
+### Explicit dispatch settings
 
 Every native `Agent(...)` call includes a literal `model` argument. Resolve it
-through valid per-dispatch user choice → role override → activated routing →
-eligible roster/frontmatter baseline. Full host-supported IDs are permitted on
-dispatch; native agent frontmatter stays in alias form (`sonnet` / `opus` /
-`haiku`). Keep each new agent's roster row aligned with its frontmatter; validator
-check 8 enforces the default tiers, not actual execution identity.
+through supported per-dispatch user choice → explicit role choice →
+roster/frontmatter default. Unsupported or invalid explicit choices hold dispatch;
+never silently substitute a different model. Full host-supported IDs are permitted
+on dispatch; native agent frontmatter stays in alias form (`sonnet` / `opus` /
+`haiku`). Fable is forbidden for all Claude adventurers, including full model IDs.
+Keep each new agent's roster row aligned with its frontmatter; validator check 8
+enforces default tiers, not actual execution identity. Portable hosts inherit the
+user's configuration unless a supported explicit override was selected. Do not
+translate Claude model aliases or effort names into another host's settings.
 
-The explicit-parameter convention dates to historical routing observations on
+The explicit-parameter convention dates to historical model observations on
 2026-04-23 and 2026-06-10. Those model-echo self-reports do not prove parameter
 precedence. The diagnostic still requests Haiku against Sonnet frontmatter, but
 its reply is an unverified hint. Record requested and trusted observed settings
 separately; absent host execution metadata means observed `unknown`. This applies
 to Mordain's `parent_model` record too. Never infer cost from a model hint.
 
-The [routing guide](docs/model-routing.md) and
-[shared contract](plugin/skills/guildhall-quest/references/routing.md) govern the
-single helper used by native Claude and portable Claude/Codex. Absent/off policy
-skips Python and external calls. Shadow needs explicit activation, not adaptive
-qualification. Schema v5 Dynamic routing can select per assignment for all 18
-specialists with reviewed controls, task briefs and pinned host catalogs, without
-a study or served-model proof. Import roster defaults as role baselines; only
-intentional user overrides become locks. Advanced adaptive retains benchmark
-qualification. Unknown worker observation does not suspend dynamic mode; known
-substitution does. Preserve requested and observed identities separately.
-No qualified profiles ship. Prepare global defaults or a project override before the quest, outside Mordain's plan-only write scope. Any policy change requires
-renewed activation. Serialize helper decisions and carry returned state across
-workers, even when the workers run concurrently. Keep test-author routing facts
-within its permitted handoff. Routing never changes reviewers, permissions,
-role contracts, IDD ownership or retry budgets. Fable remains forbidden for all
-Claude adventurers, including full model IDs.
+Ordinary worker dispatch requires no model-selection helper, configuration
+discovery, approval, API key or external service. Model choices never change
+reviewers, permissions, role contracts, IDD ownership or retry budgets.
 
 ### IDD-framework is the upstream spec producer
 
@@ -108,7 +94,7 @@ trusted host metadata or use `unknown`.
 - **Opus:** `architecture-reviewer` (Aldric), `security-reviewer` (Oriana), `reliability-reviewer` (Thalia), `migration-safety-reviewer` (Ysolde). The four classes where a miss is hardest to reverse — bad architecture, bad security, cascading prod failures, irreversible data changes.
 - **Sonnet:** `test-author`, `feature-implementer`, `ui-test-author`, `docs-writer`, `pr-author`, `prototype-builder`, `debug-investigator`, `observability-reviewer` (Vance), `performance-reviewer` (Cassia), `ops-readiness-reviewer` (Garran), `accessibility-reviewer` (Lior). The majority — execution and structured checklist work.
 - **Haiku:** `refactorer` (Tink), `plugin-validator` (Tabs), `fog-cartographer` (Wren). Narrowly-scoped behavior-preserving refactors and mechanical regex / structural checks, and faithful transcription.
-- **Diagnostic:** `model-echo` (Sonnet frontmatter, requested Haiku; its reply is an unverified hint, never routing proof).
+- **Diagnostic:** `model-echo` (Sonnet frontmatter, requested Haiku; its reply is an unverified hint, never execution proof).
 
 Every agent's frontmatter `model:` uses an alias (`sonnet` / `opus` / `haiku`),
 not a full model ID — full IDs surface as warnings from `plugin-validator`.
@@ -140,8 +126,7 @@ from those unchanged defaults.
 
 Keep `sonnet` frontmatter and roster defaults. Sonnet 5.5 support in Claude Code
 requires 2.1.284+; check the executing host and provider mapping during setup.
-The optional reviewed `host.model_resolutions` records known version/default-effort
-changes for approval without treating them as execution evidence. Follow the
-[installed mapping contract](plugin/skills/guildhall-quest/references/task-routing.md#sonnet-55-and-reviewed-model-mappings).
-Do not copy API effort defaults into worker dispatch or launch qualification runs
-just to refresh a supported model. Existing user locks remain intentional locks.
+Use a supported explicit user or role choice when a specific full model ID is
+needed; otherwise retain native defaults. Do not copy API effort defaults into
+worker dispatch. Record requested settings separately from trusted execution
+metadata, or observed `unknown`.

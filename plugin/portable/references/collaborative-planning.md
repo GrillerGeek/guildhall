@@ -4,6 +4,8 @@ Mordain stays in the main conversation and writes only the quest plan at
 `docs/guildhall/plans/YYYY-MM-DD-slug.md`. Review documents are Cassian's named
 outputs in **review-document** mode. A helper is bounded bookkeeping and transport,
 not another specialist, lifecycle controller or a way around the plan-only guard.
+The removed routing setup and Jev integration remain absent; review support does
+not reinstall or reactivate them.
 
 ## Choose a real capability
 
