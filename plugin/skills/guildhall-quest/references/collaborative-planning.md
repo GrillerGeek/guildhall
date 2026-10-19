@@ -204,3 +204,37 @@ Reject rather than truncate; preserve drafts and offer splitting/archival. Repor
 lower host limits. No paid-model/native-account acceptance is implied by packaging,
 mock transport, generated output or completed historical spikes. Retain those
 spikes as labeled evidence; no synthetic responder ships as the adapter default.
+
+
+## Review transport and publication safeguards
+
+Reserve each feedback request against an immutable session before host checks;
+rebind refuses while reserved. Release transport waits so normal cancellation
+remains available. Every host operation carries one monotonic deadline across
+checks, lock/pipe waits, sends, reads and recovery. Progress or acknowledgement
+never restarts the budget. Unknown delivery remains unknown after possible sends.
+A short bounded retry backoff prevents refresh loops from repeatedly consuming
+failed recovery budgets; an explicit same-ID inspection or restart can inspect
+immediately. There is no force-clear or automatic new-session escape.
+
+Pi's runtime ownership marker includes both its dedicated file binding and the
+observed stable session ID. Reject replacement identity on restart. Pipe writes
+and cancellation use bounded nonblocking I/O. Terminal events alone never attribute
+an answer: require exact marker/history association and observed settlement.
+Existing runtime directories must belong to the current user and have private
+permissions; refuse unsafe storage without changing its mode.
+
+The two named snapshots are alternating slots. The manifest's snapshot_path
+identifies their current role. Prepare writes the slot that is not last-common;
+complete atomically publishes the manifest pointing to that verified slot.
+Failure leaves the prior common snapshot and pending checkpoint usable. Merge
+current feedback/decisions by ID at completion; preserve intervening entries or
+refuse safely when the same ID changed.
+
+Recovery errors remain attached to the specific runtime request as recovery_error
+with safe bounded code/message/stage/error_class. Restriction or identity failure
+disables model chat and exposes the reason while documents/comments stay usable.
+GET /state reports unavailable_reason and keeps session identity visible in the
+connected UI. Unexpected boundary failures emit only operation/stage/error_class;
+Pi may report safe exit status and whether stderr existed, never provider bytes,
+private paths, tokens or transcripts. Durable records retain no raw runtime logs.

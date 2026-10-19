@@ -15,6 +15,9 @@ from pathlib import Path
 import queue
 import re
 import secrets
+import selectors
+import socket
+import stat
 import shutil
 import signal
 import subprocess
@@ -35,15 +38,55 @@ DELIVERIES = ('prepared', 'sent-unknown', 'response-received', 'failed-before-se
 DISPOSITIONS = {'proposed', 'accepted', 'rejected', 'deferred', 'unresolved'}
 
 class Refusal(Exception):
-    def __init__(self, message, code=2, http=None):
+    def __init__(self, message, code=2, http=None, details=None):
         super().__init__(message)
         self.code = code
+        self.details = details or {}
         self.http = http or {2:400, 3:409, 4:502}[code]
 
 
-def require(condition, message, code=2, http=None):
+def require(condition, message, code=2, http=None, details=None):
     if not condition:
-        raise Refusal(message, code, http)
+        raise Refusal(message, code, http, details)
+
+
+def diagnostic(stage, error_class):
+    # Only bounded labels chosen by this helper, never exception messages/paths.
+    return {'stage':stage[:64], 'error_class':error_class[:64]}
+
+
+def failure(stage, error, message='Review operation unavailable; saved evidence retained'):
+    return Refusal(message,4,details=diagnostic(stage,type(error).__name__))
+
+
+def report(operation, error):
+    if error.details:
+        print(json.dumps({'operation':operation if operation in ('init','inspect','checkpoint','export','serve',
+              'state','document','feedback','cancel','rebind') else 'unknown', **error.details}),file=sys.stderr,flush=True)
+
+
+def remaining(deadline, stage):
+    budget = deadline-time.monotonic()
+    require(budget > 0, 'Host operation deadline exceeded; inspect delivery before retrying',4,
+            details=diagnostic(stage,'DeadlineExceeded'))
+    return budget
+
+
+@contextlib.contextmanager
+def synchronized(lock,deadline,stage):
+    # An expired operation may still record its observed outcome without waiting
+    # when the lock is immediately available; it never acquires a fresh budget.
+    locked = lock.acquire(timeout=max(0,deadline-time.monotonic()))
+    require(locked, 'Host operation synchronization deadline exceeded',4,
+            details=diagnostic(stage,'DeadlineExceeded'))
+    try: yield
+    finally: lock.release()
+
+
+def safety(condition,message,identity=False):
+    require(condition,message,3 if identity else 4,
+            details=diagnostic('session-identity' if identity else 'tool-restrictions',
+                               'IdentityMismatch' if identity else 'RestrictionFailure'))
 
 
 def fields(value, required, optional=()):
@@ -94,7 +137,7 @@ def envelope(operation, result=None, error=None):
     return {'schema_version':1, 'operation':operation, 'ok':error is None,
             'result':result if error is None else None,
             'error':None if error is None else {'code':{2:'invalid-input',3:'refused',4:'unavailable'}[error.code],
-                                               'message':str(error), 'details':{}}}
+                                               'message':str(error), 'details':error.details}}
 
 
 def parse(raw):
@@ -253,13 +296,20 @@ class Workspace:
             require(path.is_dir() if path == self.snapshots else path.is_file(), 'Unexpected bundle entry type', 3)
 
     @contextlib.contextmanager
-    def locked(self, strict=False):
+    def locked(self, strict=False, deadline=None):
         # Lock the directory inode without adding helper files to durable content.
         # minimal: serialize review operations within this plans directory; per-quest
         # locks can improve throughput if needed. External editors use hash guards.
         fd = os.open(self.plan.parent, os.O_RDONLY)
         try:
-            fcntl.flock(fd, fcntl.LOCK_EX)
+            if deadline is None:
+                fcntl.flock(fd,fcntl.LOCK_EX)
+            else:
+                while True:
+                    try:
+                        fcntl.flock(fd,fcntl.LOCK_EX | fcntl.LOCK_NB); break
+                    except BlockingIOError:
+                        time.sleep(min(.01,remaining(deadline,'workspace-lock')))
             self.check_paths(strict=strict)
             yield
         finally:
@@ -290,15 +340,16 @@ class Workspace:
             common = fields(cp['common'], ('local_sha256','normalized_sha256','hosted_revision','source_ref','snapshot_path'))
             valid_hash(common['local_sha256']); valid_hash(common['normalized_sha256'])
             text(common['hosted_revision'], nullable=True); text(common['source_ref'])
-            require(common['snapshot_path'] == self.rel(self.snapshots/'common.md'), 'Invalid common snapshot path', 3)
-            path = self.snapshots/'common.md'
+            require(common['snapshot_path'] in {self.rel(self.snapshots/name) for name in ('common.md','pending.md')}, 'Invalid common snapshot path', 3)
+            path = self.root/common['snapshot_path']
             require(path.is_file() and path.stat().st_size <= DOC_LIMIT and digest(path.read_bytes()) == common['normalized_sha256'],
                     'Common snapshot does not match its record', 3)
         if cp['pending'] is not None:
             pending = fields(cp['pending'], ('id','merged_sha256','snapshot_path','required_saves','hosted_saved','source_ref','hosted_revision','feedback','decisions'))
             text(pending['id'],512); valid_hash(pending['merged_sha256'])
-            require(pending['snapshot_path'] == self.rel(self.snapshots/'pending.md'), 'Invalid pending snapshot', 3)
-            path = self.snapshots/'pending.md'
+            require(pending['snapshot_path'] in {self.rel(self.snapshots/name) for name in ('common.md','pending.md')} and
+                    (cp['common'] is None or pending['snapshot_path'] != cp['common']['snapshot_path']), 'Invalid pending snapshot', 3)
+            path = self.root/pending['snapshot_path']
             require(path.is_file() and path.stat().st_size <= DOC_LIMIT and digest(path.read_bytes()) == pending['merged_sha256'], 'Pending snapshot mismatch', 3)
             require(isinstance(pending['required_saves'],list) and set(pending['required_saves']) <= {'local','hosted'}, 'Invalid save actions')
             require(isinstance(pending['hosted_saved'],bool), 'Invalid receipt flag')
@@ -346,7 +397,7 @@ class Workspace:
         if self.host in HOSTED and obs is None:
             state = 'unavailable'; merged = None
         elif common:
-            base = (self.snapshots/'common.md').read_bytes().decode('utf-8')
+            base = (self.root/common['snapshot_path']).read_bytes().decode('utf-8')
             lc = hashtext(local) != common['normalized_sha256']
             hc = hosted is not None and hashtext(hosted) != common['normalized_sha256']
             state = 'both-changed' if lc and hc else 'local-changed' if lc else 'hosted-changed' if hc else 'clean'
@@ -374,11 +425,12 @@ class Workspace:
             record, content, state_hash = self.read()
             result = self.status(record,content,state_hash,payload.get('observation'))[0]
             if 'runtime_dir' in payload:
-                runtime = validate_runtime(payload['runtime_dir'],self)
+                runtime = validate_runtime(payload['runtime_dir'],self,privacy=False)
                 require(runtime.is_dir(), 'Runtime inspection unavailable',4)
                 owner = runtime/'owner.json'; journal = runtime/'requests.json'
                 no_symlink(owner); no_symlink(journal)
                 require(owner.is_file() and journal.is_file(), 'Runtime ownership or journal unavailable',4)
+                validate_runtime(str(runtime),self)
                 require(owner.stat().st_size <= 16384, 'Invalid runtime owner record',3)
                 require(parse(owner.read_bytes()) == runtime_owner(self,record), 'Runtime belongs to a different review',3)
                 requests = read_journal(journal)
@@ -392,10 +444,10 @@ class Workspace:
         valid_hash(payload['expected_state_hash']); valid_hash(payload['expected_review_hash'])
         require(payload['expected_state_hash'] == state_hash and payload['expected_review_hash'] == hashtext(content), 'Stale review or state guard', 3)
 
-    def checkpoint(self, payload):
+    def checkpoint(self, payload, deadline=None):
         fields(payload, ('phase','expected_state_hash','expected_review_hash'), ('observation','checkpoint_id','decisions','resolution','receipt'))
         require(payload['phase'] in ('prepare','complete'), 'Invalid checkpoint phase')
-        with self.locked(strict=True):
+        with self.locked(strict=True,deadline=deadline):
             record, content, state_hash = self.read(); self.guards(payload,state_hash,content)
             obs = self.observation(payload.get('observation'),record)
             cp = record['checkpoint']
@@ -428,15 +480,16 @@ class Workspace:
                 if content != merged: required.append('local')
                 if self.host in HOSTED and (obs is None or normalized(obs['text']) != merged): required.append('hosted')
                 # Even an unchanged hosted baseline needs an actual observation/receipt at completion.
+                slot = self.snapshots/('common.md' if cp['common'] and cp['common']['snapshot_path'] == self.rel(self.snapshots/'pending.md') else 'pending.md')
                 pending = {'id':uuid.uuid4().hex,'merged_sha256':hashtext(merged),
-                           'snapshot_path':self.rel(self.snapshots/'pending.md'),'required_saves':required,
+                           'snapshot_path':self.rel(slot),'required_saves':required,
                            'hosted_saved':False,'source_ref':obs['source_ref'] if obs else 'local review checkpoint',
                            'hosted_revision':obs['revision'] if obs else None,'feedback':feedback,'decisions':combined}
                 cp['pending'] = pending
                 cp['state'] = 'pending-local-save' if 'local' in required else 'pending-hosted-save'
                 self.snapshots.mkdir(exist_ok=True)
-                changed = [self.rel(self.snapshots/'pending.md'),self.rel(self.state)]
-                atomic(self.snapshots/'pending.md',merged.encode())
+                changed = [self.rel(slot),self.rel(self.state)]
+                atomic(slot,merged.encode())
                 if self.host not in HOSTED and 'local' in required:
                     atomic(self.review,merged.encode()); changed.append(self.rel(self.review))
                 atomic(self.state,dump(record))
@@ -460,15 +513,19 @@ class Workspace:
                 if hosted:
                     cp['state'] = 'pending-local-save'; atomic(self.state,dump(record))
                 raise Refusal('Hosted save observed; local save still pending' if hosted else 'Local save still pending',3)
-            merged = (self.snapshots/'pending.md').read_bytes()
-            atomic(self.snapshots/'common.md',merged)
+            feedback, feedback_conflicts = merge_entries(record['feedback'],pending['feedback'])
+            decisions, decision_conflicts = merge_entries(record['decisions'],pending['decisions'])
+            require(not feedback_conflicts and not decision_conflicts,
+                    'Feedback or decisions changed during checkpoint; preserve pending review',3)
             cp['common'] = {'local_sha256':hashtext(content),'normalized_sha256':pending['merged_sha256'],
                             'hosted_revision':pending['hosted_revision'],'source_ref':pending['source_ref'],
-                            'snapshot_path':self.rel(self.snapshots/'common.md')}
-            record['feedback'] = pending['feedback']; record['decisions'] = pending['decisions']
+                            'snapshot_path':pending['snapshot_path']}
+            record['feedback'] = feedback; record['decisions'] = decisions
             cp['state'] = 'clean'; cp['pending'] = None
-            atomic(self.state,dump(record))
-            return {'state':'clean','checkpoint_id':pending['id'],'changed_paths':[self.rel(self.state),self.rel(self.snapshots/'common.md')]}
+            try: atomic(self.state,dump(record))
+            except OSError as error:
+                raise failure('checkpoint-publication',error,'Checkpoint publication failed; prior baseline and pending save retained') from None
+            return {'state':'clean','checkpoint_id':pending['id'],'changed_paths':[self.rel(self.state)]}
 
     def export(self, payload):
         fields(payload, ('expected_review_hash',)); valid_hash(payload['expected_review_hash'])
@@ -482,11 +539,15 @@ class Workspace:
                 'disabled_capabilities':['agent chat','hosted comments','checkpoint synchronization']}
 
 
-def validate_runtime(value, workspace):
+def validate_runtime(value, workspace, privacy=True):
     runtime = Path(text(value,4096))
     require(runtime.is_absolute() and '..' not in runtime.parts, 'Runtime must be an absolute directory',3)
     no_symlink(runtime)
     runtime = runtime.resolve()
+    if privacy and runtime.exists():
+        attributes = runtime.stat()
+        require(stat.S_ISDIR(attributes.st_mode) and attributes.st_uid == os.geteuid() and
+                not attributes.st_mode & 0o077, 'Runtime must be owned by the current user with private permissions',3)
     require(not runtime.is_relative_to(workspace.bundle) and not workspace.bundle.is_relative_to(runtime),
             'Runtime must be separate from durable bundle',3)
     require(not runtime.is_relative_to(workspace.root), 'Runtime must be outside the repository',3)
@@ -503,7 +564,7 @@ def read_journal(path):
     requests = parse(path.read_bytes())
     require(isinstance(requests,dict) and len(requests) <= 200, 'Runtime request journal exceeds bounds',3)
     for identity,request in requests.items():
-        fields(request, ('request_id','session_id','delivery_state','response','payload','marker'), ('cancel_acknowledged',))
+        fields(request, ('request_id','session_id','delivery_state','response','payload','marker'), ('cancel_acknowledged','cancel_requested','recovery_error','local_only'))
         text(identity,512)
         require(request['request_id'] == identity and request['delivery_state'] in DELIVERIES, 'Invalid runtime request identity/state',3)
         text(request['session_id'],512,nullable=True); text(request['response'],DOC_LIMIT,nullable=True,empty=True)
@@ -512,6 +573,11 @@ def read_journal(path):
         require(request['payload']['id'] == identity and request['payload']['session_id'] == request['session_id'] and
                 request['marker'] == {'review_request_id':identity, **{key:request['payload'][key] for key in ('base_revision','selection','comment')}},
                 'Invalid runtime request marker',3)
+        if request.get('recovery_error') is not None:
+            error = fields(request['recovery_error'], ('code','message','details'))
+            text(error['code'],64); text(error['message'],256)
+            fields(error['details'], ('stage','error_class'))
+            text(error['details']['stage'],64); text(error['details']['error_class'],64)
         valid_hash(request['payload']['base_revision'])
         text(request['payload']['selection'],nullable=True); text(request['payload']['comment'])
     return requests
@@ -541,181 +607,248 @@ def validate_binding(binding, runtime):
 
 
 class OpenCode:
-    def __init__(self, binding, runtime, timeout, startup):
+    def __init__(self,binding,runtime,timeout,startup):
         self.binding = binding; self.session_id = binding['session_id']; self.timeout = timeout
-        self.path = '/session/' + quote(self.session_id, safe='')
-        self.startup_deadline = time.monotonic() + startup
-        self.check(startup)
-        self.startup_deadline = None
+        self.path = '/session/' + quote(self.session_id,safe='')
+        self.check(deadline=time.monotonic()+startup)
 
-    def request(self, method, path, value=None, timeout=None):
+    def request(self,method,path,value=None,deadline=None,stage='opencode-transport'):
+        deadline = deadline if deadline is not None else time.monotonic()+self.timeout
         origin = urlsplit(self.binding['base_url'])
-        budget = timeout or self.timeout
-        if self.startup_deadline is not None:
-            budget = min(budget,max(.001,self.startup_deadline-time.monotonic()))
-        connection = http.client.HTTPConnection(origin.hostname,origin.port,timeout=budget)
+        connection = http.client.HTTPConnection(origin.hostname,origin.port,timeout=remaining(deadline,stage))
+        timer = None
         try:
-            body = json.dumps(value).encode() if value is not None else None
-            connection.request(method,path,body,{'Content-Type':'application/json'})
+            connection.connect()
+            transport = connection.sock
+            def expire():
+                # Shutdown interrupts header/body reads even if the peer keeps trickling
+                # bytes or HTTPConnection has transferred its socket to the response.
+                with contextlib.suppress(OSError): transport.shutdown(socket.SHUT_RDWR)
+            timer = threading.Timer(remaining(deadline,stage),expire); timer.daemon = True; timer.start()
+            connection.request(method,path,json.dumps(value).encode() if value is not None else None,
+                               {'Content-Type':'application/json'})
             reply = connection.getresponse()
-            require(200 <= reply.status < 300, 'Host operation unavailable',4)
-            raw = reply.read(2 * 1024 * 1024 + 1)
-            require(len(raw) <= 2 * 1024 * 1024, 'Host response exceeds bound',4)
-            return parse(raw)
-        except (OSError,http.client.HTTPException,TimeoutError):
-            raise Refusal('Host transport unavailable',4) from None
+            require(200 <= reply.status < 300, 'Host operation unavailable',4,
+                    details=diagnostic(stage,'HTTPStatus'))
+            raw = reply.read(2*1024*1024+1)
+            remaining(deadline,stage)
+            require(len(raw) <= 2*1024*1024, 'Host response exceeds bound',4,
+                    details=diagnostic(stage,'ResponseLimit'))
+            try: return parse(raw)
+            except Refusal:
+                raise Refusal('Host response is invalid',4,details=diagnostic(stage,'InvalidResponse')) from None
+        except (OSError,http.client.HTTPException,TimeoutError) as error:
+            label = 'DeadlineExceeded' if time.monotonic() >= deadline else type(error).__name__
+            raise Refusal('Host transport unavailable; inspect possible delivery',4,
+                          details=diagnostic(stage,label)) from None
         finally:
+            if timer is not None: timer.cancel()
             connection.close()
 
-    def check(self, timeout=None):
-        session = self.request('GET',self.path,timeout=timeout)
-        require(isinstance(session,dict) and session.get('id') == self.session_id, 'Host session identity changed',3)
-        require(session.get('permission') == [{'permission':'*','pattern':'*','action':'deny'}], 'Tool-free session permissions unavailable',4)
-        tools = self.request('GET','/experimental/tool/ids',timeout=timeout)
-        require(isinstance(tools,list) and len(tools) <= 1000 and all(isinstance(tool,str) and len(tool) <= 512 for tool in tools), 'Tool inventory unavailable',4)
+    def check(self,deadline=None):
+        deadline = deadline if deadline is not None else time.monotonic()+self.timeout
+        session = self.request('GET',self.path,deadline=deadline,stage='opencode-session')
+        safety(isinstance(session,dict) and session.get('id') == self.session_id, 'Host session identity changed',True)
+        safety(session.get('permission') == [{'permission':'*','pattern':'*','action':'deny'}],
+               'Tool-free session permissions unavailable')
+        tools = self.request('GET','/experimental/tool/ids',deadline=deadline,stage='opencode-tools')
+        safety(isinstance(tools,list) and len(tools) <= 1000 and
+               all(isinstance(tool,str) and len(tool) <= 512 for tool in tools), 'Tool inventory unavailable')
         self.tools = {tool:False for tool in tools}
         model = session.get('model')
         if not isinstance(model,dict) or not model.get('providerID') or not model.get('id'):
-            history = self.history()
-            model = next(({'providerID':m['info']['model'].get('providerID'), 'id':m['info']['model'].get('modelID')}
-                          for m in reversed(history) if m.get('info',{}).get('role') == 'user' and isinstance(m['info'].get('model'),dict)),None)
-        require(isinstance(model,dict) and model.get('providerID') and model.get('id'), 'Existing selected model unavailable',4)
+            model = next(({'providerID':m['info']['model'].get('providerID'),'id':m['info']['model'].get('modelID')}
+                          for m in reversed(self.history(deadline)) if m.get('info',{}).get('role') == 'user'
+                          and isinstance(m['info'].get('model'),dict)),None)
+        require(isinstance(model,dict) and model.get('providerID') and model.get('id'),
+                'Existing selected model unavailable',4,details=diagnostic('opencode-model','ModelUnavailable'))
         self.model = {'providerID':model['providerID'],'modelID':model['id']}
 
-    def history(self):
-        value = self.request('GET',self.path+'/message')
-        require(isinstance(value,list), 'Host history unavailable',4)
+    def history(self,deadline):
+        value = self.request('GET',self.path+'/message',deadline=deadline,stage='opencode-history')
+        require(isinstance(value,list), 'Host history unavailable',4,details=diagnostic('opencode-history','InvalidResponse'))
         return value
 
-    def recover(self, request):
-        history = self.history()
+    def recover(self,request,deadline=None,checked=False):
+        deadline = deadline if deadline is not None else time.monotonic()+self.timeout
+        if not checked: self.check(deadline)
         users = []
+        history = self.history(deadline)
         for message in history:
             info = message.get('info',{})
             if info.get('role') != 'user': continue
             for part in message.get('parts',[]):
-                if part.get('type') == 'text':
-                    try: marker = parse(part.get('text',''))
-                    except Refusal: continue
-                    if marker == request['marker']: users.append(info.get('id'))
-        require(len(users) <= 1, 'Ambiguous host request history',4)
+                if part.get('type') != 'text': continue
+                try: marker = parse(part.get('text',''))
+                except Refusal: continue
+                if marker == request['marker']: users.append(info.get('id'))
+        require(len(users) <= 1, 'Ambiguous host request history',4,
+                details=diagnostic('opencode-history','AmbiguousHistory'))
         if not users: return None
         for message in history:
             info = message.get('info',{})
-            if info.get('role') == 'assistant' and info.get('parentID') == users[0] and info.get('time',{}).get('completed'):
-                require(not any(p.get('type') in ('tool','toolCall') for p in message.get('parts',[])), 'Host tool restriction failure',4)
+            if info.get('role') != 'assistant' or info.get('parentID') != users[0]: continue
+            safety(not any(p.get('type') in ('tool','toolCall') for p in message.get('parts',[])),
+                   'Host tool restriction failure')
+            if info.get('time',{}).get('completed'):
                 answer = '\n'.join(p.get('text','') for p in message.get('parts',[]) if p.get('type') == 'text')
-                text(answer,DOC_LIMIT,empty=True)
+                document(answer)
                 return answer
         return None
 
-    def send(self, request):
+    def send(self,request,deadline):
         try:
             self.request('POST',self.path+'/message',{'parts':[{'type':'text','text':json.dumps(request['marker'],ensure_ascii=False)}],
-                                                     'tools':self.tools,'model':self.model})
+                         'tools':self.tools,'model':self.model},deadline=deadline,stage='opencode-send')
         except Refusal:
-            # A transport failure is never permission to retry a possibly accepted prompt.
-            pass
-        return self.recover(request)
+            # Recovery may use only what remains of this same operation budget.
+            remaining(deadline,'opencode-send')
+        return self.recover(request,deadline,checked=True)
 
-    def cancel(self): return self.request('POST',self.path+'/abort',{}) is True
+    def cancel(self,deadline):
+        return self.request('POST',self.path+'/abort',{},deadline=deadline,stage='opencode-abort') is True
     def close(self): pass
 
 
 class Pi:
     def __init__(self,binding,runtime,timeout,startup):
+        deadline = time.monotonic()+startup
         self.binding = binding; self.runtime = runtime; self.timeout = timeout
-        session = Path(binding['session_file']); marker = runtime/'pi-owner.json'
-        no_symlink(marker)
-        if marker.exists():
-            require(parse(marker.read_bytes()) == binding, 'Pi runtime ownership mismatch; explicit rebind required',3)
+        session = Path(binding['session_file']); self.marker = runtime/'pi-owner.json'
+        no_symlink(self.marker)
+        if self.marker.exists():
+            owned = fields(parse(self.marker.read_bytes()), ('binding','session_id'))
+            require(owned['binding'] == binding, 'Pi runtime ownership mismatch; explicit rebind required',3)
+            text(owned['session_id'],512,nullable=True)
+            require(owned['session_id'] is not None or not session.exists(), 'Pi session identity was not established; explicit rebind required',3)
         else:
             require(not session.exists(), 'Refusing an existing unowned Pi/TUI session',3)
-            atomic(marker,dump(binding))
+            owned = {'binding':binding,'session_id':None}; atomic(self.marker,dump(owned))
         executable = shutil.which('pi')
-        require(executable is not None, 'Existing Pi executable unavailable',4)
-        session.parent.mkdir(parents=True,exist_ok=True)
+        require(executable is not None, 'Existing Pi executable unavailable',4,details=diagnostic('pi-startup','ExecutableUnavailable'))
+        session.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
         self.process = subprocess.Popen([executable,'--mode','rpc','--session',str(session),'--no-tools','--no-extensions',
             '--no-mcp','--no-skills','--no-prompt-templates','--no-themes','--no-context-files','--no-approve','--offline'],
-            stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,bufsize=0)
-        self.messages = queue.Queue(maxsize=2048)
-        self.responses = {}
-        self.response_lock = threading.Lock()
-        self.write_lock = threading.Lock()
-        self.reader_error = None
+            stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,bufsize=0)
+        self.messages = queue.Queue(maxsize=2048); self.responses = {}
+        self.response_lock = threading.Lock(); self.write_lock = threading.Lock()
+        self.reader_error = None; self.stderr_seen = False
+        os.set_blocking(self.process.stdin.fileno(),False)
         self.reader = threading.Thread(target=self.read_loop,daemon=True); self.reader.start()
+        self.stderr_reader = threading.Thread(target=self.drain_stderr,daemon=True); self.stderr_reader.start()
         try:
-            state = self.command('get_state',timeout=startup)
-            require(state.get('sessionFile') == str(session) and isinstance(state.get('sessionId'),str), 'Pi session identity mismatch',3)
+            state = self.command('get_state',deadline)
+            safety(state.get('sessionFile') == str(session) and isinstance(state.get('sessionId'),str), 'Pi session identity mismatch',True)
+            text(state['sessionId'],512)
+            safety(owned['session_id'] is None or owned['session_id'] == state['sessionId'], 'Pi session identity changed; explicit rebind required',True)
             self.session_id = state['sessionId']
-            require(state.get('model'), 'Existing Pi model unavailable',4)
-            self.check(state=state)
+            require(state.get('model'), 'Existing Pi model unavailable',4,details=diagnostic('pi-model','ModelUnavailable'))
+            self.check(deadline,state=state)
+            atomic(self.marker,dump({'binding':binding,'session_id':self.session_id}))
         except Exception:
             self.close(); raise
+
+    def drain_stderr(self):
+        # Drain to avoid a blocked peer; retain no provider bytes, paths or transcripts.
+        try:
+            while self.process.stderr.read(4096): self.stderr_seen = True
+        except (OSError,ValueError): pass
+
+    def process_failure(self,stage,label):
+        # Safe exit metadata is diagnostic text, never raw process output.
+        code = self.process.poll()
+        if code is not None:
+            print(json.dumps({'operation':'serve','stage':stage,'error_class':label,
+                              'process_exit':code,'stderr_present':self.stderr_seen}),file=sys.stderr,flush=True)
+        return Refusal('Pi operation unavailable; inspect possible delivery',4,details=diagnostic(stage,label))
 
     def read_loop(self):
         try:
             while True:
-                raw = self.process.stdout.readline(2 * 1024 * 1024 + 1)
+                raw = self.process.stdout.readline(2*1024*1024+1)
                 if not raw: break
-                if len(raw) > 2 * 1024 * 1024: raise ValueError()
+                require(len(raw) <= 2*1024*1024, 'Pi response exceeds bound',4)
                 item = parse(raw)
+                require(isinstance(item,dict), 'Invalid Pi response',4)
                 if item.get('type') == 'response':
-                    with self.response_lock:
-                        target = self.responses.get(item.get('id'))
-                    if target is not None: target.put(item,timeout=1)
-                else:
-                    self.messages.put(item,timeout=1)
-        except Exception:
-            self.reader_error = True
+                    with self.response_lock: target = self.responses.get(item.get('id'))
+                    if target is not None:
+                        with contextlib.suppress(queue.Full): target.put_nowait(item)
+                else: self.messages.put(item,timeout=1)
+        except Exception as error:
+            self.reader_error = type(error).__name__
         finally:
+            with self.response_lock:
+                for target in self.responses.values():
+                    with contextlib.suppress(queue.Full): target.put_nowait(None)
             with contextlib.suppress(queue.Full): self.messages.put_nowait(None)
 
-    def next(self, deadline):
-        try: item = self.messages.get(timeout=max(.001,deadline-time.monotonic()))
-        except queue.Empty: raise Refusal('Pi response timeout; delivery remains unknown',4) from None
-        require(isinstance(item,dict), 'Pi disconnected; delivery remains unknown',4)
+    def next(self,deadline):
+        try: item = self.messages.get(timeout=remaining(deadline,'pi-events'))
+        except queue.Empty: raise self.process_failure('pi-events','DeadlineExceeded') from None
+        require(isinstance(item,dict), 'Pi disconnected; delivery remains unknown',4,
+                details=diagnostic('pi-events',self.reader_error or 'Disconnected'))
         return item
 
-    def command(self, command, timeout=None, **extra):
-        identity = uuid.uuid4().hex
-        target = queue.Queue(maxsize=1)
-        require(self.process.poll() is None, 'Pi process disconnected',4)
+    def command(self,command,deadline=None,**extra):
+        deadline = deadline if deadline is not None else time.monotonic()+self.timeout
+        identity = uuid.uuid4().hex; target = queue.Queue(maxsize=1)
+        if self.process.poll() is not None: raise self.process_failure('pi-command','ProcessExited')
         with self.response_lock: self.responses[identity] = target
+        locked = False
         try:
-            try:
-                with self.write_lock:
-                    self.process.stdin.write((json.dumps({'id':identity,'type':command,**extra})+'\n').encode())
-                    self.process.stdin.flush()
-            except (OSError,BrokenPipeError): raise Refusal('Pi disconnected',4) from None
-            try: value = target.get(timeout=timeout or self.timeout)
-            except queue.Empty: raise Refusal('Pi command timeout; delivery remains unknown',4) from None
+            locked = self.write_lock.acquire(timeout=remaining(deadline,'pi-write-lock'))
+            require(locked, 'Pi write deadline exceeded',4,details=diagnostic('pi-write-lock','DeadlineExceeded'))
+            raw = (json.dumps({'id':identity,'type':command,**extra})+'\n').encode()
+            fd = self.process.stdin.fileno(); offset = 0
+            with selectors.DefaultSelector() as selector:
+                selector.register(fd,selectors.EVENT_WRITE)
+                while offset < len(raw):
+                    require(selector.select(remaining(deadline,'pi-write')), 'Pi write deadline exceeded',4,
+                            details=diagnostic('pi-write','DeadlineExceeded'))
+                    # A test harness or another owner of the descriptor may restore its
+                    # flags; enforce nonblocking immediately before every bounded write.
+                    os.set_blocking(fd,False)
+                    try: offset += os.write(fd,raw[offset:])
+                    except BlockingIOError: continue
+            self.write_lock.release(); locked = False
+            try: value = target.get(timeout=remaining(deadline,'pi-response'))
+            except queue.Empty: raise self.process_failure('pi-response','DeadlineExceeded') from None
+            if value is None: raise self.process_failure('pi-response',self.reader_error or 'Disconnected')
             require(value.get('type') == 'response' and value.get('command') == command and value.get('success') is True,
-                    'Pi command refused',4)
-            data = value.get('data',{})
-            require(isinstance(data,dict), 'Malformed Pi response',4)
-            return data
+                    'Pi command refused',4,details=diagnostic('pi-response','CommandRefused'))
+            require(isinstance(value.get('data',{}),dict), 'Malformed Pi response',4,details=diagnostic('pi-response','InvalidResponse'))
+            remaining(deadline,'pi-response')
+            return value.get('data',{})
+        except (OSError,ValueError) as error:
+            raise self.process_failure('pi-write',type(error).__name__) from None
         finally:
+            if locked: self.write_lock.release()
             with self.response_lock: self.responses.pop(identity,None)
 
-    def check(self, state=None, active=False):
-        state = state if state is not None else self.command('get_state')
-        require(state.get('sessionFile') == self.binding['session_file'] and state.get('sessionId') == self.session_id, 'Pi identity changed',3)
-        require(state.get('model'), 'Existing Pi model unavailable',4)
+    def check(self,deadline=None,state=None,active=False):
+        deadline = deadline if deadline is not None else time.monotonic()+self.timeout
+        state = state if state is not None else self.command('get_state',deadline)
+        safety(state.get('sessionFile') == self.binding['session_file'] and state.get('sessionId') == self.session_id, 'Pi identity changed',True)
+        require(state.get('model'), 'Existing Pi model unavailable',4,details=diagnostic('pi-model','ModelUnavailable'))
         require(not state.get('isCompacting') and not state.get('pendingMessageCount') and
-                (active or not state.get('isStreaming')), 'Pi has unrelated streaming, compaction or queued messages',4)
+                (active or not state.get('isStreaming')), 'Pi has unrelated streaming, compaction or queued messages',4,
+                details=diagnostic('pi-session','SessionBusy'))
+        return state
 
     @staticmethod
     def answer(message):
         content = message.get('content',[])
-        require(isinstance(content,list) and not any(p.get('type') == 'toolCall' for p in content), 'Pi tool restriction failure',4)
+        safety(isinstance(content,list) and not any(p.get('type') == 'toolCall' for p in content), 'Pi tool restriction failure')
         result = '\n'.join(p.get('text','') for p in content if p.get('type') == 'text')
-        text(result,DOC_LIMIT,empty=True)
+        document(result)
         return result
 
-    def recover(self, request):
-        messages = self.command('get_messages').get('messages')
-        require(isinstance(messages,list), 'Pi history unavailable',4)
+    def recover(self,request,deadline=None):
+        deadline = deadline if deadline is not None else time.monotonic()+self.timeout
+        state = self.check(deadline,active=True)
+        messages = self.command('get_messages',deadline).get('messages')
+        require(isinstance(messages,list), 'Pi history unavailable',4,details=diagnostic('pi-history','InvalidResponse'))
         match = None
         for index,message in enumerate(messages):
             if message.get('role') != 'user': continue
@@ -724,223 +857,289 @@ class Pi:
                 try: marker = parse(part.get('text',''))
                 except Refusal: continue
                 if marker == request['marker']:
-                    require(match is None, 'Ambiguous Pi request history',4); match = index
+                    require(match is None, 'Ambiguous Pi request history',4,details=diagnostic('pi-history','AmbiguousHistory'))
+                    match = index
         if match is not None:
             for message in messages[match+1:]:
                 if message.get('role') == 'user': break
-                if message.get('role') == 'assistant' and message.get('stopReason') in ('stop','length'):
-                    # History recovery also requires the observed session to be settled.
-                    self.check()
-                    return self.answer(message)
+                if message.get('role') == 'assistant':
+                    answer = self.answer(message)
+                    if message.get('stopReason') in ('stop','length') and not state.get('isStreaming'):
+                        return answer
         return None
 
-    def send(self, request):
-        self.command('prompt',message=json.dumps(request['marker'],ensure_ascii=False))
-        deadline = time.monotonic() + self.timeout; answer = None
-        while time.monotonic() < deadline:
+    def send(self,request,deadline):
+        # Queued terminal events from a recovered request cannot identify a new
+        # answer. Drain old events and attribute every later settlement via history.
+        while True:
+            try: event = self.messages.get_nowait()
+            except queue.Empty: break
+            if isinstance(event,dict) and event.get('type') == 'message_end' and event.get('message',{}).get('role') == 'assistant':
+                self.answer(event['message'])
+        self.command('prompt',deadline,message=json.dumps(request['marker'],ensure_ascii=False))
+        while remaining(deadline,'pi-events'):
             event = self.next(deadline)
-            if event.get('type') == 'message_end' and event.get('message',{}).get('role') == 'assistant':
-                answer = self.answer(event['message'])
-            if event.get('type') == 'agent_settled' and answer is not None: return answer
-        return None
+            if event.get('type') == 'message_end' and event.get('message',{}).get('role') == 'assistant': self.answer(event['message'])
+            if event.get('type') == 'agent_settled':
+                answer = self.recover(request,deadline)
+                if answer is not None: return answer
 
-    def cancel(self):
-        unsent = self.command('clear_queue')
-        # Runtime-only queue evidence; never put raw session material in the bundle.
+    def cancel(self,deadline):
+        unsent = self.command('clear_queue',deadline)
         atomic(self.runtime/'pi-unsent.json',dump(unsent))
-        self.command('abort'); return True
+        self.command('abort',deadline); return True
 
     def close(self):
         if not hasattr(self,'process'): return
         if self.process.poll() is None:
             with contextlib.suppress(OSError): self.process.stdin.close()
-            try: self.process.wait(timeout=1)
+            try: self.process.wait(timeout=.5)
             except subprocess.TimeoutExpired:
                 self.process.terminate()
-                try: self.process.wait(timeout=1)
-                except subprocess.TimeoutExpired: self.process.kill(); self.process.wait()
-        for stream in (self.process.stdin,self.process.stdout):
+                try: self.process.wait(timeout=.5)
+                except subprocess.TimeoutExpired: self.process.kill(); self.process.wait(timeout=.5)
+        for stream in (self.process.stdin,self.process.stdout,self.process.stderr):
             if stream:
-                with contextlib.suppress(OSError): stream.close()
-
+                with contextlib.suppress(OSError,ValueError): stream.close()
 
 class Companion:
-    def __init__(self, workspace, payload):
+    def __init__(self,workspace,payload):
         fields(payload, ('runtime_dir',), ('binding','startup_timeout_seconds','request_timeout_seconds'))
-        self.workspace = workspace
-        self.runtime = validate_runtime(payload['runtime_dir'],workspace)
+        self.workspace = workspace; self.runtime = validate_runtime(payload['runtime_dir'],workspace)
         for key in ('startup_timeout_seconds','request_timeout_seconds'):
             value = payload.get(key,30 if key.startswith('startup') else 60)
             require(type(value) in (int,float) and 0 < value <= 300, 'Deadline must be greater than zero and at most 300 seconds')
         self.timeout = payload.get('request_timeout_seconds',60); self.startup = payload.get('startup_timeout_seconds',30)
         self.binding = payload.get('binding'); validate_binding(self.binding,self.runtime)
-        if self.binding:
-            require(workspace.host == self.binding['kind'], 'Host and adapter binding disagree',3)
+        if self.binding: require(workspace.host == self.binding['kind'], 'Host and adapter binding disagree',3)
         record,_,_ = workspace.read()
         self.runtime.mkdir(parents=True,exist_ok=True,mode=0o700)
-        require(self.runtime.is_dir(), 'Runtime directory unavailable',3)
+        validate_runtime(str(self.runtime),workspace)
         self.lock_file = self.runtime/'companion.lock'; no_symlink(self.lock_file)
-        self.lock_fd = os.open(self.lock_file, os.O_CREAT | os.O_RDWR,0o600)
-        try: fcntl.flock(self.lock_fd,fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError: os.close(self.lock_fd); raise Refusal('Runtime already owned by a companion',3) from None
-        owner_path = self.runtime/'owner.json'; no_symlink(owner_path)
-        owner = runtime_owner(workspace,record)
-        if owner_path.exists():
-            require(owner_path.stat().st_size <= 16384 and parse(owner_path.read_bytes()) == owner,
-                    'Runtime belongs to a different review',3)
-        else:
-            require(not any((self.runtime/name).exists() for name in ('binding.json','requests.json','pi-owner.json')),
-                    'Refusing existing unowned runtime data',3)
-            atomic(owner_path,dump(owner))
-        self.journal = self.runtime/'requests.json'; self.binding_path = self.runtime/'binding.json'
-        no_symlink(self.journal); no_symlink(self.binding_path)
-        self.requests = read_journal(self.journal) if self.journal.exists() else {}
-        require(isinstance(self.requests,dict) and len(self.requests) <= 200, 'Runtime request journal exceeds bounds',3)
-        if self.binding_path.exists():
-            require(parse(self.binding_path.read_bytes()) == self.binding, 'Explicit rebind required for changed session',3)
-        else: atomic(self.binding_path,dump(self.binding))
-        self.adapter = None; self.reason = None; self.session_id = self.binding.get('session_id') if self.binding else None
-        self.mutex = threading.RLock()
-        self.connect()
-        for request in self.requests.values():
-            if request['delivery_state'] == 'sent-unknown' and self.adapter:
-                self.recover(request)
-        self.persist()
+        self.lock_fd = os.open(self.lock_file,os.O_CREAT | os.O_RDWR,0o600)
+        self.adapter = None; self.mutex = threading.RLock(); self.generation = 0
+        self.reason = None; self.chat_blocked = False; self.recovery_after = {}
+        try:
+            try: fcntl.flock(self.lock_fd,fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError: raise Refusal('Runtime already owned by a companion',3) from None
+            owner_path = self.runtime/'owner.json'; no_symlink(owner_path)
+            owner = runtime_owner(workspace,record)
+            if owner_path.exists():
+                require(owner_path.stat().st_size <= 16384 and parse(owner_path.read_bytes()) == owner, 'Runtime belongs to a different review',3)
+            else:
+                require(not any((self.runtime/name).exists() for name in ('binding.json','requests.json','pi-owner.json')),
+                        'Refusing existing unowned runtime data',3)
+                atomic(owner_path,dump(owner))
+            self.journal = self.runtime/'requests.json'; self.binding_path = self.runtime/'binding.json'
+            no_symlink(self.journal); no_symlink(self.binding_path)
+            self.requests = read_journal(self.journal) if self.journal.exists() else {}
+            if self.binding_path.exists(): require(parse(self.binding_path.read_bytes()) == self.binding, 'Explicit rebind required for changed session',3)
+            else: atomic(self.binding_path,dump(self.binding))
+            self.session_id = self.binding.get('session_id') if self.binding else None
+            deadline = time.monotonic()+self.startup
+            self.connect(deadline)
+            for request in self.requests.values():
+                if request['delivery_state'] == 'sent-unknown' and self.adapter: self.recover(request,deadline)
+            self.persist()
+        except Exception:
+            self.close(); raise
 
-    def connect(self):
-        self.reason = None
+    def connect(self,deadline):
+        self.reason = None; self.chat_blocked = False
         if self.binding is None:
             self.reason = 'Agent chat is unavailable in document/comment mode.'; return
         try:
             cls = OpenCode if self.binding['kind'] == 'opencode' else Pi
-            self.adapter = cls(self.binding,self.runtime,self.timeout,self.startup)
+            self.adapter = cls(self.binding,self.runtime,self.timeout,remaining(deadline,'adapter-startup'))
             self.session_id = self.adapter.session_id
-        except Refusal as exc:
-            if exc.code == 3: raise
-            self.reason = str(exc); self.adapter = None
+        except Refusal as error:
+            if error.code == 3: raise
+            self.reason = str(error); self.adapter = None
+            report('serve',error)
+
+    def unresolved(self):
+        return any(request['delivery_state'] in ('prepared','sent-unknown') and request['session_id'] is not None and not request.get('local_only',False)
+                   for request in self.requests.values())
+
+    def unavailable_reason(self):
+        if self.reason: return self.reason
+        if self.unresolved(): return 'A request has unresolved delivery; inspect its exact session before another send.'
+        return None
 
     def capabilities(self):
-        return {'document':True,'comments':True,'chat':self.adapter is not None,
+        return {'document':True,'comments':True,
+                'chat':self.adapter is not None and not self.chat_blocked and not self.unresolved(),
                 'cancel':self.adapter is not None,'rebind':True}
 
     def persist(self): atomic(self.journal,dump(self.requests))
 
-    def public_request(self, request):
-        return {key:request[key] for key in ('request_id','session_id','delivery_state','response')}
+    def public_request(self,request):
+        return {key:request.get(key) for key in ('request_id','session_id','delivery_state','response','recovery_error')}
 
-    def recover(self, request):
+    def remember_error(self,request,error):
+        details = error.details or diagnostic('host-operation','Refusal')
+        request['recovery_error'] = {'code':{2:'invalid-input',3:'refused',4:'unavailable'}[error.code],
+                                     'message':str(error)[:256],'details':details}
+        if details['error_class'] in ('IdentityMismatch','RestrictionFailure','AmbiguousHistory'):
+            self.chat_blocked = True; self.reason = str(error)
+        # minimal: at most one recovery attempt per second after a failure. This
+        # avoids a refresh loop consuming repeated full transport budgets; an
+        # explicit same-ID retry or fresh process may inspect immediately.
+        self.recovery_after[request['request_id']] = time.monotonic()+min(1,self.timeout)
+        self.persist(); report('feedback',error)
+
+    def recover(self,request,deadline=None,force=False):
+        deadline = deadline if deadline is not None else time.monotonic()+self.timeout
+        with synchronized(self.mutex,deadline,'companion-lock'):
+            if not force and time.monotonic() < self.recovery_after.get(request['request_id'],0): return
+            adapter = self.adapter; generation = self.generation; session_id = self.session_id
+        if adapter is None: return
         try:
-            require(request['session_id'] == self.session_id, 'Pending request belongs to a different session',3)
-            answer = self.adapter.recover(request)
-            if answer is not None:
-                request['response'] = answer; request['delivery_state'] = 'response-received'; self.persist()
-        except Refusal:
-            # Unknown delivery remains recorded; never replay on history failure.
-            pass
+            safety(request['session_id'] == session_id, 'Pending request belongs to a different session',True)
+            answer = adapter.recover(request,deadline)
+            with synchronized(self.mutex,deadline,'companion-lock'):
+                safety(generation == self.generation and adapter is self.adapter, 'Bound session changed during recovery',True)
+                if answer is not None:
+                    request['response'] = answer; request['delivery_state'] = 'response-received'
+                    request['recovery_error'] = None
+                    self.recovery_after.pop(request['request_id'],None); self.persist()
+        except Exception as error:
+            error = error if isinstance(error,Refusal) else failure('history-recovery',error)
+            with synchronized(self.mutex,deadline,'companion-lock'): self.remember_error(request,error)
 
     def state(self):
-        with self.mutex:
-            for request in self.requests.values():
-                if request['delivery_state'] == 'sent-unknown' and self.adapter: self.recover(request)
+        deadline = time.monotonic()+self.timeout
+        with synchronized(self.mutex,deadline,'companion-lock'): pending = [request for request in self.requests.values() if request['delivery_state'] == 'sent-unknown']
+        for request in pending: self.recover(request,deadline)
+        with synchronized(self.mutex,deadline,'companion-lock'):
             record,content,state_hash = self.workspace.read()
             checkpoint = self.workspace.status(record,content,state_hash)[0]
-            checkpoint['pending_delivery_counts'] = {name:0 for name in DELIVERIES}
-            checkpoint['delivery_coverage'] = 'complete'
-            for request in self.requests.values():
-                checkpoint['pending_delivery_counts'][request['delivery_state']] += 1
+            checkpoint['pending_delivery_counts'] = {name:0 for name in DELIVERIES}; checkpoint['delivery_coverage'] = 'complete'
+            for request in self.requests.values(): checkpoint['pending_delivery_counts'][request['delivery_state']] += 1
             return {'checkpoint':checkpoint,'document':content,'revision':hashtext(content),
                     'binding':{'kind':self.binding['kind'],'session_id':self.session_id} if self.binding else None,
-                    'capabilities':self.capabilities(),'feedback':record['feedback'],
-                    'requests':[self.public_request(r) for r in self.requests.values()]}
+                    'capabilities':self.capabilities(),'unavailable_reason':self.unavailable_reason(),
+                    'feedback':record['feedback'],'requests':[self.public_request(r) for r in self.requests.values()]}
 
-    def dispatch(self, route, payload):
+    def cancel(self,payload):
+        deadline = time.monotonic()+self.timeout
+        fields(payload, ('request_id','session_id'))
+        with synchronized(self.mutex,deadline,'companion-lock'):
+            request = self.requests.get(payload['request_id'])
+            require(request is not None and payload['session_id'] == self.session_id == request['session_id'], 'Unknown request/session',3)
+            request['cancel_requested'] = True; self.persist()
+            adapter = self.adapter
+        acknowledged = False
+        if adapter:
+            try: acknowledged = adapter.cancel(deadline)
+            except Refusal as error:
+                with synchronized(self.mutex,deadline,'companion-lock'): self.remember_error(request,error)
+        with synchronized(self.mutex,deadline,'companion-lock'):
+            request['cancel_acknowledged'] = acknowledged; self.persist()
+            return dict(self.public_request(request),cancel_acknowledged=acknowledged)
+
+    def dispatch(self,route,payload):
+        deadline = time.monotonic()+(self.startup if route == 'rebind' else self.timeout)
         if route == 'feedback': return self.feedback(payload)
-        with self.mutex:
+        if route == 'cancel': return self.cancel(payload)
+        with synchronized(self.mutex,deadline,'companion-lock'):
             if route == 'document':
                 fields(payload, ('base_revision','content')); document(payload['content']); valid_hash(payload['base_revision'])
-                with self.workspace.locked(strict=True):
+                with self.workspace.locked(strict=True,deadline=deadline):
                     _,content,_ = self.workspace.read()
                     require(payload['base_revision'] == hashtext(content), 'Document changed; preserve your draft for comparison',3)
                     atomic(self.workspace.review,payload['content'].encode())
                 return {'revision':hashtext(payload['content'])}
-            if route == 'checkpoint':
-                return self.workspace.checkpoint(payload)
-            if route == 'cancel':
-                fields(payload, ('request_id','session_id'))
-                request = self.requests.get(payload['request_id'])
-                require(request is not None and payload['session_id'] == self.session_id == request['session_id'], 'Unknown request/session',3)
-                acknowledged = False
-                if self.adapter:
-                    try: acknowledged = self.adapter.cancel()
-                    except Refusal: pass
-                request['cancel_acknowledged'] = acknowledged; self.persist()
-                return dict(self.public_request(request),cancel_acknowledged=acknowledged)
+            if route == 'checkpoint': return self.workspace.checkpoint(payload,deadline=deadline)
             if route == 'rebind':
                 fields(payload, ('expected_session_id','new_binding','source_ref'))
                 text(payload['source_ref']); validate_binding(payload['new_binding'],self.runtime)
                 require(payload['expected_session_id'] == self.session_id, 'Session changed',3)
-                require(not any(r['delivery_state'] in ('prepared','sent-unknown') and r['session_id'] is not None for r in self.requests.values()), 'Resolve in-flight requests before rebinding',3)
-                require(payload['new_binding'] is None or payload['new_binding']['kind'] == self.workspace.host, 'Host adapter mismatch',3)
+                require(not self.unresolved(), 'Resolve in-flight requests before rebinding',3)
                 next_binding = payload['new_binding']
+                require(next_binding is None or next_binding['kind'] == self.workspace.host, 'Host adapter mismatch',3)
                 if next_binding and next_binding['kind'] == 'pi' and next_binding != self.binding:
                     require(not Path(next_binding['session_file']).exists(), 'New Pi binding must use a fresh dedicated session',3)
                 if self.adapter: self.adapter.close()
-                if next_binding and next_binding['kind'] == 'pi':
-                    atomic(self.runtime/'pi-owner.json',dump(next_binding))
-                self.adapter = None; self.binding = payload['new_binding']; self.session_id = None
-                atomic(self.binding_path,dump(self.binding)); self.connect()
-                return {'session_id':self.session_id,'capabilities':self.capabilities()}
+                if next_binding and next_binding['kind'] == 'pi' and next_binding != self.binding:
+                    atomic(self.runtime/'pi-owner.json',dump({'binding':next_binding,'session_id':None}))
+                self.generation += 1; self.adapter = None; self.binding = next_binding
+                self.session_id = next_binding.get('session_id') if next_binding else None
+                atomic(self.binding_path,dump(self.binding)); self.connect(deadline)
+                return {'session_id':self.session_id,'capabilities':self.capabilities(),'unavailable_reason':self.unavailable_reason()}
             raise Refusal('Unknown route',2,404)
 
     def feedback(self,payload):
+        deadline = time.monotonic()+self.timeout
         fields(payload, ('id','session_id','base_revision','selection','comment'))
         text(payload['id'],512); valid_hash(payload['base_revision']); text(payload['comment']); text(payload['selection'],nullable=True)
         require(payload['selection'] is None or payload['selection'] != '', 'Empty selection is ambiguous')
-        require(payload['session_id'] == self.session_id, 'Bound session identity mismatch',3)
-        existing = self.requests.get(payload['id'])
+        # Reserve before any blocking preflight, atomically with rebind. The local
+        # adapter/generation below never follow a later self.adapter replacement.
+        locked = self.mutex.acquire(timeout=remaining(deadline,'feedback-reservation'))
+        require(locked, 'Feedback reservation deadline exceeded',4,details=diagnostic('feedback-reservation','DeadlineExceeded'))
+        try:
+            require(payload['session_id'] == self.session_id, 'Bound session identity mismatch',3)
+            existing = self.requests.get(payload['id'])
+            if existing:
+                require(existing['payload'] == payload, 'Request ID reused with changed content',3)
+                request = existing; adapter = None; generation = self.generation
+            else:
+                require(len(self.requests) < 200, 'Runtime request limit reached; archive explicitly')
+                adapter = self.adapter if not self.unresolved() else None; generation = self.generation
+                if adapter: require(not self.unresolved(), 'Inspect pending delivery before another send',3)
+                with self.workspace.locked(strict=True,deadline=deadline):
+                    record,content,_ = self.workspace.read()
+                    remaining(deadline,'feedback-reservation')
+                    require(hashtext(content) == payload['base_revision'], 'Document changed; preserve feedback draft',3)
+                    require(payload['selection'] is None or content.count(payload['selection']) == 1, 'Selection must identify one exact passage')
+                    require(len(record['feedback']) < 200, 'Feedback limit reached; archive explicitly')
+                    require(not any(f['id'] == payload['id'] for f in record['feedback']), 'Feedback identity already exists',3)
+                    request = {'request_id':payload['id'],'session_id':self.session_id,'delivery_state':'prepared','response':None,
+                               'recovery_error':None,'local_only':adapter is None,'payload':payload,'marker':{'review_request_id':payload['id'],
+                               'base_revision':payload['base_revision'],'selection':payload['selection'],'comment':payload['comment']}}
+                    self.requests[payload['id']] = request; self.persist()
+                    record['feedback'].append({'id':payload['id'],'source_ref':'local review feedback '+payload['id'],
+                        'source_revision':payload['base_revision'],'author':None,
+                        'selection':{'status':'attached','text':payload['selection']} if payload['selection'] is not None else None,
+                        'text':payload['comment'],'disposition':'proposed','rationale':'Awaiting designated owner decision'})
+                    atomic(self.workspace.state,dump(record))
+        finally: self.mutex.release()
         if existing:
-            require(existing['payload'] == payload, 'Request ID reused with changed content',3)
-            if existing['delivery_state'] == 'sent-unknown' and self.adapter: self.recover(existing)
-            return self.public_request(existing)
-        require(len(self.requests) < 200, 'Runtime request limit reached; archive explicitly')
-        with self.workspace.locked(strict=True):
-            record,content,_ = self.workspace.read()
-            require(hashtext(content) == payload['base_revision'], 'Document changed; preserve feedback draft',3)
-            require(payload['selection'] is None or content.count(payload['selection']) == 1, 'Selection must identify one exact passage')
-            require(len(record['feedback']) < 200, 'Feedback limit reached; archive explicitly')
-            require(not any(f['id'] == payload['id'] for f in record['feedback']), 'Feedback identity already exists',3)
-            if self.adapter:
-                require(not any(r['delivery_state'] in ('prepared','sent-unknown') and r['session_id'] is not None for r in self.requests.values()), 'Inspect pending delivery before another send',3)
-                self.adapter.check()
-            request = {'request_id':payload['id'],'session_id':self.session_id,'delivery_state':'prepared','response':None,
-                       'payload':payload,'marker':{'review_request_id':payload['id'],'base_revision':payload['base_revision'],
-                                                 'selection':payload['selection'],'comment':payload['comment']}}
-            self.requests[payload['id']] = request; self.persist()
-            record['feedback'].append({'id':payload['id'],'source_ref':'local review feedback '+payload['id'],
-                'source_revision':payload['base_revision'],'author':None,
-                'selection':{'status':'attached','text':payload['selection']} if payload['selection'] is not None else None,
-                'text':payload['comment'],'disposition':'proposed','rationale':'Awaiting designated owner decision'})
-            atomic(self.workspace.state,dump(record))
-            if self.adapter:
-                request['delivery_state'] = 'sent-unknown'; self.persist()
-        if self.adapter:
-            request['delivery_state'] = 'sent-unknown'; self.persist()
-            try:
-                answer = self.adapter.send(request)
+            if request['delivery_state'] == 'sent-unknown': self.recover(request,deadline,force=True)
+            with synchronized(self.mutex,deadline,'companion-lock'): return self.public_request(request)
+        if adapter is None:
+            with synchronized(self.mutex,deadline,'companion-lock'): return self.public_request(request)
+        possible_send = False
+        try:
+            adapter.check(deadline)
+            with synchronized(self.mutex,deadline,'companion-lock'):
+                safety(generation == self.generation and adapter is self.adapter and payload['session_id'] == self.session_id,
+                       'Bound session changed before sending',True)
+                remaining(deadline,'feedback-send')
+                self.chat_blocked = False; self.reason = None
+                if request.get('cancel_requested'):
+                    request['delivery_state'] = 'failed-before-send'; self.persist(); return self.public_request(request)
+                request['delivery_state'] = 'sent-unknown'; self.persist(); possible_send = True
+            answer = adapter.send(request,deadline)
+            with synchronized(self.mutex,deadline,'companion-lock'):
+                safety(generation == self.generation and adapter is self.adapter, 'Bound session changed during send',True)
                 if answer is not None:
                     request['delivery_state'] = 'response-received'; request['response'] = answer
-            except Refusal as exc:
+                    request['recovery_error'] = None
                 self.persist()
-                if 'restriction' in str(exc):
-                    self.reason = str(exc); self.adapter.close(); self.adapter = None
-                    raise
-                # Timeout/disconnect after possible delivery is a successful observation of unknown state.
-            self.persist()
-        return self.public_request(request)
+        except Exception as error:
+            error = error if isinstance(error,Refusal) else failure('feedback-transport',error)
+            with synchronized(self.mutex,deadline,'companion-lock'):
+                if not possible_send: request['delivery_state'] = 'failed-before-send'
+                self.remember_error(request,error)
+            if not possible_send or error.details.get('error_class') in ('RestrictionFailure','IdentityMismatch'):
+                raise
+        with synchronized(self.mutex,deadline,'companion-lock'): return self.public_request(request)
 
     def close(self):
         if self.adapter: self.adapter.close()
-        os.close(self.lock_fd)
+        with contextlib.suppress(OSError): os.close(self.lock_fd)
 
     def serve(self):
         companion = self
@@ -984,9 +1183,11 @@ class Companion:
                         raise Refusal('Serialized request exceeds limit; preserve draft and split explicitly',2,413)
                     payload = parse(self.rfile.read(int(length)))
                     return self.reply(200,envelope(operation,companion.dispatch(operation,payload)))
-                except Refusal as exc: self.reply(exc.http,envelope(operation,error=exc))
-                except (OSError,UnicodeError,ValueError,TypeError,KeyError):
-                    self.reply(502,envelope(operation,error=Refusal('Review operation unavailable; saved drafts retained',4)))
+                except Refusal as exc:
+                    report(operation,exc); self.reply(exc.http,envelope(operation,error=exc))
+                except Exception as error:
+                    exc = failure('http-operation',error)
+                    report(operation,exc); self.reply(502,envelope(operation,error=exc))
             do_GET = do_POST = do_PUT = do_DELETE = do_PATCH = do_OPTIONS = handle_route
         class ReviewServer(ThreadingHTTPServer):
             # minimal: sixteen local connections; reject excess sockets instead of
@@ -1011,7 +1212,7 @@ class Companion:
         server.daemon_threads = True
         origin = 'http://127.0.0.1:' + str(server.server_port)
         startup = {'origin':origin,'write_token':token,'session_id':self.session_id,'capabilities':self.capabilities()}
-        if self.reason: startup['unavailable_reason'] = self.reason
+        startup['unavailable_reason'] = self.unavailable_reason()
         print(json.dumps(envelope('serve',startup)),flush=True)
         def stop(signum,frame): raise KeyboardInterrupt()
         old = signal.signal(signal.SIGTERM,stop)
@@ -1046,9 +1247,11 @@ def main():
         result = getattr(workspace,args.operation)(payload)
         print(json.dumps(envelope(args.operation,result),ensure_ascii=False)); return 0
     except Refusal as exc:
+        report(args.operation,exc)
         print(json.dumps(envelope(args.operation,error=exc))); return exc.code
-    except (OSError,UnicodeError,ValueError,KeyError,TypeError,RecursionError):
-        exc = Refusal('Review operation unavailable; no approval or completion inferred',4)
+    except Exception as error:
+        exc = failure('cli-operation',error)
+        report(args.operation,exc)
         print(json.dumps(envelope(args.operation,error=exc))); return 4
 
 
