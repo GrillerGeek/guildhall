@@ -1,7 +1,7 @@
 # Contributing with coding agents
 
 Read `AGENTS.md` first. `CLAUDE.md` retains the established native Claude
-architecture and model-routing conventions. Ordinary repository maintenance is
+architecture and native model defaults. Ordinary repository maintenance is
 not a quest invocation and does not automatically activate quest dispatch rules.
 
 ## Ownership
@@ -10,18 +10,11 @@ not a quest invocation and does not automatically activate quest dispatch rules.
   command, nineteen role/diagnostic definitions and native hooks. Preserve these
   when maintaining the portable route unless the change explicitly owns both.
 - `plugin/portable/`: maintained portable quest entry and host/lifecycle protocol.
-- `plugin/portable/scripts/route_model.py`, its routing reference, schemas and
-  examples: canonical optional routing implementation and public contract.
-  Native Claude and both skill hosts consume the same generated helper.
-- `plugin/portable/scripts/evaluate_routing.py`: canonical offline comparison of supplied observations;
-  synthetic demonstrations never qualify a model or activate policy.
 - `scripts/build_portable.py`: explicit transformation from canonical role bodies
   into portable references. Host metadata is stripped; narrow substitutions adapt
   guidance, evidence, recovery and runbook contracts. These differences are
   intentional and must be reviewed whenever the native role contract changes.
-- `plugin/skills/`: generated complete quest and routing-setup bundles; never hand-edit.
-- `plugin/routing-setup/`: canonical conversational setup entry and flow. Shared
-  tools, schemas and routing references still come from `plugin/portable/`.
+- `plugin/skills/`: generated complete `guildhall-quest` bundle; never hand-edit.
 - Three manifests: portable `plugin/plugin.json`, Codex
   `plugin/.codex-plugin/plugin.json`, Claude `plugin/.claude-plugin/plugin.json`.
   Keep identity and versions aligned. Claude's existing tier description remains
@@ -68,8 +61,7 @@ the probe checks its identity and version (1.5.25 by default). It exercises both
 bundle path and repository-root discovery for Codex and Claude, ensuring the
 canonical authoring source cannot accidentally replace the generated bundle. Acquire development dependencies explicitly;
 no network/install step is hidden in normal validation. Consumer projects do not
-need this repository's Python tooling to invoke a skill. The optional routing
-helper separately requires Python 3.12+ when enabled; absent/off policy skips it.
+need this repository's Python tooling to invoke a skill.
 
 A behavioral review of instructions is not a real host run. Before calling a
 host production-verified, exercise an installed quest in an isolated fixture,
@@ -114,40 +106,9 @@ and publish only reviewed summaries. A timeout or interruption preserves partial
 state and does not authorize automatic lifecycle reset. On macOS a process-scoped
 sleep assertion lasts only for the child run; no persistent power settings change.
 
-## Routing checks and qualification
-
-Read [the routing guide](model-routing.md) and the generated
-[routing contract](../plugin/skills/guildhall-quest/references/routing.md).
-Edit canonical resources under `plugin/portable/`, then regenerate. The validator
-checks bundled schemas against runtime definitions and ensures examples stay off
-and unqualified. Tests use fake transport and exercise failure, eligibility,
-attribution and packaging contracts without Jev calls.
-
-The offline evaluator accepts supplied JSON records on stdin or a synthetic demo:
-
-```bash
-python3 scripts/evaluate_routing.py --demo
-python3 scripts/evaluate_routing.py < reviewed-routing-records.json
-```
-
-It compares held-out Jev records against static and deterministic baselines for
-each role/category, with paired repeats, no lower acceptance, zero critical
-misses/violations and at least 10% improvement on the selected objective against
-both baselines. Missing pairs or measurements remain inconclusive; quality
-regressions fail. Invalid/overflowing data is rejected. `eligible_for_review`
-is arithmetic evidence, not qualification: the output always says
-`qualification: false`. The demo's 32 fixtures, two repeats and three strategies
-produce 48 development and 144 holdout records; all are synthetic.
-
-Review real host attribution and independent task-quality evidence before
-approving qualification hashes. No live Jev or cross-host model qualification
-has been performed for 0.10.0. Do not use this feature to route its own evaluation
-workers or claim synthetic savings as observed results. See the
-[release verification](reviews/2026-09-21-jev-routing.md).
-
 ## Distribution and versioning
 
-The current package version is 0.17.5; increment all three manifests for further
+The current package version is 0.18.0; increment all three manifests for further
 installer-visible changes. Existing native Claude agents/commands/hooks remain
 preserved. Never rewrite historical plans to claim newer evidence. No repository
 change implicitly installs personally, publishes a release or edits the separate
@@ -181,14 +142,4 @@ repository-root copy installs for Codex and Claude without native clients.
 See [the onboarding verification](reviews/2026-09-20-skills-onboarding.md) for
 remote refresh/removal evidence and the separate directory-discovery limitation.
 
-The root evaluator CLI remains a thin compatibility entry point. Maintain the full
-routing guide in `plugin/portable/references/model-routing.md`, then regenerate.
-
-Maintain `routing_usage.py` in the canonical portable scripts. Usage input schema
-1 is separate from routing schema2; v1 routing policy hashes are not rewritten.
-
-Maintain global policy resolution and approval persistence in
-`plugin/portable/scripts/routing_config.py` and `references/global-routing.md`.
-Configuration schemas have their own version; existing routing policy hashes
-and quest state semantics remain unchanged. Test using isolated user directories;
-never activate or install into a personal profile during packaging validation.
+Never activate or install into a personal profile during packaging validation.

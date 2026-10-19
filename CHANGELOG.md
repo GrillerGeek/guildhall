@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.18.0 — Unreleased
+
+- Remove Jev-assisted model routing, its setup skill, policy/approval helpers, catalogs, qualification studies and bundled routing resources.
+- Restore ordinary host dispatch with explicit supported user/role choices and native Claude roster defaults; preserve specialist roles, hooks and workflow gates.
+- Stop reading legacy global/project routing policies or requiring routing credentials. Existing personal configuration files remain untouched.
+
 ## 0.17.5 — Unreleased
 
 - Default task preparation to unknown context requirements unless the handoff establishes a hard minimum, on Claude and Codex.

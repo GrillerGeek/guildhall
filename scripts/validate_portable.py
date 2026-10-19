@@ -4,57 +4,11 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import re
-from build_portable import build, ROOT, DEST, DESTINATIONS
+from build_portable import build, ROOT, DESTINATIONS
 
 
 def validate(root: Path = ROOT) -> None:
     build(root, check=True)
-    # Execute the standalone module without importing it into the generated tree:
-    # packaging validation must not create an unknown __pycache__ output.
-    helper = root / DEST / 'scripts/route_model.py'
-    namespace = {'__name__': '_routing_validation', '__file__': str(helper)}
-    exec(compile(helper.read_bytes(), str(helper), 'exec'), namespace)
-    for name, constant in [('policy', 'POLICY_SCHEMA'), ('request', 'REQUEST_SCHEMA'), ('policy-v2', 'POLICY_SCHEMA_V2'), ('request-v2', 'REQUEST_SCHEMA_V2'), ('policy-v3', 'POLICY_SCHEMA_V3'), ('request-v3', 'REQUEST_SCHEMA_V3'), ('policy-v4', 'POLICY_SCHEMA_V4'), ('request-v4', 'REQUEST_SCHEMA_V4'), ('policy-v5', 'POLICY_SCHEMA_V5'), ('request-v5', 'REQUEST_SCHEMA_V5'), ('catalog-v1', 'CATALOG_SCHEMA')]:
-        schema = json.loads((root / DEST / f'resources/schemas/{name}.schema.json').read_text())
-        schema.pop('$schema')
-        schema.pop('$comment')
-        if schema != namespace[constant]:
-            raise ValueError(f'routing schema drift: {name}')
-    example = json.loads((root / DEST / 'resources/examples/off-request.json').read_text())
-    policy_example = json.loads((root / DEST / 'resources/examples/off-policy.json').read_text())
-    namespace['validate_request'](example)
-    if example['policy'] != policy_example or policy_example['mode'] != 'off':
-        raise ValueError('routing examples must agree and remain off')
-    if any(c['qualification'] is not None for c in policy_example['candidates']):
-        raise ValueError('examples cannot ship qualified profiles')
-    v4 = json.loads((root / DEST / 'resources/examples/off-request-v4.json').read_text())
-    v4policy = json.loads((root / DEST / 'resources/examples/off-policy-v4.json').read_text())
-    namespace['validate_request'](v4)
-    if (v4['policy'] != v4policy or v4policy['mode'] != 'off' or v4policy['adaptive_roles']
-        or any(c['qualification'] is not None for c in v4policy['candidates'])):
-        raise ValueError('v4 examples must remain off with no roles activated or qualified')
-    v5 = json.loads((root / DEST / 'resources/examples/off-request-v5.json').read_text())
-    namespace['validate_request'](v5)
-    if (v5['policy']['mode'] != 'off' or v5['policy']['routing_roles'] or
-        any(c['qualification'] is not None for c in v5['policy']['candidates'])):
-        raise ValueError('v5 example must stay off and unqualified')
-    config_helper = root / DEST / 'scripts/routing_config.py'
-    config = {'__name__': '_configuration_validation', '__file__': str(config_helper)}
-    exec(compile(config_helper.read_bytes(), str(config_helper), 'exec'), config)
-    for name, constant in [('global-routing-v1', 'GLOBAL_SCHEMA'),
-                           ('routing-opt-out-v1', 'OPT_OUT_SCHEMA'),
-                           ('routing-approvals-v1', 'APPROVAL_SCHEMA'), ('routing-approvals-v2', 'APPROVAL_SCHEMA_V2')]:
-        schema = json.loads((root / DEST / f'resources/schemas/{name}.schema.json').read_text())
-        schema.pop('$schema')
-        schema.pop('$comment')
-        if schema != config[constant]:
-            raise ValueError(f'configuration schema drift: {name}')
-    global_example = json.loads((root / DEST / 'resources/examples/off-global-routing.json').read_text())
-    config['validate_global'](global_example)
-    if global_example['hosts'] != {'codex-skill': v4policy}:
-        raise ValueError('global example must match off/unqualified v4 policy')
-    opt_out = json.loads((root / DEST / 'resources/examples/routing-opt-out.json').read_text())
-    namespace['validate'](opt_out, config['OPT_OUT_SCHEMA'])
     paths = ['plugin/plugin.json','plugin/.codex-plugin/plugin.json','plugin/.claude-plugin/plugin.json']
     manifests = [json.loads((root/p).read_text()) for p in paths]
     portable, codex, claude = manifests
