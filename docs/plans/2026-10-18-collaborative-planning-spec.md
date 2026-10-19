@@ -9,6 +9,7 @@
   project-owner decision authority, concise decision provenance, and both adapter
   spikes were confirmed. The local-companion-first release boundary follows the
   subsequent accepted recommendation. Detailed contracts below remain proposals.
+- Feasibility review: [technical findings and implementation sequence](../reviews/2026-10-18-collaborative-planning-feasibility.md).
 
 ## Context
 
@@ -54,6 +55,14 @@ Required host tools must actually be available in the writer's context. Missing
 worker access is a capability limitation, not permission for Mordain to write
 outside the plan or simulate independent work.
 
+For native Claude, explicitly add `Artifact` to Cassian's tool allowlist for the
+new mode; retain its current tools and post-green restrictions. Official Claude
+documentation lists Artifact among the built-ins available to background
+subagents. This establishes a supported integration path, not proof that a
+particular account or installed session exposes it. Do not remove the allowlist
+or inherit all tools to obtain artifact access. Portable workers use the host's
+actual callable Page/artifact tools, not Claude tool names.
+
 The helper handles bounded document/feedback persistence. Host adapters handle
 session transport. Neither is a specialist or an autonomous lifecycle controller.
 Browser input is planning feedback; it cannot invoke arbitrary tools or shell
@@ -91,6 +100,24 @@ explicitly normalized exported text representation separately where needed.
 Record only the model-visible part of widget state needed for a material choice;
 do not replace provider-owned state from that partial projection.
 
+Keep one last-common snapshot plus one pending reconciliation snapshot, each
+within the document limit. Replace the last-common snapshot only after a
+complete checkpoint. Never silently remove user-created files from snapshots/.
+An unknown hosted revision does not become a fabricated numeric version: pair
+the observed exported content hash with a null revision and its source reference.
+
+The checkpoint state is `clean`, `local-changed`, `hosted-changed`, `both-changed`,
+`conflict`, `pending-local-save`, `pending-hosted-save` or `unavailable`.
+`clean` means both observed document representations match the recorded common
+baseline; it does not mean the proposal was accepted. Read-only inspection
+computes the current state without advancing that baseline.
+
+Feedback delivery separately uses `prepared`, `sent-unknown`, `response-received`
+or `failed-before-send`. Only the last state can be safely submitted anew without
+host-history reconciliation. A received answer remains a proposal until an
+actual authorized decision is supplied. The durable record carries that
+decision's source; the CLI does not manufacture a human approval fact.
+
 ### Local transport
 
 The companion binds to loopback on an available port. Require a per-process
@@ -109,6 +136,18 @@ copy credentials, activate Guildhall routing, or replace their model configurati
 The review session runs without implementation tools. If the host cannot provide
 the required tool restrictions, use document/comment interaction without an
 agent-backed chat and explain that limitation. No hidden model probe on startup.
+
+Native review paths remain usable without Python: the worker uses supported
+host/file tools to save the same bounded record and portable content. Python
+provides the optional automated checkpoint and local companion path. Do not
+quietly run the helper on a native-only path or make Python a universal quest
+prerequisite.
+
+Use a 30-second startup deadline and a 60-second host-request deadline by default,
+with explicit command-line overrides capped at 300 seconds. Timeout after a
+possible send remains unknown delivery. Cancellation requests the host's normal
+abort operation and preserves the pending request until observed completion or
+a recorded recovery decision; killing a process is not an acknowledgement.
 
 ## Expectations
 
@@ -153,11 +192,17 @@ These are proposed acceptance cases, not recorded stakeholder confirmations.
   it into the new session. Reopening the view does not itself accept a rebind.
 - **Two browser tabs edit prose:** only a matching base revision can save. The
   second tab sees a conflict with its draft preserved for comparison.
-- **Limits exceeded:** reject a request over 32 KiB, comment or selection over
+- **Limits exceeded:** reject a feedback/control request over 32 KiB, comment or selection over
   4,000 characters, review document over 256 KiB UTF-8, or checkpoint over 200
   substantive feedback entries. Offer explicit splitting/archival; never silently
   discard or truncate content and call it reconciled. Host-specific lower limits
   take precedence and must be reported.
+- **Full-document save:** allow at most 256 KiB of UTF-8 review prose plus an
+  8 KiB JSON metadata/escaping allowance; reject any serialized edit request over
+  264 KiB. Both the decoded document and serialized request must fit. A document
+  with heavy JSON escaping can hit the serialized limit first; preserve the
+  draft and explain the bound. Do not apply the feedback body's 32 KiB limit to
+  an otherwise valid document save.
 - **Browser closes:** persisted review feedback survives. Unsaved browser drafts
   are described as unsaved, and cannot be presented as accepted decisions.
 - **Tool-free review chat is unavailable:** keep reading, editing and commenting
@@ -194,9 +239,10 @@ These are proposed acceptance cases, not recorded stakeholder confirmations.
 | plugin/portable/SKILL.md and references/quest.md, hosts.md | Route planning/review handoffs through the contract without widening Mordain's writes |
 | plugin/commands/quest.md | Native Claude review presentation and scoped writer handoff; retain native tool/dispatch conventions |
 | plugin/agents/docs-writer.md | Explicit review-document mode, exact input/output/tool scope and creation permission; preserve post-green mode |
+| scripts/validate_plugin.py | Recognize the documented native Artifact tool and retain warnings for unknown tools; add a focused validation fixture |
 | scripts/build_portable.py | Bundle review resources into guildhall-quest; exclude them from unrelated guildhall-routing-setup copies |
 | scripts/validate_portable.py and relevant packaging checks | Validate record/example agreement, resource links, generated inventory and host-independent packaging |
-| tests/test_review*.py and browser fixtures | Independent contract tests for persistence, bounds, idempotency, conflict/recovery and path scope; UI behavior checks in an isolated browser fixture |
+| tests/test_review_contract.py, tests/test_review_adapters.py and tests/fixtures/review/ | Independent contract tests for persistence, bounds, idempotency, conflict/recovery and path scope; UI behavior checks in an isolated browser fixture |
 | plugin/skills/guildhall-quest/ | Regenerated complete bundle, including portable role adaptation |
 | README.md, plugin/README.md, docs/installation.md, docs/contributing-agents.md, docs/guildhall/plans/README.md | User-facing setup, support matrix, write ownership, checkpoint/recovery and export guidance |
 | Three plugin manifests | Increment aligned installer-facing versions when this behavior ships |

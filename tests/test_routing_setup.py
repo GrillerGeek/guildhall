@@ -69,10 +69,15 @@ class RoutingSetupTests(unittest.TestCase):
         self.assertTrue((bundle / 'SKILL.md').is_file())
         for directory in ('scripts', 'resources'):
             expected = {p.relative_to(ROOT / 'plugin/portable'): p.read_bytes()
-                        for p in (ROOT / 'plugin/portable' / directory).rglob('*') if p.is_file()}
+                        for p in (ROOT / 'plugin/portable' / directory).rglob('*')
+                        if p.is_file()
+                        and p.relative_to(ROOT / 'plugin/portable') != Path('scripts/review.py')
+                        and not p.relative_to(ROOT / 'plugin/portable').is_relative_to('resources/review')}
             self.assertTrue(expected)
             for relative, data in expected.items():
                 self.assertEqual((bundle / relative).read_bytes(), data)
+        self.assertFalse((bundle / 'scripts/review.py').exists())
+        self.assertFalse((bundle / 'resources/review').exists())
         self.assertFalse((bundle / 'references/roles').exists())
 
     def test_setup_output_is_checked_before_any_bundle_write(self):

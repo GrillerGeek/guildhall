@@ -412,3 +412,26 @@ Use [bounded input delivery and feedback](../skills/guildhall-quest/references/i
 for required worker references on every path. Record host-visible completeness
 or unknown, repair only missing authorized chunks within the existing budget,
 and retain actual outcomes/usage in the plan without extra grading workers.
+
+
+## Collaborative planning presentation
+
+Use [the shared review contract](../skills/guildhall-quest/references/collaborative-planning.md)
+for material proposals, preserving every existing dispatch/model/retry gate.
+Discover whether Cassian's native context actually has the documented `Artifact`
+built-in; its explicit allowlist entry does not establish account support. With
+support, delegate named review-document outputs and a private-by-default artifact
+(or explicit writable destination) to Cassian with creation permission. Use native
+editable prose and richest retrievable feedback. Reuse the recorded stable surface
+identity; checkpoint on save/proceed, handoff, resume and closure. Otherwise report
+the limitation and delegate portable review Markdown/HTML plus conversation.
+Native review needs no Python. The optional maintained helper is Cassian's bounded
+permission, never Mordain's Bash workaround for the Write guard.
+
+Mordain writes only the existing plan, including review links and actual owner
+accepted decisions returned with verified source evidence. Neither browser input,
+AI replies nor synchronization accepts a proposal or changes IDD content/readiness.
+Changed IDD content returns to its existing authoring/review flow. Do not supply
+review HTML, architecture proposals, Page chats or inherited transcripts to
+Seraphine; retain only her existing Spec/API/test inputs. No twentieth agent,
+orchestrator subagent, hook change, public hosting or global install is added.

@@ -38,3 +38,22 @@ For optional model routing setup, read the [installed guide](references/model-ro
 and [global defaults and project overrides](references/global-routing.md). Reuse
 valid global approval across projects; recheck source, host evidence and revocation
 at each worker boundary. Setup writes remain outside quest execution.
+
+
+## Collaborative planning handoff
+
+Follow [collaborative planning](references/collaborative-planning.md) for substantial proposals and review
+checkpoints. Discover actual writer-accessible native Claude artifact / Codex
+Space Page capabilities, then local OpenCode/Pi companion, then portable
+Markdown/HTML plus conversation. Report limitations. Cassian's explicit
+review-document mode owns named review documents and hosted outputs, including
+explicit creation permission; Mordain still writes only the quest plan and
+must not invoke a mutating helper to evade that scope. Native paths use supported
+file/host tools without Python. Local helper use is optional.
+
+Reuse one stable private-by-default review identity. Checkpoint on save/proceed,
+handoff, resume and closure; preserve conflicts, partial saves, feedback sources
+and unknown delivery. A checkpoint or browser control cannot accept a proposal,
+change consuming-project IDD status or establish readiness. Keep review HTML,
+solution proposals and Page chats out of Seraphine's independent Spec/API/test
+handoff. No host hook equivalence or live-model quality follows from packaging.

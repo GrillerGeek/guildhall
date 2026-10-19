@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "quest_id": "example-review",
+  "plan_path": "docs/guildhall/plans/2026-10-18-example.md",
+  "review_path": "docs/guildhall/plans/2026-10-18-example/review.md",
+  "html_path": "docs/guildhall/plans/2026-10-18-example/review.html",
+  "surface": {
+    "kind": "document",
+    "id": null,
+    "url": null
+  },
+  "authority": {
+    "display_label": "Example initiating user",
+    "source": "Example only; no acceptance asserted"
+  },
+  "checkpoint": {
+    "state": "local-changed",
+    "common": null,
+    "pending": null
+  },
+  "feedback": [],
+  "decisions": []
+}

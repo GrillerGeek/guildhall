@@ -118,3 +118,22 @@ configuration before status/routing. Keep unknown resolutions null. Known change
 invalidate control approval even if the requested alias is still `sonnet`.
 [Sonnet 5.5 setup](task-routing.md#sonnet-55-and-reviewed-model-mappings) distinguishes
 Claude Code's medium default from API defaults and per-worker effort support.
+
+
+## Collaborative planning handoff
+
+Follow [collaborative planning](collaborative-planning.md) for substantial proposals and review
+checkpoints. Discover actual writer-accessible native Claude artifact / Codex
+Space Page capabilities, then local OpenCode/Pi companion, then portable
+Markdown/HTML plus conversation. Report limitations. Cassian's explicit
+review-document mode owns named review documents and hosted outputs, including
+explicit creation permission; Mordain still writes only the quest plan and
+must not invoke a mutating helper to evade that scope. Native paths use supported
+file/host tools without Python. Local helper use is optional.
+
+Reuse one stable private-by-default review identity. Checkpoint on save/proceed,
+handoff, resume and closure; preserve conflicts, partial saves, feedback sources
+and unknown delivery. A checkpoint or browser control cannot accept a proposal,
+change consuming-project IDD status or establish readiness. Keep review HTML,
+solution proposals and Page chats out of Seraphine's independent Spec/API/test
+handoff. No host hook equivalence or live-model quality follows from packaging.

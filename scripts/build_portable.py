@@ -76,6 +76,7 @@ def outputs(root: Path) -> dict[Path, bytes]:
             for heading in ['Deploy plan','What to watch (first hour)','Rollback plan','On-call notes','Open ops questions']:
                 body = body.replace('`## '+heading+'`', '`### '+heading+'`')
         if file.stem == 'docs-writer':
+            body = body.replace('../skills/guildhall-quest/references/collaborative-planning.md', '../collaborative-planning.md')
             body = body.replace('the diff Mordain names (base + HEAD SHAs or a git range), the IDD Spec (for the "why" behind the change)',
                                 'the complete baseline-to-current-worktree evidence, including untracked outputs and attribution of pre-existing changes, and the Spec (for the "why" behind the change); for a scoped docs-only correction, the named user ask and verified source of truth replace the code diff and Spec')
             body = body.replace('**Read the diff and the spec.**', '**Read the supplied change evidence and Spec, or the scoped docs-only ask and source of truth.**')
@@ -103,7 +104,8 @@ def outputs(root: Path) -> dict[Path, bytes]:
     # and their linked resources are copied from one canonical source, not forks.
     for relative, data in list(result.items()):
         local = relative.relative_to(DEST)
-        if (local.parts[0] in {'scripts', 'resources'} or local == Path('LICENSE')
+        if ((local.parts[0] in {'scripts', 'resources'} and local != Path('scripts/review.py')
+             and local.parts[:2] != ('resources', 'review')) or local == Path('LICENSE')
             or local in {Path('references') / (name + '.md') for name in SETUP_REFERENCES}):
             result[SETUP_DEST / local] = data
     setup = root / 'plugin/routing-setup'
