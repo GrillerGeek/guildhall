@@ -5,7 +5,10 @@
 - Mode: feature, non-IDD prose Spec.
 - Spec: `docs/plans/2026-10-18-collaborative-planning-spec.md`.
 - Started: 2026-10-19 00:45 UTC (2026-10-18 local).
-- Status: root GREEN verified; independent post-green reviews starting.
+- Status: final backend93GREEN and specialist re-reviews verified;
+  documentation updated;8isolated browser tests independently GREEN.
+  Fresh closing technical review PASS after hosted-feedback repair;
+  final report and Rook PR draft saved and verified. Human/live QA remains open.
 - User requested the Guildhall quest workflow after reviewing the approach and
   completing the adapter spikes. No IDD Product chain or lifecycle is invented.
 - Main coordinator: Mordain. Only this plan is writable by Mordain during the
@@ -735,3 +738,738 @@ E12 separation becomes preservation of their absence. Native hooks remain exact.
 Version must advance beyond upstream0.18.0. The old197baseline/249GREEN numbers
 remain historical evidence; final gates must rebaseline/retest current main.
 The local checkpoint contains known review RED and is not published as complete.
+
+## Current-main integration evidence
+
+Bruga committed mergeba80a961e5fa5b9b511d8aa9c72bc51e1673ffc5, parents
+checkpoint4b592fe556b92493641ed798bfb36f536b228e3d and currentmain
+6bca2ad00db1ebf8a4453264618a51b9f44ff4ff. Incoming removal of routing setup,
+resources and tests is preserved; test_routing_setup.py deletion is upstream
+authority, not an implementer weakening an assertion. Canonical conflicts were
+combined; generated output rebuilt rather than manually merged. Version0.19.0.
+Worker observed33generatedfiles/check0changes,19agents0errors0warnings, portable
+validator/diffcheckpass before repair. Root reread current contributing guidance.
+Root GitHub authentication was verified via normal keyring outside default
+sandbox; no credentials were printed or modified. Final PR remains unpublished.
+
+Current-main absence supersedes historical E12 references to a separate routing
+setup. Do not restore removed routing merely to satisfy historical text/tests.
+The installed0.17.5 orchestrator workflow remains session tooling only; its
+readonly inactive global-status checks do not install routing into this package
+or change user settings. Full final PR evidence must compare origin/main6bca2ad
+to worktree, including original planning/spike commits, rather than oldquestHEAD.
+
+Bruga is executing the accepted review-regression repair on this integrated base.
+All62reviewtests/fixtures are frozen under the last accepted hashes; other18
+roles/hooks and upstream tests must match current main. Next reviewers wait for
+root GREEN on this repaired source, not historical249GREEN.
+
+## Integrated repair source freeze and complete PR evidence
+
+Current source087204c after mergeba80a96; PR baseorigin/main6bca2ad. This replaces
+the old34-path review target for current reviews. All committed planning/spike
+outputs and uncommitted changes are included below. This orchestration plan is
+the mutable self-hash exception. Native hooks/AGENTS and other18roles plus all
+23-upstream-test content are byte-equal current main (26files total), independently
+verified by root. Four updated independent-review test/fixture hashes match.
+No tests were edited by Bruga.
+
+Worker final full suite85methods(62review+23currentbaseline),43.721s exit0.
+Root whole-suite verification is running; root already observed buildcheck33files
+0drift,19agents0errors0warnings, portablevalidator,diffcheck and hookdiff exit0.
+No source writes occurred after worker final-suite start.
+
+| Path | Attribution | Mode | SHA-256 |
+| --- | --- | --- | --- |
+| docs/plans/2026-10-18-collaborative-planning-artifacts.md | planning/spike evidence | 0644 | 439b7e9efd830124c51fc29bd7c884876b0b629767aebb814c8644ddd30c56be |
+| docs/plans/2026-10-18-collaborative-planning-spec.md | planning/spike evidence | 0644 | 8387687f35fd11b6f3ab5bf28ab4a4ed19eb334df2a19bd3bc744cc1ce436ab6 |
+| docs/reviews/2026-10-18-collaborative-planning-feasibility.md | planning/spike evidence | 0644 | b9c67416a3f8efe3508e3146ca38baf1606dff9ef992224a9e849ac5ab304d64 |
+| plugin/.claude-plugin/plugin.json | Bruga implementation/generated | 0644 | 04a08b9c48e0afd1fedc0c5aa5384260365ce89e8b83134f7e77a428557c9b1f |
+| plugin/.codex-plugin/plugin.json | Bruga implementation/generated | 0644 | 155b2476ba562118dba9863cbea0267537985d3d51fe32d3ed32286e9e569f8d |
+| plugin/agents/docs-writer.md | Bruga implementation/generated | 0644 | 93bf1eebe815f50609e5427c62d5e5145b70df574742183396a2483b0add1e35 |
+| plugin/commands/quest.md | Bruga implementation/generated | 0644 | b714ff402da8375f27b69534b9f6a3ed71cba574de60249ec14a7d9a67fa7b53 |
+| plugin/plugin.json | Bruga implementation/generated | 0644 | 179be500dec5a0be663f94ab45870f6e8102bd8926f8c3044b528cc13455643c |
+| plugin/portable/SKILL.md | Bruga implementation/generated | 0644 | bb786a3c26010d0f20d69ca6208930fe894a1eb89bf439b042456ed9469ffa4f |
+| plugin/portable/references/collaborative-planning.md | Bruga implementation/generated | 0644 | af2cd76d0ea9c98da5ea1cd90525f101e091f904be35010003f1a6ac14a671b4 |
+| plugin/portable/references/hosts.md | Bruga implementation/generated | 0644 | 7c4a7cf397ad8ac539ebba3028b9d60c0afa261bebc5b9e299e7af839841d91b |
+| plugin/portable/references/quest.md | Bruga implementation/generated | 0644 | 84260072a77101e44f4686b84097e4ed6ed3b499c7d1c9e2bbe877ad572d3072 |
+| plugin/portable/resources/review/example.json | Bruga implementation/generated | 0644 | af8ff954f2d479aaf9d8542ae981f07be5235063715bb80dab7512f34780e8b9 |
+| plugin/portable/resources/review/record.schema.json | Bruga implementation/generated | 0644 | bb33bf7f3eed9a2754e9cc75eb8971db9c3c8f07a414864c73377e55fad30bed |
+| plugin/portable/resources/review/template.html | Bruga implementation/generated | 0644 | 803708f69286b4955cf15cfeaf75b720cd5e4b61a069d63ffed8fd3c0fd74257 |
+| plugin/portable/scripts/review.py | Bruga implementation/generated | 0644 | eee48d65132838a94eb776ed14be6769e05f5debf1b098f2171966aa4a42db72 |
+| plugin/skills/guildhall-quest/SKILL.md | Bruga implementation/generated | 0644 | bb786a3c26010d0f20d69ca6208930fe894a1eb89bf439b042456ed9469ffa4f |
+| plugin/skills/guildhall-quest/references/collaborative-planning.md | Bruga implementation/generated | 0644 | af2cd76d0ea9c98da5ea1cd90525f101e091f904be35010003f1a6ac14a671b4 |
+| plugin/skills/guildhall-quest/references/hosts.md | Bruga implementation/generated | 0644 | 7c4a7cf397ad8ac539ebba3028b9d60c0afa261bebc5b9e299e7af839841d91b |
+| plugin/skills/guildhall-quest/references/quest.md | Bruga implementation/generated | 0644 | 84260072a77101e44f4686b84097e4ed6ed3b499c7d1c9e2bbe877ad572d3072 |
+| plugin/skills/guildhall-quest/references/roles/docs-writer.md | Bruga implementation/generated | 0644 | 83be7b43d90d7d8523bd9d4bc4c59c44a578fe08cc551d9860cb70eb10039050 |
+| plugin/skills/guildhall-quest/resources/review/example.json | Bruga implementation/generated | 0644 | af8ff954f2d479aaf9d8542ae981f07be5235063715bb80dab7512f34780e8b9 |
+| plugin/skills/guildhall-quest/resources/review/record.schema.json | Bruga implementation/generated | 0644 | bb33bf7f3eed9a2754e9cc75eb8971db9c3c8f07a414864c73377e55fad30bed |
+| plugin/skills/guildhall-quest/resources/review/template.html | Bruga implementation/generated | 0644 | 803708f69286b4955cf15cfeaf75b720cd5e4b61a069d63ffed8fd3c0fd74257 |
+| plugin/skills/guildhall-quest/scripts/review.py | Bruga implementation/generated | 0644 | eee48d65132838a94eb776ed14be6769e05f5debf1b098f2171966aa4a42db72 |
+| scripts/build_portable.py | Bruga implementation/generated | 0644 | 666b8cc1b706fa32d6070b7645a9a1bcfdfc538f0c92c66d5bf1dbf9a7751fa4 |
+| scripts/validate_plugin.py | Bruga implementation/generated | 0644 | bc815346e9828060d4ca4cb0899641eab9024e23f2aa303ddc849b0d966067b0 |
+| scripts/validate_portable.py | Bruga implementation/generated | 0644 | 70fd365f6d11462203a62af7ff4bd67dfc6df8b5a0fe1fd87ce3d35ac805c2d0 |
+| spikes/planning-artifacts/README.md | planning/spike evidence | 0644 | 04c15aa8c518ebb1e49063ea8c2a036267373418e52df63f9f266d8d9eb26978 |
+| spikes/planning-artifacts/probe.py | planning/spike evidence | 0644 | c7579333e6f414493ec399fe6e233b359464d410dbc4c769242f05c0926edb25 |
+| spikes/planning-artifacts/results.json | planning/spike evidence | 0644 | 81d4a2b11434cb9e51c129cd6ad39ac9a9b700efbee3f0772bfd8c802d8b5397 |
+| spikes/planning-artifacts/review.html | planning/spike evidence | 0644 | 95d26d498732a10b33c7924422468ede841e3a202e5b64867d6b105b88221e31 |
+| tests/fixtures/review/artifact-agent.md | Seraphine independent tests | 0644 | f7fc9babb349b47d60f09d6f760e63b962f118ae2373852bc37b24cee72483f4 |
+| tests/fixtures/review/pi | Seraphine independent tests | 0755 | 89440e85006e10341ca1ad4a7f6ef34514b72599a444d04cb7e3028b08b6216b |
+| tests/fixtures/review/playwright.config.cjs | Seraphine independent tests | 0644 | e44f2fcf3624d0efd35364f9ffedccc8ac1028e93b9504222ad8a7f10e125709 |
+| tests/fixtures/review/run_opaque.py | Seraphine independent tests | 0644 | eba72cb46a48d699b34268678eff56766016370673b81e8a03f2a274afd37ff0 |
+| tests/fixtures/review/unknown-tool-agent.md | Seraphine independent tests | 0644 | 7e3d1244af83a679a5bb1f1a85213c3daa00dc12ee357bfdc730eb803b35d1dc |
+| tests/test_review_adapters.py | Seraphine independent tests | 0644 | e72916397de7b0b6375ad544ecadb4ddcd8be5d1c5c8257251ff1ec75dd22ad9 |
+| tests/test_review_contract.py | Seraphine independent tests | 0644 | 0020ed7f20c551592d59b6b802fc7ad15fa40dec69aea5b465349132718d64f3 |
+
+Root repaired/current-base GREEN:85tests40.730s,OK,exit0 under approved localhost
+escalation. Checks above allpass, source/test freeze verified. The reduction from
+249 reflects upstream routing removal;62artifactmethods nowinclude10review
+regressions and23unchanged current-main methods remain. Fresh status for all
+three original reviewers is same inactive shadow/noexternal before re-dispatch.
+They recheck all findings against repaired source and complete39-path PR target,
+including historical planning/spike evidence newly included against currentmain.
+
+## Review round2 results and remaining-review collection
+
+Oriana re-review087204c:0high/0med/0low/0info, prior runtime privacy fixed, all
+11repair mechanisms statically confirmed; no new security concerns. Thalia:
+7/7prior findings fixed,0high/1med new: cancel of terminal A can abort active B,
+and in-flight A cancellation lacks reservation against a later B. E08 target
+identity requires a further scoped regression/repair before closure.
+Vance reported prior3findings fixed, but its final turn failed model capacity
+while checking completed OpenCode provider-error handling. Retry same settings;
+do not claim final observability clearance yet.
+
+Source stays frozen while remaining independent reviewers collect findings on
+current GREEN. Vera may author only new review.spec.cjs in its independent UI
+review; sourcefix is held until reviewer/test-writer scopes freeze. Later helper
+changes require rerunning those UI tests against fresh fixtures. No Seraphine
+execution writer overlaps source implementation. Fresh inactive routing checks
+preceded observability retry, performance and UI dispatch.
+
+## Resume 2026-10-19
+
+Recovered the prior interrupted quest from this plan and local session evidence.
+Prior root and Vance turns ended with model-capacity errors, not a completed
+review gate. No previous workers survive in this session. Remote fetch succeeded;
+origin/main remains 6bca2ad and current source remains 087204c. Only this plan was
+dirty at resume. Preserve prior test/source hashes and approval records.
+
+Using the installed 0.18.0 quest workflow: legacy routing is no longer read or
+applied. Worker settings inherit the host; observed model identity is unknown.
+Fresh-context Cassia, Lior and Vance reviews dispatched read-only, with full
+current-main-to-worktree scope, required Spec/API and existing freeze evidence.
+Source remains frozen until selected reviews and test-writer scopes finish.
+Required-input delivery cannot be certified from worker assertions alone;
+record actual unavailable visibility honestly. No publication/install authority
+is inferred from resuming. Remaining gates include cancellation regression and
+repair, UI/operations/plugin/documentation reviews and closing Aldric then Rook.
+
+### Resumed baseline and review findings
+
+Fresh root baseline: `python3 -B -m unittest discover -s tests`, 85 methods,
+37.758 seconds, OK exit0 with localhost permitted. Default sandbox attempt had
+18 failures/9 errors due to socket PermissionError; it is setup evidence, not
+attributable feature RED and consumes no implementation-retry allowance.
+
+Cassia: 0high/1med/1low. Medium Pi event retention admits roughly 4GiB at
+individual-event/count caps; low GET/state can return roughly 50MiB response
+history. Owner Bruga/Cassia; aggregate byte budget and history retrieval require
+follow-up. Independent author cannot establish a correct public Pi burst probe
+from approved event conventions, so no speculative fixture or claimed repair.
+These remain disclosed medium/low findings, not silently cleared.
+
+Lior: 0high/1med/1info. Conflict comparison needs keyboard focus or unconstrained
+scrolling (WCAG2.1.1); focus color contrast needs measurement. Owner Bruga/Vera.
+Vance: prior3 repaired, new0high/2med. Completed OpenCode `info.error` is ignored,
+including partial text; failed POST with inconclusive history loses safe send
+diagnostics. Exact request/session and unknown-delivery semantics must remain.
+Seraphine fresh-context scoped author receives only Spec, approved API and test
+conventions, not implementation or review reports. She owns only adapter tests;
+RED will precede source repair for provider errors, send diagnostics and Thalia's
+terminal/in-flight cancellation targeting regression. Existing assertions frozen.
+
+Garran and Tabs fresh independent reviews dispatched with source frozen. Required
+read completeness is worker-reported with bounded-read details; root-visible
+complete output evidence is unavailable, so delivery attribution remains unknown.
+
+Root focus contrast calculation (WCAG sRGB relative luminance) measured existing
+#dc8b00 against #f6f5f0 at2.487:1 and white at2.715:1, below3:1. Dark backgrounds
+#171e25 and #18242f are6.195:1 and5.807:1. Include theme-specific light focus
+color with keyboard comparison repair; retain dark contrast. No tests/source
+were changed by Mordain for this measurement.
+
+### Resumed accepted RED and repair dispatch
+
+Seraphine froze adapter tests SHA256
+42519b1e9cd0901340309ff3519e177e27feb5b581df0d6684b9e4567df73d08,0644.
+Only synthetic OpenCode fixture extended; earlier assertions unchanged and Pi
+fixture unchanged. Root exact frozen targeted run:6methods,4assertion failures,
+0errors,2passes,4.764s,exit1. Causes: terminalA abort reaches pendingB; empty/
+partial provider errors become response-received; inconclusive history loses
+send diagnostic. Identity and in-flight cancellation checks already pass and
+establish coverage only. Initial sandbox errors excluded from accepted RED.
+A root hash command used wrong cwd before final accepted run; no tests ran in
+that invocation. Corrected hash and exact runner succeeded as recorded above.
+
+Bruga fresh implementation dispatch follows accepted RED; numeric goal91methods
+pass, zero regressions, generated33files0drift, both validators/diffcheck pass.
+Tests and all unrelated paths read-only. Canonical helper/template, optional
+collaborative contract and builder-generated counterparts only. Scope includes
+accessibility focus/contrast repair; no deferred Pi/history fixes. No commits.
+Synthetic temp document fixture/export requested for Vera, no model/host calls.
+
+Cassian's five named existing docs and authorized new verification report saved
+as uncommitted draft, with final checks explicitly pending. Root local link QA:
+31relative file links,0missing; existing Optional CLI anchor confirmed. Docs-only
+diffcheck clean. All four live host acceptance rows remain pending.
+Tabs final static results:0errors0warnings12positiveinfo;33generated0drift,
+19nativeagents;22protected files byte-equal upstream, removed routing absent.
+Garran's current-code runbook returned, to be rechecked after GREEN; no existing
+dashboard/SLO/service deployment, helper POSIX-only and explicit opt-in.
+
+### Resumed root GREEN and re-review freeze
+
+Root independently ran91methods in40.093s,OKexit0 with localhost permitted.
+Buildcheck33files0drift; native19agents0errors0warnings; portable/diffcheckpass.
+Source writes only canonical helper/template and builder-generated counterparts.
+Frozen helper SHA256e39c598587f024cf1e8c578b0506d4e51cc5341c407a3062b763a186389c0401;
+template SHA25601961995554159e22cae06f7ccc3f1bbf476661cac72e395c472540e82950977.
+Seraphine adapterhash42519b1e..., contract0020ed7f... and Pi89440e85... stillmatch
+full accepted hashes above. Root source review confirms explicit terminal cancel
+guard, lock held through abort, safe ProviderFailure and retained sendRefusal.
+New light focus #915b00 ratios5.199:1body,5.675:white,4.775:button#e1edf8;
+darkfocus unchanged. Named comparison region now keyboard-focusable.
+
+Vance and fresh Thalia re-review dispatched on this rootGREEN/frozen worktree.
+Bruga's synthetic fixture startup is awaiting read-only localhost healthcheck
+approval; this is a test-tool capability/permission wait, not a passing UI check.
+No source writer overlaps re-review. Documentation draft report remains pending
+final UI/reviewer evidence; no live-host acceptance inferred.
+
+### Remaining cancellation uncertainty and browser dispatch
+
+Vance final re-review0findings, bothnewmedfixed. Lior final0findings, bothfocus/
+contrast concernsfixed (actualbrowserpending). Thalia verified terminalA and
+within-budgetabortserialization, but retained1med: timeout/disconnect of an
+already-sent abort leaves possible late host effect after normal A-answer
+recovery; ordinary delivery recovery must not silently authorize B into that
+same session. This is not covered by the within-budget regression.
+
+Seraphine scoped follow-up owns one new adapter regression using only existing
+public fixture barriers and Spec/API, no implementationcontext. Public outcome:
+bounded correlated recovery_error, chat=false/safeunavailable_reason while
+cancellation uncertainty persists; recovered A answer need not be discarded.
+No new schemafield required. Source frozen until exact newRED observed.
+
+Bruga handedoff worker91GREEN40.631s and temp fixture startupOKdocument/comments,
+chat=false; optional pending curl was interrupted, not approved or claimedrun.
+Actualbrowser will verifyreachability. Temp locators/token stay outside thisplan.
+Vera dispatched fresh to existingconfig/reachablecandidate, writableonly new
+review.spec.cjs. Must explore UI before authoring, report featuremismatches rather
+than reconcile tests to code, no sourcefixes. Laterbackendchange requires UIrerun.
+Root protected upstream comparison26files0differences (roles/hooks/AGENTS/tests).
+
+First abort-timeout probe5173e829... was alreadyGREEN1method1.690s, notRED.
+It checked only immediate post-timeout state, without establishing the later
+recovery window. No repair authorized from this probe. Author correctly flagged
+that E08 does not require Aanswer recovery while abort remains unresolved; a
+safe adapter may defer. Approved sustained safety probe: bounded publicstate
+polling and sameB attempts while hostabortheld; Bmustremainblocked and cancellation
+uncertainty visible throughout, whether Aanswer is recovered or safely deferred.
+This avoids implementation-specific timing and does not invent mandatory recovery.
+
+Strengthened adaptertests SHA256
+4af41211cf02150b4228c144ec97a64cd7a1ed4b468a7b2cb4d13854fdffbab2,0644,
+rootRED1method1assertionfailure0errors2.711s exit1. Failure explicitly witnessed
+`chat reopened with unresolved abort; A answer observed=True`. No setup error.
+Earlier assertions unchanged. Bruga scoped helper/generatedhelper-only follow-up
+authorized afterthisRED; target92methodspass, no template/test/doc edits. Preserve
+cancellationuncertainty independently from ordinary answerrecovery, safe bounded
+diagnostics, disabledchat whilehazardunresolved; no guessedack/replay/forceclear.
+Fresh syntheticbrowserfixture requested after final sourcefreeze for UIrerun.
+
+### Final cancellation repair GREEN
+
+Worker92methods43.863sOK; root independent92methods42.311sOKexit0, using
+approved localhost test capability. Helper SHA256
+341e9c8c0d60790dccb8ceed5d2689978e51ab4226c272d804893c8ec091c8d2.
+Adaptertests still4af41211...; template01961995...unchanged. Onlyhelper and
+builder-generatedmirror changed this round. Source frozen since suite start.
+Independent persisted cancellation barrier derives from existing requestflags;
+ordinary Aanswer recovery preserves unconfirmed-cancel diagnostics, and send/
+rebind remain disabled until actual safe evidence. No forceclear/replay added.
+Thalia final scoped re-review dispatched after rootGREEN. Worker buildcheck33/0,
+bothvalidators/diffcheckpass; final root packaging rerun remains pending.
+Fresh document-only browserfixture launch and Vera's browser launch need host
+permission; no browserpass or finalreviewclosure claimed while pending.
+
+Final root packaging on92GREEN passed33files0drift,19agents0errors0warnings,
+portablevalidator/diffcheck. Thalia verified timeout/Aanswer barrier survives
+restart, then found repeat-cancel idempotency: a second abort acknowledgement
+can overwrite uncertainty from a first outstanding abort. Independent author
+added one public black-box case, earlier tests unchanged. AdapterSHA256
+5b2e96c042251e810c56186ecd39aed9f1da6b4af4ab8afc2335e757c210eff7.
+RootRED1assertionfailure0errors2.675s: hostabortcount2insteadof1. Bruga helper/
+generatedhelper-only guard repair authorized afterward; goal93methodspass.
+Obsolete intermediate fixturelaunch interrupted; no passing launch assumed.
+Oriana fresh security review collecting current surface; finalclearance awaits
+finalhash. Capacity initially refused her dispatch; retried only after author
+completed, preserving all required reviews without concurrency-limit bypass.
+
+### Final source and current upstream authority
+
+Worker93methods44.313sOK; root93methods44.229sOKexit0. FinalhelperSHA256
+f09ddfee2a65c4e7fed49b8bfbaeacb9f12028d2e39abb4a9de2439680932f80,
+canonical/generated equal. Pending cancellation now returns existing state
+before any new host abort, retaining the first uncertain outcome. Template stays
+01961995...; tests5b2e96c0... unchanged. Oriana final0high/1med/1low:
+no new security findings; medPi aggregatequeue and lowstatehistory are the already
+owned/disclosed follow-ups. Thalia final idempotency recheck dispatched.
+
+During this turn another task advanced origin/main to e13f3d0 (PR70). Root
+verified its ONLY change from pinned6bca2ad is tavern manifest0.2.0->0.3.0.
+No quest writer authored a downgrade. Bruga's explicitly expanded scope copied
+exact incoming manifest bytes after93GREEN; root confirmed no tavern diff against
+e13f3d0. Attribution upstream synchronization; no commit or merge created. Other
+quest code/tests remain frozen. Current final PR comparison base is e13f3d0;
+historical6bca2ad review evidence remains labeled with its original baseline.
+ManifestSHA437267f62afafd3aa70a7d026399e4997f6dde591726bbae606d0da4829d73b7.
+
+### Current handoff and remaining permission gate
+
+Thalia and Vance final re-reviews0findings on repaired code; Oriana no new
+findings, retains owned medPi memory/lowstatehistory. Lior earlier focus/contrast
+recheck0findings; HTML unchanged afterward. Garran final runbook rechecked final
+helper and documented indefinite cancellation barrier/no forceclear. Tabs prior
+structural review clean; final root validators cover regenerated bundle33/0drift,
+19agents0errors0warnings, portable checks and diffcheck. No Tink: no separately
+justified refactor. Ysolde/Wren skips remain as selected earlier.
+
+Cassian final six-doc handoff saved report with currente13f3d0 base,93GREEN,
+exact frozen hashes/review limits and explicitly pending UI/closing/live-host
+acceptance. Installation now explains cancellation barrier persists through
+answer recovery/restart and can block sends/rebind indefinitely without safe
+host confirmation. Root protected current-upstream check27files0differences,
+including exact tavern synchronization; no quest test weakened.
+
+Only remaining execution gate is approved isolated browser/final local fixture
+access. Vera has not reported browser exploration, authored UI tests or UI PASS;
+do not infer any from startup metadata. Aldric closing technical review and
+Rook PR draft remain unrun, as required while selected UI verification is blocked.
+Pending launch approvals come from host sandbox, not an extra publication
+confirmation. No commit/push/install/publication performed during this resume.
+UI gate must complete before claiming quest closure; preserve all partial work.
+
+### Permission resolved and execution resumed
+
+After the status handoff, host approvals completed for the final isolated local
+fixture and headless Edge. Bruga reported successful final fixture startup with
+document/comments enabled and no model/provider calls. Vera independently
+navigated a rendered candidate and captured a text snapshot; manual interactions
+and tests remain in progress, with final replay directed to the fresh final-code
+fixture. Private locators/token stay outside this plan. No UI PASS yet.
+User asked whether work was still continuing; root clarified the prior pause
+and resumed the remaining gates. Final source/test hashes rechecked unchanged.
+
+Vera authored only review.spec.cjs with8UIcases after manual rendered exploration.
+Initial final-fixture suite7pass/1failure: macOS Shift+End produced empty
+selection in test input setup; manually verified Shift+ArrowRight is portable
+replacement, with selection/provenance assertions unchanged. No source/UI
+implementation changed. Temporary test output/report locations keep generated
+artifacts outside repository. Final UI handoff/root replay still pending.
+
+### Browser gate complete
+
+Vera final8cases4.5sOKexit0 on final-code syntheticfixture. Root independently
+replayed identical command:8cases4.5sOKexit0. Frozen sole UItest
+tests/fixtures/review/review.spec.cjs mode0644 SHA256
+b66a04fb17e56473e894758a432a062faaeba3f90a1fb1e38643193fefe3d9bf.
+E05 offline1280/390 widths, no network/corecontrols/downloads/disabledchat;
+E06 two-tab revision conflict/draftretention/comparison keyboardfocus+scroll;
+E07 anchoredcomments persist proposed with provenance; E09checkpointpreservesplan;
+E11identity/unavailable reason/directediting/reconnect; light/darkfocuscontrast.
+Two initial7pass/1failure runs were macOS keyboard cursor input setup, not a
+feature mismatch; SelectAll->ArrowLeft->ShiftArrowRight preserves all assertions.
+No source,config or priorunit-test changes. All runtime outputs remain temporary.
+Actual screenreader/native/provider acceptance remains pending, not inferred.
+Cassian final report update and Garran final runbook refresh now dispatched,
+then closing Aldric reviews complete47-path current-base scope before Rook.
+
+### Closing review BLOCKED: fresh hosted feedback
+
+Aldric completed full E01-E12/13edges/9Boundaries/Deliverables/Validation coverage.
+ResultBLOCKED, one new medium finding blocks required E04/E06/E07 outcome:
+complete accepts fresh hosted observation text/revision but does not incorporate
+its newly observed feedback. A hosted comment added after prepare can disappear
+from the portable record while common advances/clean is reported. Same-ID changed
+hosted feedback likewise evades conflict detection. Approved API398-399 expressly
+requires new comments survive or safe refusal. Existing local-browser-comment
+regression does not cover fresh hosted observation. No other new blocker found.
+Earlier93unit/8UI passes remain truthful but do not establish this missing case.
+
+Seraphine owns two new finite publicCLI contract cases only, requirements+Spec/
+approvedAPI/test context, no implementation or closing report reads. New additions
+and same-ID changes must survive or safe refusal retain reconciliation evidence.
+No source writer authorized before root attributableRED. Bruga repair and fresh
+closing review follow after GREEN; Rook held. All prior tests/source/docs frozen
+except named independent contract additions. No IDD lifecycle change/approval.
+
+Root accepted hosted-feedbackRED:2methods,2assertionfailures,0errors,1.892s,
+exit1. NewC/provenance absent from clean record; changed sameID incorrectlyclean.
+ContracttestsSHA256
+3cf2cd3472a303d1d756cd3a84c526163e34d998539f4e4556435fac3793d770,0644.
+Earlier methods unchanged; adapter5b2e96.../UIb66a04...stillfrozen. Bruga scoped
+helper/generatedhelper-only repair authorized afterward, numeric95methods goal,
+then buildcheck/validators/diffcheck and actualUI replay on restartedownedfixture.
+
+Hosted-feedback repair helperSHA256
+75bfdcf38f74deb4ead9b9e52ef21d98966cfdd0d1b64a98113793b627e42fc4,
+canonical/generated equal. Root95methods48.182sOKexit0; worker95/48.469sOK.
+Root finalbuild33/0drift,native19agents0errors0warnings,portable/diffcheckpass.
+Thalia/Vance scoped re-reviews0new findings; Oriana0new, retained ownedPi/history
+findings only. Fresh observed feedback now joins bounded ID reconciliation before
+common publication; same-ID conflicts refuse safely, provenance preserved.
+
+Latest connected-browser replay failed fixture setup:3offlinecasespass/5connected
+ERR_CONNECTION_REFUSED,7.6s. Ownedservice disappeared after workerturnhandoff;
+no feature assertion failure. Source/tests remain frozen. Bruga asked to relaunch
+same private documentfixture and hold workerturn active through rootbrowserreplay,
+then shut down only ownedresources. Do not claim latest8UIpass until observed.
+
+Latest-code UI replay now8cases4.1sOKexit0 under root observation after fixture
+lifetime was held through tests. Same frozenUItestb66a04..., no assertion/source
+changes. Bruga verified only ownedfixture PID/args then SIGTERM; service exited0
+gracefully, scoped processcheck found no remaining ownedfixture processes. No
+files deleted; private evidence retained. Environmental connection refusal did
+not justify a feature change. Cassian final95/8 report update and Garran current
+runbook recheck requested before fresh-context closing review. No Rook yet.
+
+### Fresh final closing-review freeze
+
+Supersedes earlier snapshots: complete `e13f3d0`-to-worktree scope,47paths.
+Cassian95/8 report and Garran final runbook stable; all selected relevant
+re-reviews complete. Final root95/48.182s and8UI/4.1s pass, build33/0drift,
+19agents0errors0warnings, portable/diffcheckpass. No source/test/docs writers
+during fresh Aldric; only this plan may change. Pending final annotations/PR
+draft remain orchestration outputs, not completed deliverables.
+
+| Path | Mode | SHA-256 |
+| --- | --- | --- |
+| README.md | 0644 | bd5de3bf2a0ecc8c1a53827de1ae6fa14732eca289da64d67261e57b9b988040 |
+| docs/contributing-agents.md | 0644 | 3733b878c1378597d911dd30ccd8496878852cd3ebc7f41485d1ed72244360b8 |
+| docs/guildhall/plans/2026-10-18-planning-artifacts-issue-64.md | 0644 | mutable plan |
+| docs/guildhall/plans/README.md | 0644 | 3b80feb7b44644fca60dc61d1a7a40609ac2e348f59d3c7d286da50f9b7480a4 |
+| docs/installation.md | 0644 | 82be22096cdc28b28cde7434daa76d50f3c4fffbfe4305ca458172d5b664b585 |
+| docs/plans/2026-10-18-collaborative-planning-artifacts.md | 0644 | 439b7e9efd830124c51fc29bd7c884876b0b629767aebb814c8644ddd30c56be |
+| docs/plans/2026-10-18-collaborative-planning-spec.md | 0644 | 8387687f35fd11b6f3ab5bf28ab4a4ed19eb334df2a19bd3bc744cc1ce436ab6 |
+| docs/reviews/2026-10-18-collaborative-planning-feasibility.md | 0644 | b9c67416a3f8efe3508e3146ca38baf1606dff9ef992224a9e849ac5ab304d64 |
+| docs/reviews/2026-10-19-collaborative-planning-verification.md | 0644 | d59b17113629f0cbc05d5367a85cbc720034906271b85fa41afa64ca24b05d20 |
+| plugin/.claude-plugin/plugin.json | 0644 | 04a08b9c48e0afd1fedc0c5aa5384260365ce89e8b83134f7e77a428557c9b1f |
+| plugin/.codex-plugin/plugin.json | 0644 | 155b2476ba562118dba9863cbea0267537985d3d51fe32d3ed32286e9e569f8d |
+| plugin/README.md | 0644 | 110d1a0c4b53e1a0d3fceeaf8951ab13f6dc0681cee08776769161abd11e3fd2 |
+| plugin/agents/docs-writer.md | 0644 | 93bf1eebe815f50609e5427c62d5e5145b70df574742183396a2483b0add1e35 |
+| plugin/commands/quest.md | 0644 | b714ff402da8375f27b69534b9f6a3ed71cba574de60249ec14a7d9a67fa7b53 |
+| plugin/plugin.json | 0644 | 179be500dec5a0be663f94ab45870f6e8102bd8926f8c3044b528cc13455643c |
+| plugin/portable/SKILL.md | 0644 | bb786a3c26010d0f20d69ca6208930fe894a1eb89bf439b042456ed9469ffa4f |
+| plugin/portable/references/collaborative-planning.md | 0644 | af2cd76d0ea9c98da5ea1cd90525f101e091f904be35010003f1a6ac14a671b4 |
+| plugin/portable/references/hosts.md | 0644 | 7c4a7cf397ad8ac539ebba3028b9d60c0afa261bebc5b9e299e7af839841d91b |
+| plugin/portable/references/quest.md | 0644 | 84260072a77101e44f4686b84097e4ed6ed3b499c7d1c9e2bbe877ad572d3072 |
+| plugin/portable/resources/review/example.json | 0644 | af8ff954f2d479aaf9d8542ae981f07be5235063715bb80dab7512f34780e8b9 |
+| plugin/portable/resources/review/record.schema.json | 0644 | bb33bf7f3eed9a2754e9cc75eb8971db9c3c8f07a414864c73377e55fad30bed |
+| plugin/portable/resources/review/template.html | 0644 | 01961995554159e22cae06f7ccc3f1bbf476661cac72e395c472540e82950977 |
+| plugin/portable/scripts/review.py | 0644 | 75bfdcf38f74deb4ead9b9e52ef21d98966cfdd0d1b64a98113793b627e42fc4 |
+| plugin/skills/guildhall-quest/SKILL.md | 0644 | bb786a3c26010d0f20d69ca6208930fe894a1eb89bf439b042456ed9469ffa4f |
+| plugin/skills/guildhall-quest/references/collaborative-planning.md | 0644 | af2cd76d0ea9c98da5ea1cd90525f101e091f904be35010003f1a6ac14a671b4 |
+| plugin/skills/guildhall-quest/references/hosts.md | 0644 | 7c4a7cf397ad8ac539ebba3028b9d60c0afa261bebc5b9e299e7af839841d91b |
+| plugin/skills/guildhall-quest/references/quest.md | 0644 | 84260072a77101e44f4686b84097e4ed6ed3b499c7d1c9e2bbe877ad572d3072 |
+| plugin/skills/guildhall-quest/references/roles/docs-writer.md | 0644 | 83be7b43d90d7d8523bd9d4bc4c59c44a578fe08cc551d9860cb70eb10039050 |
+| plugin/skills/guildhall-quest/resources/review/example.json | 0644 | af8ff954f2d479aaf9d8542ae981f07be5235063715bb80dab7512f34780e8b9 |
+| plugin/skills/guildhall-quest/resources/review/record.schema.json | 0644 | bb33bf7f3eed9a2754e9cc75eb8971db9c3c8f07a414864c73377e55fad30bed |
+| plugin/skills/guildhall-quest/resources/review/template.html | 0644 | 01961995554159e22cae06f7ccc3f1bbf476661cac72e395c472540e82950977 |
+| plugin/skills/guildhall-quest/scripts/review.py | 0644 | 75bfdcf38f74deb4ead9b9e52ef21d98966cfdd0d1b64a98113793b627e42fc4 |
+| scripts/build_portable.py | 0644 | 666b8cc1b706fa32d6070b7645a9a1bcfdfc538f0c92c66d5bf1dbf9a7751fa4 |
+| scripts/validate_plugin.py | 0644 | bc815346e9828060d4ca4cb0899641eab9024e23f2aa303ddc849b0d966067b0 |
+| scripts/validate_portable.py | 0644 | 70fd365f6d11462203a62af7ff4bd67dfc6df8b5a0fe1fd87ce3d35ac805c2d0 |
+| spikes/planning-artifacts/README.md | 0644 | 04c15aa8c518ebb1e49063ea8c2a036267373418e52df63f9f266d8d9eb26978 |
+| spikes/planning-artifacts/probe.py | 0644 | c7579333e6f414493ec399fe6e233b359464d410dbc4c769242f05c0926edb25 |
+| spikes/planning-artifacts/results.json | 0644 | 81d4a2b11434cb9e51c129cd6ad39ac9a9b700efbee3f0772bfd8c802d8b5397 |
+| spikes/planning-artifacts/review.html | 0644 | 95d26d498732a10b33c7924422468ede841e3a202e5b64867d6b105b88221e31 |
+| tests/fixtures/review/artifact-agent.md | 0644 | f7fc9babb349b47d60f09d6f760e63b962f118ae2373852bc37b24cee72483f4 |
+| tests/fixtures/review/pi | 0755 | 89440e85006e10341ca1ad4a7f6ef34514b72599a444d04cb7e3028b08b6216b |
+| tests/fixtures/review/playwright.config.cjs | 0644 | e44f2fcf3624d0efd35364f9ffedccc8ac1028e93b9504222ad8a7f10e125709 |
+| tests/fixtures/review/review.spec.cjs | 0644 | b66a04fb17e56473e894758a432a062faaeba3f90a1fb1e38643193fefe3d9bf |
+| tests/fixtures/review/run_opaque.py | 0644 | eba72cb46a48d699b34268678eff56766016370673b81e8a03f2a274afd37ff0 |
+| tests/fixtures/review/unknown-tool-agent.md | 0644 | 7e3d1244af83a679a5bb1f1a85213c3daa00dc12ee357bfdc730eb803b35d1dc |
+| tests/test_review_adapters.py | 0644 | 5b2e96c042251e810c56186ecd39aed9f1da6b4af4ab8afc2335e757c210eff7 |
+| tests/test_review_contract.py | 0644 | 3cf2cd3472a303d1d756cd3a84c526163e34d998539f4e4556435fac3793d770 |
+
+### Fresh closing technical review PASS
+
+Aldric fresh-context post-green ResultPASS, no new blocking finding. Explicit
+coverage completed for all12Expectations,13Edge behaviors,9Boundaries, every
+Deliverable and automatedValidation. Prior hosted-feedback blocker fixed before
+common publication; both independent regressions nowpass. Reviewer independently
+matched all47latest-freeze modes/hashes (planexcepted),27protected upstream files,
+and exact tavern currentbase bytes. Source/test/docs full review complete.
+Recorded root95methods48.182s and8UIcases4.1sOK, build33/0drift19agents0errors/
+0warnings,portable/diffcheckpass; root finaldocs31local links0missing.
+
+No unresolved required-behavior/highseverity blocker or author decision. Retained
+mediumPi aggregatequeue (~4GiB theoretical) and lowstatehistory (~50MiB), owners
+Bruga/Cassia; follow-up aggregate bytebudget and boundedhistory. These are not
+production-certification claims. Earlier workers' enforced input isolation,
+complete tool-output delivery and observed model identity remain unknown.
+No IDD annotation/release approval was supplied by technical review.
+Only final report/plan annotations and PRdraft remain permitted orchestration
+outputs. Any implementation/test/behavior-doc change requires new review.
+
+## Open items for the user
+
+- Live acceptance remains pending for Claude Artifact, Codex Space, OpenCode and Pi; isolated tests do not certify account access, providers or model quality.
+- Optional screen-reader acceptance remains pending.
+- The medium Pi aggregate-memory and low state-history-size follow-ups remain owned by Bruga/Cassia; the local companion is opt-in and is not certified production-ready.
+
+## PR draft
+
+Rook's draft is retained below; Markdown hard-break whitespace was normalized
+for repository checks. Garran's Runbook remains verbatim. No publication.
+
+feat(planning): add durable collaborative review workspaces
+
+## Summary
+
+- Add portable planning review bundles, guarded checkpoints and offline HTML, with capability-based native Artifact/Page handoffs and an optional OpenCode/Pi local companion.
+- Preserve exact session identity, unknown-delivery and cancellation evidence, concurrent drafts and freshly observed hosted feedback. Keep owner acceptance, IDD lifecycle and specialist write scopes explicit.
+- Align package manifests at `0.19.0`, regenerate the complete quest bundle, and document setup, recovery, historical adapter spikes and remaining acceptance gaps.
+
+## Plan reference
+
+[Quest 64: durable collaborative planning](docs/guildhall/plans/2026-10-18-planning-artifacts-issue-64.md)
+
+Closes #64.
+
+## Test plan
+
+- [x] Follow independent test-author → attributable RED → implementation → GREEN handoffs, including independent regressions for cancellation, provider diagnostics and hosted-feedback preservation.
+- [x] Pass 95 unit tests: root 48.182 seconds; independent implementation verification 48.469 seconds.
+- [x] Pass eight isolated Playwright tests on the final helper: root 4.1 seconds, covering offline export, stale-save draft preservation, feedback persistence, plan preservation, reconnect and keyboard/focus behavior.
+- [x] Pass generated-bundle check: 33 files, zero drift; native validator: 19 agents, zero errors/warnings; portable validation and `git diff --check`.
+- [x] Verify 31 local documentation links with zero missing targets.
+- [x] Complete selected security, reliability, observability, performance, documentation, operations, accessibility, browser and plugin reviews. Tink skipped because no separately justified refactor remained.
+- [x] Obtain fresh closing technical PASS covering all 12 Expectations, 13 edge cases, nine Boundaries, Deliverables and automated Validation after the final repair.
+- [ ] Complete live Claude Artifact, Codex Space, OpenCode and Pi acceptance.
+- [ ] Complete optional screen-reader acceptance.
+
+## Runbook
+
+### Deploy plan
+
+- Guildhall `0.19.0` adds opt-in planning review tooling. No database migration, central service or feature flag is present.
+- Final helper hash: `75bfdcf38f74deb4ead9b9e52ef21d98966cfdd0d1b64a98113793b627e42fc4`. Root reports 95 unit tests, eight isolated Playwright tests and all structural/package checks passing. Release requires a passing closing technical review and the applicable human/live acceptance.
+- Optional helper prerequisites: POSIX Python 3.12+, loopback access, initialized scoped review bundle, and an explicit current-user-owned private runtime directory outside the repository.
+- OpenCode requires an existing exact tool-free session on an explicitly selected loopback server. Pi requires the existing executable/model configuration and a dedicated adapter-owned session. Confirm displayed identity and capabilities before sending.
+- Native Artifact/Page paths require callable tools in the writer’s context. Ordinary quests and supported native review paths acquire no Python requirement.
+- Keep startup tokens, runtime bindings, journals and session files outside commits. Isolated fixtures do not establish live-host acceptance or model quality.
+
+### What to watch (first hour)
+
+1. **Capabilities and identity:** inspect `capabilities.chat`, displayed binding and `unavailable_reason`. Document-mode startup does not establish working model chat.
+2. **Delivery and cancellation:** watch request `delivery_state`, `recovery_error` and cancellation-unconfirmed messages. An unacknowledged abort can block sends and rebind indefinitely, including after answer recovery or restart.
+3. **Diagnostics:** inspect safe stderr `operation`, `stage` and `error_class` labels. OpenCode terminal provider failures surface as `opencode-response` / `ProviderFailure`; inconclusive history retains send failures.
+4. **Checkpoint feedback:** verify freshly observed hosted comments survive completion. Conflicting changes under the same feedback ID must refuse completion before publishing a new common baseline; retain pending evidence for reconciliation.
+5. **Latency and memory:** verify configured operation budgets. Watch helper memory during Pi event output and large history refreshes. Aggregate Pi event-memory bounding remains deferred; maximum `/state` response history can approach 50 MiB.
+6. **Persistence and export:** verify saved edits survive reload, stale revisions preserve drafts, partial checkpoints retain evidence, and exported HTML works offline. `clean` means synchronization, not owner acceptance.
+
+No existing dashboard, alert or SLO surfaced in the reviewed conventions. Identity/restriction failure, unresolved cancellation or an unresponsive helper should stop model-backed review while preserving documents.
+
+### Rollback plan
+
+1. Download unsaved browser drafts.
+2. Stop the owned companion using Ctrl-C or SIGTERM. Shutdown closes its listener and owned Pi process; leave unrelated OpenCode servers running.
+3. Preserve the complete review bundle and private runtime directory. Do not delete journals, modify request states or switch sessions to bypass unresolved delivery/cancellation.
+4. Continue through Markdown/HTML plus conversation or an available native surface.
+5. If package rollback is required, restore the previously verified Guildhall package through the normal release process. Package rollback does not undo hosted edits or delivered prompts.
+6. No migration or automatic data conversion is present. Partial hosted saves and conflicting content require the designated owner’s recovery decision before manual restoration.
+
+### On-call notes
+
+- Entry point: `docs/installation.md#optional-planning-review-helper`; detailed payloads: `plugin/portable/references/collaborative-planning.md`.
+- Triage: public error envelope → exact root/plan/runtime/session → delivery/cancellation evidence → checkpoint guards.
+- CLI exits: `2` invalid input; `3` scope/identity/concurrency refusal; `4` unavailable operation. Exit `0` can report an observed content conflict.
+- HTTP 403 indicates Host/Origin/token refusal; 409 indicates stale revision or identity conflict; 413 indicates a bound; 502 indicates unavailable processing/transport.
+- Restart with the same runtime and binding. A replacement Pi stable session ID is refused even when its session-file path matches.
+- Terminal or duplicate cancellation does not issue another session-wide abort. Unknown cancellation remains a separate persisted safety barrier; recovering an answer does not clear it.
+- There is no force-clear, automatic replay or automatic cancellation-barrier recovery. Preserve evidence and use document fallback when safe host confirmation is unavailable.
+- Connected `/state` may inspect host history. CLI `inspect` with explicit `runtime_dir` reads delivery counts without contacting the host; unavailable coverage is not zero pending requests.
+- Checkpoint completion combines current, prepared and freshly observed hosted feedback. A differing same-ID entry refuses publication rather than choosing a winner; obtain authoritative reconciliation and fresh guards.
+- The 200-request runtime cap requires an explicit archival decision. No automated safe archival operation exists.
+- Owned synthetic services were gracefully stopped and temporary evidence retained; unrelated processes were left running.
+
+### Open ops questions
+
+- Human/live acceptance remains outstanding for actual native account access, OpenCode/Pi provider compatibility, model behavior and complete host interaction flows.
+- Retain the medium Pi aggregate event-memory finding and low `/state` history-size finding as owned follow-ups for Bruga/Cassia. Neither was repaired in this cycle.
+- Establish the operator escalation path for indefinitely unconfirmed cancellation and full runtime journals; the implementation intentionally provides no unsafe escape.
+- No automated operational alerting, release ramp, support owner or blackout window was established by the inspected conventions. Record the intended local-tool support practice.
+
+## Reviewer notes
+
+The plan’s `## Open items for the user` are reproduced verbatim:
+
+- Live acceptance remains pending for Claude Artifact, Codex Space, OpenCode and Pi; isolated tests do not certify account access, providers or model quality.
+- Optional screen-reader acceptance remains pending.
+- The medium Pi aggregate-memory and low state-history-size follow-ups remain owned by Bruga/Cassia; the local companion is opt-in and is not certified production-ready.
+
+The retained medium Pi finding concerns aggregate queued event bytes, with approximately 4 GiB theoretical retention; the low `/state` history finding can approach 50 MiB. Bruga/Cassia own aggregate-byte and bounded-history follow-ups. Thalia/Vance’s repaired findings are clear, Lior’s focus/contrast findings are clear, and Oriana reported no new security defect. The closing reviewer found no unresolved required-behavior blocker.
+
+Review scope is pinned `e13f3d0` through the complete current worktree on `Artifacts`, including untracked verification report and browser tests. HEAD is `087204c`; resumed repairs remain uncommitted. Historical planning/spikes are included, upstream routing removal remains preserved, and the synchronized tavern manifest has no feature diff against the pinned base.
+
+This is a PR draft only. No new commit, push, publication, global installation, marketplace change or release certification is authorized or performed. Worker input isolation and observed model identity remain subject to the visibility limits recorded in the plan.
+
+### How to create this PR
+
+Run after the reviewed worktree changes have been committed and pushed with authorization: `gh pr create --title "feat(planning): add durable collaborative review workspaces" --body-file <saved-body-path>`
+
+## Quest handoff complete
+
+### Publication authorization
+
+After the reviewed handoff, the user explicitly authorized committing, pushing
+and opening the PR. This supersedes historical draft-only/no-commit instructions
+for these publication actions only. Code and test hashes still match the closing
+review; the complete47-path PR scope passed a secret-pattern scan, and current
+upstream remains e13f3d0. Global installation, marketplace changes, merging and
+release/live-host approval are not part of this publication request.
+
+Implementation and isolated verification reached technical PASS. Rook draft
+saved above; final verification report annotation saved and root-verified.
+Human/live acceptance and the two owned performance follow-ups remain open.
+All changes from this resume remain uncommitted; no publish/install occurred.
+Temporary owned services stopped; private evidence retained. Source/tests
+unchanged after final technical review; only permitted report/plan annotations
+and this PR draft were added. Final root checks passed:32local documentation links,
+0missing, PRdraftanchor verified, diffcheckpass.47currentpaths retained, no source/
+test/behavior-doc drift from closing freeze; report/plan orchestration annotations
+are the declared exceptions. Final report SHA256
+4e4729624bfa855213e3f4d289c85cc34f53c150c8cb666821583def44d21f1f.
+
+### Closing-review frozen evidence
+
+Supersedes earlier manifests for closing scope: pinned `e13f3d0` to complete
+current worktree, including untracked report and UI tests. Six docs stable;
+Cassian report includes actual8/8 browser passes. No implementation/test/docs
+writes permitted during Aldric; plan is the mutable self-hash exception.
+Review findings: Oriana no new security defect; retained med Pi aggregatequeue
+and low statehistory, owners Bruga/Cassia. Thalia/Vance repaired findings cleared;
+Lior focus/contrast cleared and now actual UI checks passed; Tabs structural
+clean with root final validators; Garran final runbook supplied. Native/provider
+acceptance and optional screenreader checks remain pending, not inferred.
+
+| Path | Mode | SHA-256 |
+| --- | --- | --- |
+| README.md | 0644 | bd5de3bf2a0ecc8c1a53827de1ae6fa14732eca289da64d67261e57b9b988040 |
+| docs/contributing-agents.md | 0644 | 3733b878c1378597d911dd30ccd8496878852cd3ebc7f41485d1ed72244360b8 |
+| docs/guildhall/plans/2026-10-18-planning-artifacts-issue-64.md | 0644 | mutable plan |
+| docs/guildhall/plans/README.md | 0644 | 3b80feb7b44644fca60dc61d1a7a40609ac2e348f59d3c7d286da50f9b7480a4 |
+| docs/installation.md | 0644 | 82be22096cdc28b28cde7434daa76d50f3c4fffbfe4305ca458172d5b664b585 |
+| docs/plans/2026-10-18-collaborative-planning-artifacts.md | 0644 | 439b7e9efd830124c51fc29bd7c884876b0b629767aebb814c8644ddd30c56be |
+| docs/plans/2026-10-18-collaborative-planning-spec.md | 0644 | 8387687f35fd11b6f3ab5bf28ab4a4ed19eb334df2a19bd3bc744cc1ce436ab6 |
+| docs/reviews/2026-10-18-collaborative-planning-feasibility.md | 0644 | b9c67416a3f8efe3508e3146ca38baf1606dff9ef992224a9e849ac5ab304d64 |
+| docs/reviews/2026-10-19-collaborative-planning-verification.md | 0644 | 076e13ade4307fd7de2ed5c0c19192637d775c3aca990aff6e6235a2fd42a95d |
+| plugin/.claude-plugin/plugin.json | 0644 | 04a08b9c48e0afd1fedc0c5aa5384260365ce89e8b83134f7e77a428557c9b1f |
+| plugin/.codex-plugin/plugin.json | 0644 | 155b2476ba562118dba9863cbea0267537985d3d51fe32d3ed32286e9e569f8d |
+| plugin/README.md | 0644 | 110d1a0c4b53e1a0d3fceeaf8951ab13f6dc0681cee08776769161abd11e3fd2 |
+| plugin/agents/docs-writer.md | 0644 | 93bf1eebe815f50609e5427c62d5e5145b70df574742183396a2483b0add1e35 |
+| plugin/commands/quest.md | 0644 | b714ff402da8375f27b69534b9f6a3ed71cba574de60249ec14a7d9a67fa7b53 |
+| plugin/plugin.json | 0644 | 179be500dec5a0be663f94ab45870f6e8102bd8926f8c3044b528cc13455643c |
+| plugin/portable/SKILL.md | 0644 | bb786a3c26010d0f20d69ca6208930fe894a1eb89bf439b042456ed9469ffa4f |
+| plugin/portable/references/collaborative-planning.md | 0644 | af2cd76d0ea9c98da5ea1cd90525f101e091f904be35010003f1a6ac14a671b4 |
+| plugin/portable/references/hosts.md | 0644 | 7c4a7cf397ad8ac539ebba3028b9d60c0afa261bebc5b9e299e7af839841d91b |
+| plugin/portable/references/quest.md | 0644 | 84260072a77101e44f4686b84097e4ed6ed3b499c7d1c9e2bbe877ad572d3072 |
+| plugin/portable/resources/review/example.json | 0644 | af8ff954f2d479aaf9d8542ae981f07be5235063715bb80dab7512f34780e8b9 |
+| plugin/portable/resources/review/record.schema.json | 0644 | bb33bf7f3eed9a2754e9cc75eb8971db9c3c8f07a414864c73377e55fad30bed |
+| plugin/portable/resources/review/template.html | 0644 | 01961995554159e22cae06f7ccc3f1bbf476661cac72e395c472540e82950977 |
+| plugin/portable/scripts/review.py | 0644 | f09ddfee2a65c4e7fed49b8bfbaeacb9f12028d2e39abb4a9de2439680932f80 |
+| plugin/skills/guildhall-quest/SKILL.md | 0644 | bb786a3c26010d0f20d69ca6208930fe894a1eb89bf439b042456ed9469ffa4f |
+| plugin/skills/guildhall-quest/references/collaborative-planning.md | 0644 | af2cd76d0ea9c98da5ea1cd90525f101e091f904be35010003f1a6ac14a671b4 |
+| plugin/skills/guildhall-quest/references/hosts.md | 0644 | 7c4a7cf397ad8ac539ebba3028b9d60c0afa261bebc5b9e299e7af839841d91b |
+| plugin/skills/guildhall-quest/references/quest.md | 0644 | 84260072a77101e44f4686b84097e4ed6ed3b499c7d1c9e2bbe877ad572d3072 |
+| plugin/skills/guildhall-quest/references/roles/docs-writer.md | 0644 | 83be7b43d90d7d8523bd9d4bc4c59c44a578fe08cc551d9860cb70eb10039050 |
+| plugin/skills/guildhall-quest/resources/review/example.json | 0644 | af8ff954f2d479aaf9d8542ae981f07be5235063715bb80dab7512f34780e8b9 |
+| plugin/skills/guildhall-quest/resources/review/record.schema.json | 0644 | bb33bf7f3eed9a2754e9cc75eb8971db9c3c8f07a414864c73377e55fad30bed |
+| plugin/skills/guildhall-quest/resources/review/template.html | 0644 | 01961995554159e22cae06f7ccc3f1bbf476661cac72e395c472540e82950977 |
+| plugin/skills/guildhall-quest/scripts/review.py | 0644 | f09ddfee2a65c4e7fed49b8bfbaeacb9f12028d2e39abb4a9de2439680932f80 |
+| scripts/build_portable.py | 0644 | 666b8cc1b706fa32d6070b7645a9a1bcfdfc538f0c92c66d5bf1dbf9a7751fa4 |
+| scripts/validate_plugin.py | 0644 | bc815346e9828060d4ca4cb0899641eab9024e23f2aa303ddc849b0d966067b0 |
+| scripts/validate_portable.py | 0644 | 70fd365f6d11462203a62af7ff4bd67dfc6df8b5a0fe1fd87ce3d35ac805c2d0 |
+| spikes/planning-artifacts/README.md | 0644 | 04c15aa8c518ebb1e49063ea8c2a036267373418e52df63f9f266d8d9eb26978 |
+| spikes/planning-artifacts/probe.py | 0644 | c7579333e6f414493ec399fe6e233b359464d410dbc4c769242f05c0926edb25 |
+| spikes/planning-artifacts/results.json | 0644 | 81d4a2b11434cb9e51c129cd6ad39ac9a9b700efbee3f0772bfd8c802d8b5397 |
+| spikes/planning-artifacts/review.html | 0644 | 95d26d498732a10b33c7924422468ede841e3a202e5b64867d6b105b88221e31 |
+| tests/fixtures/review/artifact-agent.md | 0644 | f7fc9babb349b47d60f09d6f760e63b962f118ae2373852bc37b24cee72483f4 |
+| tests/fixtures/review/pi | 0755 | 89440e85006e10341ca1ad4a7f6ef34514b72599a444d04cb7e3028b08b6216b |
+| tests/fixtures/review/playwright.config.cjs | 0644 | e44f2fcf3624d0efd35364f9ffedccc8ac1028e93b9504222ad8a7f10e125709 |
+| tests/fixtures/review/review.spec.cjs | 0644 | b66a04fb17e56473e894758a432a062faaeba3f90a1fb1e38643193fefe3d9bf |
+| tests/fixtures/review/run_opaque.py | 0644 | eba72cb46a48d699b34268678eff56766016370673b81e8a03f2a274afd37ff0 |
+| tests/fixtures/review/unknown-tool-agent.md | 0644 | 7e3d1244af83a679a5bb1f1a85213c3daa00dc12ee357bfdc730eb803b35d1dc |
+| tests/test_review_adapters.py | 0644 | 5b2e96c042251e810c56186ecd39aed9f1da6b4af4ab8afc2335e757c210eff7 |
+| tests/test_review_contract.py | 0644 | 0020ed7f20c551592d59b6b802fc7ad15fa40dec69aea5b465349132718d64f3 |
+
+### Current-base review manifest
+
+Pinned base: `e13f3d0`. All tracked/staged/untracked feature outputs below;
+the synchronized tavern manifest has no diff against this base. Attribution:
+planning/spikes predate implementation; adapter tests are Seraphine-owned;
+six user docs/report are Cassian-owned; canonical/generated implementation
+is Bruga-owned. This orchestration plan is the mutable self-hash exception.
+Root final six-doc local-link QA:31links,0missing; diffcheckpass.
+
+| Path | Mode | SHA-256 |
+| --- | --- | --- |
+| README.md | 0644 | bd5de3bf2a0ecc8c1a53827de1ae6fa14732eca289da64d67261e57b9b988040 |
+| docs/contributing-agents.md | 0644 | 3733b878c1378597d911dd30ccd8496878852cd3ebc7f41485d1ed72244360b8 |
+| docs/guildhall/plans/2026-10-18-planning-artifacts-issue-64.md | 0644 | mutable plan |
+| docs/guildhall/plans/README.md | 0644 | 3b80feb7b44644fca60dc61d1a7a40609ac2e348f59d3c7d286da50f9b7480a4 |
+| docs/installation.md | 0644 | 82be22096cdc28b28cde7434daa76d50f3c4fffbfe4305ca458172d5b664b585 |
+| docs/plans/2026-10-18-collaborative-planning-artifacts.md | 0644 | 439b7e9efd830124c51fc29bd7c884876b0b629767aebb814c8644ddd30c56be |
+| docs/plans/2026-10-18-collaborative-planning-spec.md | 0644 | 8387687f35fd11b6f3ab5bf28ab4a4ed19eb334df2a19bd3bc744cc1ce436ab6 |
+| docs/reviews/2026-10-18-collaborative-planning-feasibility.md | 0644 | b9c67416a3f8efe3508e3146ca38baf1606dff9ef992224a9e849ac5ab304d64 |
+| docs/reviews/2026-10-19-collaborative-planning-verification.md | 0644 | e9fc6369c88e75c8b4b1e227c1693cc81baebe7995345d426ccb46271d33b570 |
+| plugin/.claude-plugin/plugin.json | 0644 | 04a08b9c48e0afd1fedc0c5aa5384260365ce89e8b83134f7e77a428557c9b1f |
+| plugin/.codex-plugin/plugin.json | 0644 | 155b2476ba562118dba9863cbea0267537985d3d51fe32d3ed32286e9e569f8d |
+| plugin/README.md | 0644 | 110d1a0c4b53e1a0d3fceeaf8951ab13f6dc0681cee08776769161abd11e3fd2 |
+| plugin/agents/docs-writer.md | 0644 | 93bf1eebe815f50609e5427c62d5e5145b70df574742183396a2483b0add1e35 |
+| plugin/commands/quest.md | 0644 | b714ff402da8375f27b69534b9f6a3ed71cba574de60249ec14a7d9a67fa7b53 |
+| plugin/plugin.json | 0644 | 179be500dec5a0be663f94ab45870f6e8102bd8926f8c3044b528cc13455643c |
+| plugin/portable/SKILL.md | 0644 | bb786a3c26010d0f20d69ca6208930fe894a1eb89bf439b042456ed9469ffa4f |
+| plugin/portable/references/collaborative-planning.md | 0644 | af2cd76d0ea9c98da5ea1cd90525f101e091f904be35010003f1a6ac14a671b4 |
+| plugin/portable/references/hosts.md | 0644 | 7c4a7cf397ad8ac539ebba3028b9d60c0afa261bebc5b9e299e7af839841d91b |
+| plugin/portable/references/quest.md | 0644 | 84260072a77101e44f4686b84097e4ed6ed3b499c7d1c9e2bbe877ad572d3072 |
+| plugin/portable/resources/review/example.json | 0644 | af8ff954f2d479aaf9d8542ae981f07be5235063715bb80dab7512f34780e8b9 |
+| plugin/portable/resources/review/record.schema.json | 0644 | bb33bf7f3eed9a2754e9cc75eb8971db9c3c8f07a414864c73377e55fad30bed |
+| plugin/portable/resources/review/template.html | 0644 | 01961995554159e22cae06f7ccc3f1bbf476661cac72e395c472540e82950977 |
+| plugin/portable/scripts/review.py | 0644 | f09ddfee2a65c4e7fed49b8bfbaeacb9f12028d2e39abb4a9de2439680932f80 |
+| plugin/skills/guildhall-quest/SKILL.md | 0644 | bb786a3c26010d0f20d69ca6208930fe894a1eb89bf439b042456ed9469ffa4f |
+| plugin/skills/guildhall-quest/references/collaborative-planning.md | 0644 | af2cd76d0ea9c98da5ea1cd90525f101e091f904be35010003f1a6ac14a671b4 |
+| plugin/skills/guildhall-quest/references/hosts.md | 0644 | 7c4a7cf397ad8ac539ebba3028b9d60c0afa261bebc5b9e299e7af839841d91b |
+| plugin/skills/guildhall-quest/references/quest.md | 0644 | 84260072a77101e44f4686b84097e4ed6ed3b499c7d1c9e2bbe877ad572d3072 |
+| plugin/skills/guildhall-quest/references/roles/docs-writer.md | 0644 | 83be7b43d90d7d8523bd9d4bc4c59c44a578fe08cc551d9860cb70eb10039050 |
+| plugin/skills/guildhall-quest/resources/review/example.json | 0644 | af8ff954f2d479aaf9d8542ae981f07be5235063715bb80dab7512f34780e8b9 |
+| plugin/skills/guildhall-quest/resources/review/record.schema.json | 0644 | bb33bf7f3eed9a2754e9cc75eb8971db9c3c8f07a414864c73377e55fad30bed |
+| plugin/skills/guildhall-quest/resources/review/template.html | 0644 | 01961995554159e22cae06f7ccc3f1bbf476661cac72e395c472540e82950977 |
+| plugin/skills/guildhall-quest/scripts/review.py | 0644 | f09ddfee2a65c4e7fed49b8bfbaeacb9f12028d2e39abb4a9de2439680932f80 |
+| scripts/build_portable.py | 0644 | 666b8cc1b706fa32d6070b7645a9a1bcfdfc538f0c92c66d5bf1dbf9a7751fa4 |
+| scripts/validate_plugin.py | 0644 | bc815346e9828060d4ca4cb0899641eab9024e23f2aa303ddc849b0d966067b0 |
+| scripts/validate_portable.py | 0644 | 70fd365f6d11462203a62af7ff4bd67dfc6df8b5a0fe1fd87ce3d35ac805c2d0 |
+| spikes/planning-artifacts/README.md | 0644 | 04c15aa8c518ebb1e49063ea8c2a036267373418e52df63f9f266d8d9eb26978 |
+| spikes/planning-artifacts/probe.py | 0644 | c7579333e6f414493ec399fe6e233b359464d410dbc4c769242f05c0926edb25 |
+| spikes/planning-artifacts/results.json | 0644 | 81d4a2b11434cb9e51c129cd6ad39ac9a9b700efbee3f0772bfd8c802d8b5397 |
+| spikes/planning-artifacts/review.html | 0644 | 95d26d498732a10b33c7924422468ede841e3a202e5b64867d6b105b88221e31 |
+| tests/fixtures/review/artifact-agent.md | 0644 | f7fc9babb349b47d60f09d6f760e63b962f118ae2373852bc37b24cee72483f4 |
+| tests/fixtures/review/pi | 0755 | 89440e85006e10341ca1ad4a7f6ef34514b72599a444d04cb7e3028b08b6216b |
+| tests/fixtures/review/playwright.config.cjs | 0644 | e44f2fcf3624d0efd35364f9ffedccc8ac1028e93b9504222ad8a7f10e125709 |
+| tests/fixtures/review/run_opaque.py | 0644 | eba72cb46a48d699b34268678eff56766016370673b81e8a03f2a274afd37ff0 |
+| tests/fixtures/review/unknown-tool-agent.md | 0644 | 7e3d1244af83a679a5bb1f1a85213c3daa00dc12ee357bfdc730eb803b35d1dc |
+| tests/test_review_adapters.py | 0644 | 5b2e96c042251e810c56186ecd39aed9f1da6b4af4ab8afc2335e757c210eff7 |
+| tests/test_review_contract.py | 0644 | 0020ed7f20c551592d59b6b802fc7ad15fa40dec69aea5b465349132718d64f3 |

@@ -447,6 +447,68 @@ class ReviewReconciliationTests(ReviewFixture, unittest.TestCase):
         self.assertTrue(record['checkpoint']['common']['source_ref'])
         self.assertEqual(self.plan.read_bytes(),self.plan_bytes)
 
+    def complete_with_fresh_feedback(self,prepared,entries):
+        observation=self.observation(prepared['merged_content'],entries,revision='fresh-hosted-revision')
+        receipt={'surface_id':'fixture-page','revision':observation['revision'],
+                 'content_sha256':prepared['merged_sha256'],'source_ref':'fixture observed hosted save'}
+        process=subprocess.run(self.command('checkpoint'),input=json.dumps(dict(
+            phase='complete',checkpoint_id=prepared['checkpoint_id'],observation=observation,
+            receipt=receipt,**self.guards())),text=True,capture_output=True,env=self.env,timeout=8)
+        self.assertIn(process.returncode,(0,2,3,4),process.stdout+process.stderr)
+        reply=json.loads(process.stdout)
+        self.assertEqual(set(reply),{'schema_version','operation','ok','result','error'})
+        self.assertEqual(reply['schema_version'],1)
+        self.assertEqual(reply['operation'],'checkpoint')
+        self.assertEqual(reply['ok'],process.returncode==0)
+        if process.returncode:
+            self.assertIsNone(reply['result'])
+            self.assertEqual(set(reply['error']),{'code','message','details'})
+        else:
+            self.assertIsNone(reply['error'])
+            self.assertIsInstance(reply['result'],dict)
+        self.assertEqual(self.plan.read_bytes(),self.plan_bytes)
+        return process.returncode,reply,json.loads(self.manifest.read_bytes())
+
+    def test_complete_retains_new_hosted_comment_or_safely_refuses(self):
+        self.hosted_baseline()
+        common=json.loads(self.manifest.read_bytes())['checkpoint']['common']
+        snapshot=(self.root/common['snapshot_path']).read_bytes()
+        prepared=self.prepare(observation=self.observation(self.review.read_text(),[]))
+        entry={'id':'C','source_ref':'fixture Page comment C','source_revision':'comment-C-revision-1',
+               'author':'Fixture collaborator','selection':{'status':'attached','text':'A'},
+               'text':'Consider the newly raised alternative','disposition':'proposed',
+               'rationale':'Await owner consideration'}
+        code,reply,record=self.complete_with_fresh_feedback(prepared,[entry])
+        if code==0 and reply['result']['state']=='clean':
+            self.assertIn(entry,record['feedback'],'clean completion cannot omit freshly observed comment or provenance')
+            self.assertEqual(record['decisions'],[])
+        else:
+            self.assertEqual(record['checkpoint']['common'],common)
+            self.assertIsNotNone(record['checkpoint']['pending'])
+            self.assertEqual((self.root/common['snapshot_path']).read_bytes(),snapshot)
+
+    def test_complete_refuses_changed_hosted_comment_under_same_id_without_resolution(self):
+        self.hosted_baseline()
+        common=json.loads(self.manifest.read_bytes())['checkpoint']['common']
+        snapshot=(self.root/common['snapshot_path']).read_bytes()
+        original={'id':'C','source_ref':'fixture Page comment C original','source_revision':'comment-C-revision-1',
+                  'author':'Fixture collaborator','selection':None,'text':'Original proposed alternative',
+                  'disposition':'proposed','rationale':'Await owner consideration'}
+        prepared=self.prepare(observation=self.observation(self.review.read_text(),[original]))
+        before=json.loads(self.manifest.read_bytes())
+        changed=dict(original,text='Revised alternative requiring reconciliation',
+                     source_ref='fixture Page comment C updated',source_revision='comment-C-revision-2',
+                     author='Fixture second collaborator')
+        code,reply,record=self.complete_with_fresh_feedback(prepared,[changed])
+        if code==0:
+            self.assertNotEqual(reply['result']['state'],'clean',
+                'changed same-ID content/provenance requires conflict or authorized reconciliation')
+        self.assertEqual(record['checkpoint']['common'],common)
+        self.assertIsNotNone(record['checkpoint']['pending'])
+        self.assertEqual((self.root/common['snapshot_path']).read_bytes(),snapshot)
+        for existing in before['feedback']:
+            self.assertIn(existing,record['feedback'],'safe refusal must retain previously persisted feedback')
+
     def test_feedback_limit_and_accepted_without_source_are_rejected(self):
         self.hosted_baseline()
         entry={'id':'comment','source_ref':'fixture comment','source_revision':None,'author':None,

@@ -33,6 +33,13 @@ class FakeOpenCode:
         self.drop=False
         self.withhold=False
         self.abort_ack=True
+        self.abort_entered=threading.Event()
+        self.abort_release=None
+        self.abort_wait_seconds=5
+        self.abort_finished=None
+        self.prompt_times=[]
+        self.provider_error=None
+        self.answer_text='Synthetic OpenCode proposal'
         peer=self
         class Handler(BaseHTTPRequestHandler):
             def log_message(self,*args):
@@ -56,13 +63,20 @@ class FakeOpenCode:
                 value=json.loads(self.rfile.read(int(self.headers.get('Content-Length','0'))) or '{}')
                 peer.calls.append(('POST',self.path,value))
                 if self.path=='/session/'+peer.route_session_id+'/abort':
+                    peer.abort_entered.set()
+                    if peer.abort_release is not None:
+                        peer.abort_release.wait(peer.abort_wait_seconds)
+                    peer.abort_finished=time.monotonic()
                     self.reply(200,peer.abort_ack)
                 elif self.path=='/session/'+peer.route_session_id+'/message':
                     peer.prompts.append(value)
+                    peer.prompt_times.append(time.monotonic())
                     uid='user-'+str(len(peer.prompts))
                     peer.history.append({'info':{'id':uid,'role':'user','model':value.get('model')},'parts':value['parts']})
                     answer={'info':{'id':'assistant-'+uid,'role':'assistant','parentID':uid,'time':{'completed':2}},
-                            'parts':[{'type':'text','text':'Synthetic OpenCode proposal'}]}
+                            'parts':[{'type':'text','text':peer.answer_text}] if peer.answer_text else []}
+                    if peer.provider_error is not None:
+                        answer['info']['error']=peer.provider_error
                     if not peer.withhold:
                         peer.history.append(answer)
                     if peer.drop:
@@ -466,6 +480,218 @@ class OpenCodeAdapterTests(CompanionFixture,unittest.TestCase):
         self.stop(process)
         # Companion shutdown leaves the externally owned host running.
         self.assertTrue(self.peer.thread.is_alive())
+
+
+class OpenCodeCancellationRegressions(CompanionFixture,unittest.TestCase):
+    def setUp(self):
+        super().setUp()
+        self.host='opencode'
+        self.init(surface={'kind':'opencode','id':None,'url':None})
+        self.peer=FakeOpenCode()
+        self.addCleanup(self.peer.close)
+        self.binding={'kind':'opencode','base_url':self.peer.origin,'session_id':self.peer.session_id}
+
+    def test_cancel_terminal_A_never_aborts_pending_B(self):
+        _,start=self.start(self.binding,request_timeout=1)
+        state=self.http(start,'GET','/state')
+        a=self.comment(start,state,identifier='A',session_id=start['session_id'])
+        self.assertEqual(self.http(start,'POST','/feedback',a)['delivery_state'],'response-received')
+        self.peer.withhold=True
+        b=self.comment(start,state,identifier='B',session_id=start['session_id'])
+        self.assertEqual(self.http(start,'POST','/feedback',b)['delivery_state'],'sent-unknown')
+        status,_=self.exchange(start,'POST','/cancel',{'request_id':'A','session_id':start['session_id']})
+        self.assertIn(status,(200,409))
+        self.assertFalse(self.peer.abort_entered.is_set(),'terminal A cannot authorize session-wide abort of B')
+        observed=self.http(start,'GET','/state')
+        record=next(item for item in observed['requests'] if item['request_id']=='B')
+        self.assertEqual(record['delivery_state'],'sent-unknown')
+        self.assertIsNone(record['response'])
+
+    def test_cancel_requires_exact_request_and_session_identity(self):
+        self.peer.withhold=True
+        _,start=self.start(self.binding,request_timeout=1)
+        state=self.http(start,'GET','/state')
+        self.http(start,'POST','/feedback',self.comment(start,state,session_id=start['session_id']))
+        for request_id,session_id in (('absent-request',start['session_id']),('request-1','other-session')):
+            with self.subTest(request_id=request_id,session_id=session_id):
+                status,_=self.exchange(start,'POST','/cancel',{'request_id':request_id,'session_id':session_id})
+                self.assertIn(status,(404,409))
+                self.assertFalse(self.peer.abort_entered.is_set(),'unmatched cancellation cannot abort the bound host')
+
+    def test_inflight_cancel_A_cannot_affect_later_send_B(self):
+        self.peer.withhold=True
+        _,start=self.start(self.binding,request_timeout=1)
+        state=self.http(start,'GET','/state')
+        self.http(start,'POST','/feedback',self.comment(start,state,identifier='A',session_id=start['session_id']))
+        self.peer.abort_release=threading.Event()
+        results={}
+        errors=[]
+        def run(key,path,payload):
+            try:
+                results[key]=self.exchange(start,'POST',path,payload)
+            except Exception as error:
+                errors.append(error)
+        cancel=threading.Thread(target=run,args=('cancel','/cancel',{'request_id':'A','session_id':start['session_id']}),daemon=True)
+        cancel.start()
+        self.assertTrue(self.peer.abort_entered.wait(2),'A abort must reach the controlled peer')
+        self.peer.withhold=False
+        feedback=threading.Thread(target=run,args=('B','/feedback',self.comment(start,state,identifier='B',session_id=start['session_id'])),daemon=True)
+        try:
+            feedback.start()
+            # A short observation window is within the one-second cancellation deadline.
+            feedback.join(.15)
+            self.assertEqual(len(self.peer.prompts),1,'B must wait or refuse while A abort can still affect the session')
+        finally:
+            self.peer.abort_release.set()
+            cancel.join(4)
+            feedback.join(4)
+        self.assertFalse(cancel.is_alive() or feedback.is_alive())
+        self.assertEqual(errors,[])
+        self.assertIn(results['cancel'][0],(200,502))
+        self.assertIn(results['B'][0],(200,409,502))
+        if len(self.peer.prompts)>1:
+            self.assertGreaterEqual(self.peer.prompt_times[1],self.peer.abort_finished)
+
+    def test_timed_out_abort_remains_a_barrier_after_A_history_completes(self):
+        self.peer.withhold=True
+        _,start=self.start(self.binding,request_timeout=1)
+        state=self.http(start,'GET','/state')
+        payload=self.comment(start,state,session_id=start['session_id'])
+        self.assertEqual(self.http(start,'POST','/feedback',payload)['delivery_state'],'sent-unknown')
+        self.peer.abort_release=threading.Event()
+        self.peer.abort_wait_seconds=10
+        results=[]
+        errors=[]
+        def cancel_request():
+            try:
+                results.append(self.exchange(start,'POST','/cancel',{
+                    'request_id':'request-1','session_id':start['session_id']}))
+            except Exception as error:
+                errors.append(error)
+        cancel=threading.Thread(target=cancel_request,daemon=True)
+        cancel.start()
+        try:
+            self.assertTrue(self.peer.abort_entered.wait(2),'abort must reach peer before timeout')
+            cancel.join(1.8)
+            self.assertFalse(cancel.is_alive(),'companion cancellation must finish within its deadline')
+            self.assertEqual(errors,[])
+            self.assertIn(results[0][0],(200,502))
+            self.assertIsNone(self.peer.abort_finished,'peer abort remains unresolved after companion returns')
+            uid=self.peer.history[0]['info']['id']
+            self.peer.history.append({'info':{'id':'assistant-'+uid,'role':'assistant',
+                'parentID':uid,'time':{'completed':2}},
+                'parts':[{'type':'text','text':'Synthetic recovered answer A'}]})
+            self.peer.withhold=False
+            b=self.comment(start,state,identifier='B',session_id=start['session_id'])
+            deadline=time.monotonic()+3
+            recovered=False
+            while time.monotonic()<deadline:
+                observed=self.http(start,'GET','/state')
+                self.assertIsNone(self.peer.abort_finished,'peer abort must remain held throughout the probe')
+                record=next(item for item in observed['requests'] if item['request_id']=='request-1')
+                recovered=recovered or record['response']=='Synthetic recovered answer A'
+                status,_=self.exchange(start,'POST','/feedback',b)
+                self.assertIn(status,(200,409,502))
+                self.assertEqual(len(self.peer.prompts),1,
+                    'B reached a session with unresolved abort; A answer observed='+str(recovered))
+                self.assertFalse(observed['capabilities']['chat'],
+                    'chat reopened with unresolved abort; A answer observed='+str(recovered))
+                self.assertTrue(observed['unavailable_reason'])
+                self.assertNotIn(start['write_token'],observed['unavailable_reason'])
+                self.assert_safe_request_error(start,record)
+                time.sleep(.05)
+        finally:
+            self.peer.abort_release.set()
+            cancel.join(4)
+
+    def test_repeated_cancel_does_not_replay_an_abort_with_unknown_outcome(self):
+        self.peer.withhold=True
+        _,start=self.start(self.binding,request_timeout=1)
+        state=self.http(start,'GET','/state')
+        self.assertEqual(self.http(start,'POST','/feedback',
+            self.comment(start,state,session_id=start['session_id']))['delivery_state'],'sent-unknown')
+        self.peer.abort_release=threading.Event()
+        self.peer.abort_wait_seconds=10
+        payload={'request_id':'request-1','session_id':start['session_id']}
+        try:
+            begun=time.monotonic()
+            status,_=self.exchange(start,'POST','/cancel',payload)
+            self.assertLess(time.monotonic()-begun,1.8)
+            self.assertIn(status,(200,502))
+            self.assertTrue(self.peer.abort_entered.is_set())
+            self.assertIsNone(self.peer.abort_finished)
+            begun=time.monotonic()
+            status,_=self.exchange(start,'POST','/cancel',payload)
+            self.assertLess(time.monotonic()-begun,1.8)
+            self.assertIn(status,(200,409,502))
+            aborts=[call for call in self.peer.calls if call[:2]==(
+                'POST','/session/'+self.peer.route_session_id+'/abort')]
+            self.assertEqual(len(aborts),1,'unknown cancellation cannot authorize another session-wide abort')
+            self.assertIsNone(self.peer.abort_finished)
+            observed=self.http(start,'GET','/state')
+            self.assertFalse(observed['capabilities']['chat'])
+            self.assertTrue(observed['unavailable_reason'])
+            self.assertNotIn(start['write_token'],observed['unavailable_reason'])
+            record=next(item for item in observed['requests'] if item['request_id']=='request-1')
+            self.assertEqual(record['delivery_state'],'sent-unknown')
+            self.assert_safe_request_error(start,record)
+            self.assertEqual(len(self.peer.prompts),1)
+        finally:
+            self.peer.abort_release.set()
+
+    def assert_safe_request_error(self,start,record):
+        self.assertEqual(record['request_id'],'request-1')
+        self.assertEqual(record['session_id'],start['session_id'])
+        error=record.get('recovery_error')
+        self.assertIsInstance(error,dict,'observed host failure requires a correlated visible diagnostic')
+        self.assertEqual(set(error),{'code','message','details'})
+        self.assertTrue(error['details']['stage'])
+        self.assertTrue(error['details']['error_class'])
+        serialized=json.dumps(error)
+        self.assertLess(len(serialized),2048)
+        self.assertNotIn('SYNTHETIC_SECRET_PROVIDER_DIAGNOSTIC',serialized)
+        self.assertNotIn('/private/fixture/account',serialized)
+        self.assertNotIn(start['write_token'],serialized)
+
+    def provider_failure(self,text):
+        self.peer.answer_text=text
+        self.peer.provider_error={'name':'APIError','data':{
+            'message':'SYNTHETIC_SECRET_PROVIDER_DIAGNOSTIC /private/fixture/account','isRetryable':False}}
+        _,start=self.start(self.binding,request_timeout=1)
+        state=self.http(start,'GET','/state')
+        payload=self.comment(start,state,session_id=start['session_id'])
+        status,_=self.exchange(start,'POST','/feedback',payload)
+        self.assertIn(status,(200,502))
+        observed=self.http(start,'GET','/state')
+        record=next(item for item in observed['requests'] if item['request_id']=='request-1')
+        self.assertEqual(record['delivery_state'],'sent-unknown')
+        self.assertIsNone(record['response'],'provider failure cannot publish empty or partial text as a proposal')
+        self.assert_safe_request_error(start,record)
+        self.exchange(start,'POST','/feedback',payload)
+        self.assertEqual(len(self.peer.prompts),1,'completed provider failure cannot authorize replay')
+
+    def test_completed_provider_error_without_text_is_visible(self):
+        self.provider_failure('')
+
+    def test_completed_provider_error_with_partial_text_is_visible(self):
+        self.provider_failure('Partial proposal before provider failure')
+
+    def test_send_failure_survives_successful_inconclusive_history_without_replay(self):
+        self.peer.drop=True
+        self.peer.withhold=True
+        _,start=self.start(self.binding,request_timeout=1)
+        state=self.http(start,'GET','/state')
+        payload=self.comment(start,state,session_id=start['session_id'])
+        status,_=self.exchange(start,'POST','/feedback',payload)
+        self.assertIn(status,(200,502))
+        for _ in range(2):
+            observed=self.http(start,'GET','/state')
+            record=next(item for item in observed['requests'] if item['request_id']=='request-1')
+            self.assertEqual(record['delivery_state'],'sent-unknown')
+            self.assertIsNone(record['response'])
+            self.assert_safe_request_error(start,record)
+        self.exchange(start,'POST','/feedback',payload)
+        self.assertEqual(len(self.peer.prompts),1)
 
 
 class PiAdapterTests(CompanionFixture,unittest.TestCase):

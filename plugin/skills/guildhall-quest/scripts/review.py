@@ -514,6 +514,8 @@ class Workspace:
                     cp['state'] = 'pending-local-save'; atomic(self.state,dump(record))
                 raise Refusal('Hosted save observed; local save still pending' if hosted else 'Local save still pending',3)
             feedback, feedback_conflicts = merge_entries(record['feedback'],pending['feedback'])
+            feedback, observed_conflicts = merge_entries(feedback,obs.get('feedback',[]) if obs else [])
+            feedback_conflicts += observed_conflicts
             decisions, decision_conflicts = merge_entries(record['decisions'],pending['decisions'])
             require(not feedback_conflicts and not decision_conflicts,
                     'Feedback or decisions changed during checkpoint; preserve pending review',3)
@@ -691,6 +693,8 @@ class OpenCode:
             safety(not any(p.get('type') in ('tool','toolCall') for p in message.get('parts',[])),
                    'Host tool restriction failure')
             if info.get('time',{}).get('completed'):
+                require(info.get('error') is None, 'Host reported a terminal provider failure; inspect possible delivery',4,
+                        details=diagnostic('opencode-response','ProviderFailure'))
                 answer = '\n'.join(p.get('text','') for p in message.get('parts',[]) if p.get('type') == 'text')
                 document(answer)
                 return answer
@@ -700,9 +704,12 @@ class OpenCode:
         try:
             self.request('POST',self.path+'/message',{'parts':[{'type':'text','text':json.dumps(request['marker'],ensure_ascii=False)}],
                          'tools':self.tools,'model':self.model},deadline=deadline,stage='opencode-send')
-        except Refusal:
+        except Refusal as error:
             # Recovery may use only what remains of this same operation budget.
             remaining(deadline,'opencode-send')
+            answer = self.recover(request,deadline,checked=True)
+            if answer is None: raise error
+            return answer
         return self.recover(request,deadline,checked=True)
 
     def cancel(self,deadline):
@@ -957,12 +964,18 @@ class Companion:
             self.reason = str(error); self.adapter = None
             report('serve',error)
 
+    @staticmethod
+    def cancellation_pending(request):
+        return request.get('cancel_requested') and request.get('cancel_acknowledged') is False and not request.get('local_only',False)
+
     def unresolved(self):
-        return any(request['delivery_state'] in ('prepared','sent-unknown') and request['session_id'] is not None and not request.get('local_only',False)
+        return any((request['delivery_state'] in ('prepared','sent-unknown') or self.cancellation_pending(request)) and request['session_id'] is not None and not request.get('local_only',False)
                    for request in self.requests.values())
 
     def unavailable_reason(self):
         if self.reason: return self.reason
+        if any(self.cancellation_pending(request) for request in self.requests.values()):
+            return 'Host cancellation remains unconfirmed; this session cannot accept another send or rebind.'
         if self.unresolved(): return 'A request has unresolved delivery; inspect its exact session before another send.'
         return None
 
@@ -1001,7 +1014,7 @@ class Companion:
                 safety(generation == self.generation and adapter is self.adapter, 'Bound session changed during recovery',True)
                 if answer is not None:
                     request['response'] = answer; request['delivery_state'] = 'response-received'
-                    request['recovery_error'] = None
+                    if not self.cancellation_pending(request): request['recovery_error'] = None
                     self.recovery_after.pop(request['request_id'],None); self.persist()
         except Exception as error:
             error = error if isinstance(error,Refusal) else failure('history-recovery',error)
@@ -1027,15 +1040,26 @@ class Companion:
         with synchronized(self.mutex,deadline,'companion-lock'):
             request = self.requests.get(payload['request_id'])
             require(request is not None and payload['session_id'] == self.session_id == request['session_id'], 'Unknown request/session',3)
+            if self.cancellation_pending(request) or request['delivery_state'] not in ('prepared','sent-unknown'):
+                return dict(self.public_request(request),cancel_acknowledged=request.get('cancel_acknowledged',False))
             request['cancel_requested'] = True; self.persist()
             adapter = self.adapter
-        acknowledged = False
-        if adapter:
-            try: acknowledged = adapter.cancel(deadline)
-            except Refusal as error:
-                with synchronized(self.mutex,deadline,'companion-lock'): self.remember_error(request,error)
-        with synchronized(self.mutex,deadline,'companion-lock'):
-            request['cancel_acknowledged'] = acknowledged; self.persist()
+            # minimal: serialize a session-wide abort with send reservations;
+            # retain the lock until it settles so a later request cannot be hit.
+            acknowledged = False
+            if adapter and request['delivery_state'] == 'sent-unknown' and not request.get('local_only',False):
+                # A response in history cannot settle a session-wide abort that
+                # may still execute. Persist its separate barrier before calling.
+                # minimal: no automatic barrier clearing without an observed ack;
+                # future safe recovery needs explicit host evidence, never replay.
+                request['cancel_acknowledged'] = False; self.persist()
+                try:
+                    acknowledged = adapter.cancel(deadline)
+                    require(acknowledged, 'Host cancellation remains unconfirmed; inspect this exact session',4,
+                            details=diagnostic('host-cancel','CancellationUncertain'))
+                except Refusal as error: self.remember_error(request,error)
+                request['cancel_acknowledged'] = acknowledged
+            self.persist()
             return dict(self.public_request(request),cancel_acknowledged=acknowledged)
 
     def dispatch(self,route,payload):
@@ -1126,7 +1150,7 @@ class Companion:
                 safety(generation == self.generation and adapter is self.adapter, 'Bound session changed during send',True)
                 if answer is not None:
                     request['delivery_state'] = 'response-received'; request['response'] = answer
-                    request['recovery_error'] = None
+                    if not self.cancellation_pending(request): request['recovery_error'] = None
                 self.persist()
         except Exception as error:
             error = error if isinstance(error,Refusal) else failure('feedback-transport',error)

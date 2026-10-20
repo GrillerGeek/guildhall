@@ -10,6 +10,10 @@ not a quest invocation and does not automatically activate quest dispatch rules.
   command, nineteen role/diagnostic definitions and native hooks. Preserve these
   when maintaining the portable route unless the change explicitly owns both.
 - `plugin/portable/`: maintained portable quest entry and host/lifecycle protocol.
+- `plugin/portable/scripts/review.py`, `references/collaborative-planning.md` and
+  `resources/review/`: canonical optional review helper, contract, schema/example
+  and shared HTML template. Change these sources, then regenerate the complete
+  quest bundle. No removed routing skill or Jev integration is restored.
 - `scripts/build_portable.py`: explicit transformation from canonical role bodies
   into portable references. Host metadata is stripped; narrow substitutions adapt
   guidance, evidence, recovery and runbook contracts. These differences are
@@ -69,6 +73,42 @@ inspect dispatch/transcript and actual file changes, and independently verify
 RED/GREEN counts, worker separation, scope preservation, review gating and IDD
 lifecycle/report evidence. Missing capabilities must refuse truthfully.
 
+## Planning review ownership and verification
+
+Mordain remains in the main conversation with plan-only writes. Cassian's
+explicit review-document mode owns only the named review prose/HTML, record,
+snapshots and selected hosted surface, with creation permission for missing
+outputs. It receives bounded approved inputs and actual authority/source evidence;
+it does not design implementation, run tests, accept decisions or dispatch agents.
+Its narrowly named helper operations do not grant arbitrary shell access, alter
+post-green permissions or give Mordain a write-guard workaround. Native Claude's
+`Artifact` allowlist entry needs callable tool discovery in the worker. Portable
+scopes are role instructions, not enforced Claude hooks or filesystem isolation.
+
+The maintained helper/template supplies scaffolding. Its Python 3.12+ POSIX
+runtime (`fcntl`) is optional; supported native file/host paths materialize the
+same bounded bundle without it. Keep runtime tokens, bindings, journals and raw
+logs outside the repository in explicitly selected private storage. The helper
+never edits the main plan, changes IDD status or authenticates a human approval.
+Seraphine's independent Spec/API/test handoff excludes review HTML, solution
+proposals, Page chats and inherited orchestration transcripts.
+
+Review contract tests use isolated projects and synthetic OpenCode/Pi transports;
+browser fixtures live under `tests/fixtures/review/`. Preserve independent test
+authorship and attributable RED before repairs. Packaging/schema checks, browser
+fixtures, historical spikes and real-account host acceptance are distinct evidence.
+Record exact commands, baseline/worktree scope, results and missing coverage in
+the implementation verification report. Live Claude artifact, Codex Page,
+OpenCode and Pi acceptance remains pending; do not infer it from a green suite.
+
+Checkpoint on save/proceed, handoff, resume and closure. Review conflicting
+versions against the last common snapshot with the designated owner. Retain
+partial-save receipts and unknown delivery; no journal deletion, force-clear or
+automatic replay is a recovery procedure. Bounds reject rather than truncate;
+the 200-request runtime limit requires an explicit archival decision with no
+provided automated archival operation. The current Pi aggregate-event memory
+and maximum state-history response size concerns remain disclosed follow-up.
+
 ## Opt-in model observations
 
 These probes use the existing Codex CLI, authentication and configured model.
@@ -108,7 +148,7 @@ sleep assertion lasts only for the child run; no persistent power settings chang
 
 ## Distribution and versioning
 
-The current package version is 0.18.0; increment all three manifests for further
+The current package version is 0.19.0; increment all three manifests for further
 installer-visible changes. Existing native Claude agents/commands/hooks remain
 preserved. Never rewrite historical plans to claim newer evidence. No repository
 change implicitly installs personally, publishes a release or edits the separate

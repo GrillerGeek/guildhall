@@ -2,7 +2,7 @@
 <!-- Guildhall is a Claude Code plugin and portable Agent Skill: a coding workflow where Mordain plans and dispatches specialist agents for tests, implementation, reviews and a PR draft. -->
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Plugin](https://img.shields.io/badge/plugin-v0.18.0-green.svg)](plugin/README.md)
+[![Plugin](https://img.shields.io/badge/plugin-v0.19.0-green.svg)](plugin/README.md)
 
 **Give a coding task to a team of AI specialists that writes tests, implements the
 change, reviews it and prepares a PR draft.**
@@ -21,8 +21,9 @@ code, tests, review evidence and a PR draft. Publishing a PR is a separate actio
 ## Install
 
 The commands below install Guildhall from its published main branch. This branch
-prepares **0.18.0**, removing optional Jev-assisted routing and its setup skill;
-those changes reach the main install route after merge.
+prepares **0.19.0**, adding collaborative planning review to the existing quest;
+those changes reach the main install route after merge. Removed model routing
+and its setup skill remain absent.
 Choose one route for your coding app. No repository clone, build or IDD
 installation is required.
 
@@ -119,6 +120,28 @@ an IDD plugin installation to use these prototype, feature or debug workflows.
 The test → build → refactor sequence stays ordered. Independent reviews may run
 in parallel when the host supports it. Mordain's own edits remain limited to the
 plan; specialists carry out the implementation and review work.
+
+## Review a proposal together
+
+For substantial planning, Guildhall discovers the richest review surface callable
+by its document writer: a native Claude artifact or editable Codex Space Page,
+then an optional local OpenCode/Pi companion, then Markdown/HTML plus conversation.
+It reuses one review workspace per quest and saves portable prose, standalone HTML
+and decision provenance beside the plan. Tell Guildhall which writable destination
+to use if you already have one; otherwise supported hosted surfaces start private.
+
+Cassian owns the named review outputs; Mordain still writes only the quest plan.
+Suggestions, model replies and browser choices remain proposals until the
+designated project owner, otherwise the initiating user, accepts them. Checkpoints
+reconcile changes at save/proceed, handoff, resume and closure; conflicts retain
+both versions for that owner.
+
+Ordinary quests and native review paths acquire no Python dependency. The optional
+local helper requires POSIX Python 3.12+ and explicit private runtime storage.
+See [setup and recovery](docs/installation.md#optional-planning-review-helper)
+and [workspace ownership](docs/guildhall/plans/README.md). Local transport fixtures
+do not establish live Claude, Codex, OpenCode or Pi review acceptance; those checks
+remain pending.
 
 ## Optional: use with IDD
 
