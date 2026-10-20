@@ -1,0 +1,93 @@
+#!/usr/bin/env python3
+"""Synthetic Pi RPC peer. Never calls a model, tool, network, or personal config."""
+import json
+import os
+from pathlib import Path
+import signal
+import sys
+import threading
+import time
+
+args=sys.argv[1:]
+session=Path(args[args.index('--session')+1])
+log=Path(os.environ['REVIEW_FAKE_PI_LOG'])
+history=Path(os.environ['REVIEW_FAKE_PI_HISTORY'])
+mode=os.environ.get('REVIEW_FAKE_PI_MODE','complete')
+control_path=os.environ.get('REVIEW_FAKE_PI_CONTROL')
+session.parent.mkdir(parents=True,exist_ok=True)
+session.touch(exist_ok=True)
+with log.open('a') as stream:
+    stream.write(json.dumps({'argv':args,'pid':os.getpid()})+'\n')
+output_lock=threading.Lock()
+history_lock=threading.Lock()
+pending=[]
+
+def control():
+    try:
+        return json.loads(Path(control_path).read_text()) if control_path else {}
+    except (FileNotFoundError,ValueError):
+        return {}
+
+def emit(obj):
+    with output_lock:
+        print(json.dumps(obj),flush=True)
+
+def terminal(text):
+    message={'role':'assistant','content':[{'type':'text','text':text}],
+             'stopReason':'stop','timestamp':2}
+    with history_lock:
+        messages=json.loads(history.read_text()) if history.exists() else []
+        messages.append(message)
+        history.write_text(json.dumps(messages))
+    emit({'type':'message_end','message':message})
+    emit({'type':'agent_settled'})
+
+def monitor():
+    completed=set()
+    while True:
+        data=control()
+        identifier=data.get('complete_request')
+        if identifier and identifier not in completed and identifier in pending:
+            completed.add(identifier)
+            terminal('Synthetic late answer '+identifier)
+        if data.get('stall'):
+            Path(str(control_path)+'.stalled').write_text('stopped reading stdin')
+            os.kill(os.getpid(),signal.SIGSTOP)
+        time.sleep(.02)
+
+if control_path:
+    threading.Thread(target=monitor,daemon=True).start()
+
+for line in sys.stdin:
+    request=json.loads(line)
+    with log.open('a') as stream:
+        stream.write(json.dumps(request)+'\n')
+    command=request['type']
+    data={}
+    settings=control()
+    if command=='get_state':
+        data={'sessionFile':str(session),'sessionId':settings.get('session_id','pi-fixture-session'),
+              'model':{'provider':'fixture-provider','id':'fixture-selected'},
+              'isStreaming':False,'isCompacting':False,'pendingMessageCount':0}
+    elif command=='get_messages':
+        if settings.get('fail_history'):
+            emit({'id':request['id'],'type':'response','command':command,'success':False,
+                  'error':'SYNTHETIC_SECRET_PROVIDER_DIAGNOSTIC /private/fixture/account'})
+            continue
+        data={'messages':json.loads(history.read_text()) if history.exists() else []}
+    elif command=='clear_queue':
+        data={'steering':[],'followUp':[]}
+    elif command=='prompt':
+        with history_lock:
+            messages=json.loads(history.read_text()) if history.exists() else []
+            messages.append({'role':'user','content':[{'type':'text','text':request['message']}], 'timestamp':1})
+            history.write_text(json.dumps(messages))
+        pending.append(json.loads(request['message'])['review_request_id'])
+    emit({'id':request['id'],'type':'response','command':command,'success':True,'data':data})
+    current_mode=settings.get('mode',mode)
+    if command=='prompt' and current_mode=='complete':
+        terminal('Synthetic Pi proposal')
+    elif command=='prompt' and current_mode=='toolcall':
+        emit({'type':'message_end','message':{'role':'assistant','content':[
+             {'type':'toolCall','id':'forbidden-call','name':'shell','arguments':{}}]}})
+        emit({'type':'agent_settled'})

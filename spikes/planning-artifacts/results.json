@@ -1,0 +1,68 @@
+{
+  "date": "2026-10-18",
+  "scope": "real installed harnesses; synthetic local provider; no live model quality claims",
+  "automated": [
+    {
+      "host": "pi",
+      "version": "1.3.0",
+      "synthetic_provider": true,
+      "round_trip": true,
+      "duplicate_suppressed": true,
+      "duplicate_conflict_refused": true,
+      "state_reloaded": true,
+      "session_reconnected": true,
+      "history_verified": true,
+      "post_reconnect_round_trip": true,
+      "pending_not_replayed": true,
+      "wrong_session_refused": true,
+      "http_feedback_checkpoint": true,
+      "unauthorized_browser_writes_refused": true,
+      "stale_checkpoint_refused": true,
+      "concurrent_edit_preserved": true,
+      "browser_exercised": false,
+      "provider_requests": 2
+    },
+    {
+      "host": "opencode",
+      "version": "1.19.3",
+      "synthetic_provider": true,
+      "round_trip": true,
+      "duplicate_suppressed": true,
+      "duplicate_conflict_refused": true,
+      "state_reloaded": true,
+      "session_reconnected": true,
+      "history_verified": true,
+      "post_reconnect_round_trip": true,
+      "pending_not_replayed": true,
+      "wrong_session_refused": true,
+      "http_feedback_checkpoint": true,
+      "unauthorized_browser_writes_refused": true,
+      "stale_checkpoint_refused": true,
+      "concurrent_edit_preserved": true,
+      "browser_exercised": false,
+      "provider_requests": 2
+    }
+  ],
+  "browser": [
+    {
+      "host": "pi",
+      "browser": "Microsoft Edge",
+      "passage_attached": true,
+      "response_displayed": true,
+      "checkpoint_on_disk": true,
+      "conversation_retained_after_reload": true,
+      "disposition": "proposed",
+      "actor": "agent using synthetic probe content"
+    },
+    {
+      "host": "opencode",
+      "browser": "Microsoft Edge",
+      "passage_attached": true,
+      "response_displayed": true,
+      "checkpoint_on_disk": true,
+      "conversation_retained_after_reload": true,
+      "disposition": "proposed",
+      "actor": "agent using synthetic probe content"
+    }
+  ]
+}

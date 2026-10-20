@@ -44,7 +44,8 @@ Full character sheets in [`CHARACTERS.md`](CHARACTERS.md).
 
 ## Installation
 
-Version **0.18.0 removes optional Jev-assisted routing and its setup skill**.
+Version **0.19.0 adds collaborative planning review**. Optional Jev-assisted
+routing and its setup skill, removed in 0.18.0, remain absent.
 The [installation guide](https://github.com/GrillerGeek/guildhall/blob/main/docs/installation.md)
 covers this repository's Codex, Claude and standalone routes, updates and removal.
 The separate marketplace below is not updated by this change.
@@ -155,7 +156,40 @@ of execution identity or cost.
 
 ## Portable quest skill
 
-Version 0.18.0 ships `skills/guildhall-quest/SKILL.md` for capable
+Version 0.19.0 ships `skills/guildhall-quest/SKILL.md` for capable
 non-Claude hosts. It bundles its role references and uses host-native independent
 workers. The Claude command/agent/hook route documented above is preserved;
 standalone installation does not register those native Claude components.
+
+## Collaborative planning review
+
+Mordain discovers review tools available in Cassian's actual worker context.
+Prefer a native Claude artifact or editable Codex Space Page, then the optional
+OpenCode/Pi local companion, then portable Markdown/HTML plus conversation.
+An `Artifact` allowlist entry does not establish account access. Missing tools
+must be reported; no native feature or hook equivalence is inferred.
+
+Cassian's explicit **review-document** mode receives bounded approved inputs,
+named outputs, creation permission and the selected surface/authority. It owns
+those review documents and hosted output; its post-green mode stays separate.
+Mordain still writes only the plan. The helper is scoped bookkeeping/transport,
+not an adventurer or a way around that rule. Portable role scopes remain
+instructions unless the host actually enforces them.
+
+One stable, private-by-default workspace accompanies each plan. Review prose,
+standalone HTML and bounded decision records live beside it; runtime tokens,
+bindings, request journals and raw logs stay outside the repository. Reconcile
+on save/proceed, handoff, resume and closure. Preserve conflicts and partial
+saves; an uncertain hosted save never authorizes creating another Page.
+
+Only the designated owner, otherwise the initiating user, supplies acceptance.
+AI replies and controls are proposals; checkpoint completion means synchronization.
+Changed IDD inputs return to their authoring/review workflow. Keep review HTML,
+solution proposals and Page chats out of Seraphine's Spec/API/test handoff.
+
+Native supported file/host tools can save the portable record without Python.
+The optional POSIX Python helper, limits and recovery procedure are documented in
+[installation](../docs/installation.md#optional-planning-review-helper) and the
+[canonical contract](portable/references/collaborative-planning.md). Review-specific
+live acceptance for all four hosts remains pending; synthetic transports and
+packaging checks establish only their recorded scope.

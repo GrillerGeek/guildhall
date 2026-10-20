@@ -4,11 +4,37 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import re
-from build_portable import build, ROOT, DESTINATIONS
+from build_portable import build, ROOT, DEST, DESTINATIONS
 
 
 def validate(root: Path = ROOT) -> None:
     build(root, check=True)
+    # Review stays self-contained in quest and absent from routing setup.
+    from tempfile import TemporaryDirectory
+    review_helper = root / DEST / 'scripts/review.py'
+    review = {'__name__': '_review_validation', '__file__': str(review_helper)}
+    exec(compile(review_helper.read_bytes(), str(review_helper), 'exec'), review)
+    resources = root / DEST / 'resources/review'
+    schema = json.loads((resources / 'record.schema.json').read_text())
+    example = json.loads((resources / 'example.json').read_text())
+    if (schema.get('additionalProperties') is not False or
+        set(schema['required']) != set(example) or
+        schema['properties']['schema_version'] != {'const': 1}):
+        raise ValueError('review schema/example fields disagree')
+    # Exercise semantic record validation, not merely JSON parseability.
+    with TemporaryDirectory(prefix='guildhall-review-validation-') as temporary:
+        project = Path(temporary)
+        plan = project / example['plan_path']
+        plan.parent.mkdir(parents=True)
+        plan.write_text('# Synthetic validation plan\n')
+        workspace = review['Workspace'](str(project), example['plan_path'], 'document')
+        workspace.validate_record(example)
+    if '<!--REVIEW_CONTENT-->' not in (resources / 'template.html').read_text():
+        raise ValueError('review template insertion point missing')
+    for removed in ('plugin/skills/guildhall-routing-setup', 'plugin/routing-setup',
+                    'plugin/portable/scripts/route_model.py'):
+        if (root / removed).exists():
+            raise ValueError('removed routing support must not be restored')
     paths = ['plugin/plugin.json','plugin/.codex-plugin/plugin.json','plugin/.claude-plugin/plugin.json']
     manifests = [json.loads((root/p).read_text()) for p in paths]
     portable, codex, claude = manifests

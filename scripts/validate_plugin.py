@@ -45,7 +45,7 @@ PLUGIN = REPO / "plugin"
 TIER_ALIASES = {"sonnet", "opus", "haiku"}
 
 KNOWN_TOOLS = {
-    "Agent", "AskUserQuestion", "Bash", "BashOutput", "Edit", "ExitPlanMode",
+    "Artifact", "Agent", "AskUserQuestion", "Bash", "BashOutput", "Edit", "ExitPlanMode",
     "Glob", "Grep", "KillShell", "LS", "NotebookEdit", "NotebookRead",
     "PowerShell", "Read", "Skill", "SlashCommand", "Task", "TodoWrite",
     "WebFetch", "WebSearch", "Write",

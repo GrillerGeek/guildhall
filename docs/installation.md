@@ -1,7 +1,8 @@
 # Guildhall installation and host support
 
-This branch prepares **0.18.0**, removing optional Jev-assisted routing and its
-setup skill; these changes reach the `main` commands below after merge. The generated
+This branch prepares **0.19.0**, adding collaborative planning review; these
+changes reach the `main` commands below after merge. Removed model routing and
+its setup skill remain absent. The generated
 `guildhall-quest` skill, Claude's `/guildhall:quest`, nineteen agent definitions
 and hooks remain available. Choose one route per quest to avoid duplicate entry
 points. Guildhall works independently; IDD is optional. See
@@ -184,9 +185,140 @@ model, native Claude workers retain their frontmatter defaults, and portable
 workers use supported host/user model choices without inventing equivalents
 for Claude aliases. Explicit supported user or role model choices remain available.
 
+## Optional planning review helper
+
+Ordinary quests and supported native Claude artifact/Codex Page review paths
+need no Python helper. Discover actual tools in the writer's context first.
+The local OpenCode/Pi companion and automated checkpoint CLI require **Python
+3.12+ on POSIX**, including `fcntl`; Windows is not supported by this helper.
+It uses only the standard library. No pip install, build, provider installation
+or model probe is required to start document/comment mode.
+
+Resolve `scripts/review.py` from your installed `guildhall-quest` directory. In a
+repository checkout it is `plugin/skills/guildhall-quest/scripts/review.py`.
+The following shell variables are illustrative; use your installed bundle and
+consuming project. The plan must already exist directly in `docs/guildhall/plans/`.
+Run mutations through Cassian's explicitly scoped review-document handoff;
+Mordain may not use these commands to evade his plan-only writes.
+
+```bash
+review_helper=/absolute/path/to/guildhall-quest/scripts/review.py
+review_root=/absolute/path/to/project
+review_plan=docs/guildhall/plans/2026-10-19-example.md
+python3 "$review_helper" init --root "$review_root" --plan "$review_plan" --host document --input-json - <<'JSON'
+{"quest_id":"example","content":"# Proposal\n\nOptions, recommendation, tradeoffs and open questions.\n","authority":{"display_label":"Project owner","source":"Project owner designation"},"surface":{"kind":"document","id":null,"url":null}}
+JSON
+python3 "$review_helper" inspect --root "$review_root" --plan "$review_plan" --host document --input-json - <<'JSON'
+{}
+JSON
+```
+
+Replace the example authority/source with the actual designation; it is not an
+approval. `init` creates only the named review bundle, refuses conflicting files
+and never writes the plan. Finite operations print one JSON envelope. Exit 0
+can include a content conflict: inspect `result.conflicts`. Exit 2 means invalid
+input, 3 a path/identity/concurrency refusal, and 4 an unavailable operation.
+
+Choose an explicit absolute runtime directory **outside the repository**, owned
+by you with private permissions (0700 for an existing directory). An absent
+directory is created privately; unsafe existing storage is refused, not chmodded.
+Keep this directory for restart/recovery. For local document/comment mode:
+
+```bash
+python3 "$review_helper" serve --root "$review_root" --plan "$review_plan" --host document --input-json - <<'JSON'
+{"runtime_dir":"/absolute/private/runtime/example"}
+JSON
+```
+
+Open `result.origin` from the startup envelope and paste `result.write_token`
+into that page. The token is per process and stays out of durable documents;
+do not commit startup output. The listener is loopback-only. Writes require its
+exact Host/Origin and `X-Review-Token`; browser input has no general tool/shell
+endpoint. Confirm the displayed session identity before sending feedback.
+
+For adapter-backed review, select `--host opencode` or `--host pi` consistently
+from initialization onward and set the matching `surface.kind`. Supply a serve
+binding alongside runtime_dir:
+
+| Host | Binding example | Required existing capability |
+|---|---|---|
+| OpenCode | `{"kind":"opencode","base_url":"http://127.0.0.1:4096","session_id":"chosen-session"}` | Explicit running loopback server/session, exactly one wildcard deny-all permission rule and retrievable tool/history inventory. |
+| Pi | `{"kind":"pi","session_file":"/absolute/private/runtime/example/planning.jsonl"}` | Existing `pi` on PATH and selected model; a new dedicated adapter-owned RPC session file within runtime storage. |
+
+The adapter uses existing provider/model selection, checks tool restrictions and
+has no startup prompt. It never takes over a Pi TUI, starts an OpenCode server,
+copies credentials or modifies provider configuration. Missing restrictions or
+identity/history capabilities disable chat visibly; documents/comments remain
+usable. Bindings persist in runtime storage; reopening a page does not rebind.
+Startup/request deadlines default to 30/60 seconds. Optional JSON fields
+`startup_timeout_seconds` and `request_timeout_seconds` accept values above zero
+up to 300; a host operation shares one total request budget.
+
+### Checkpoint, recovery and export
+
+Use Save review before discussing edited passages. A second tab with a stale
+revision receives a conflict and retains its draft for comparison/download.
+Saved comments survive browser closure; unsaved tab drafts require download.
+The local Checkpoint button prepares/completes synchronization; it accepts no
+proposal. Native hosted surfaces require Cassian's fresh exported observation,
+guarded hosted save and actual receipt through their real connector tools.
+
+For CLI checkpointing, call `inspect`, then `checkpoint` with phase `prepare`,
+`expected_state_hash` from `state_sha256` and `expected_review_hash` from
+`review_sha256`. Examine conflicts/required_saves. Preserve both sides of a
+conflict for the designated owner. Complete only the returned checkpoint_id,
+using fresh guards and, when hosted, the actual receipt and observation. A partial
+save retains pending evidence and the prior common baseline; never replay a
+completed save or fabricate an unknown revision. `clean` means synchronized,
+not accepted. See the [full payload contract](../plugin/portable/references/collaborative-planning.md#optional-cli).
+
+Delivery states are `prepared`, `sent-unknown`, `response-received` and
+`failed-before-send`. Persisted request IDs correlate exact-session history.
+After timeout/disconnection or cancellation, inspect the original session and
+request; unknown delivery is never blindly resent or cleared by deleting the
+journal. Cancellation acknowledgement does not prove no answer arrived. Restart
+with the same runtime/binding; explicit rebind requires resolved in-flight work.
+An unacknowledged host cancellation is a separate persisted barrier: even if its
+answer is later recovered, new sends and rebind stay blocked, including after
+restart. Without safe host confirmation this can remain blocked indefinitely.
+There is no force-clear, replay or automatic barrier recovery operation. Preserve
+the runtime and review bundle, inspect the exact host session and use document
+comments or the portable Markdown/HTML fallback while confirmation is unavailable.
+For read-only delivery counts, `inspect` accepts
+`{"runtime_dir":"/absolute/private/runtime/example"}`. Without it counts are
+null and delivery coverage is unavailable, not zero pending requests.
+
+To refresh the standalone HTML after edits, substitute the fresh inspect result's
+`review_sha256` for the placeholder below:
+
+```bash
+python3 "$review_helper" export --root "$review_root" --plan "$review_plan" --host document --input-json - <<'JSON'
+{"expected_review_hash":"REPLACE_WITH_CURRENT_REVIEW_SHA256"}
+JSON
+```
+
+Open the bundle's `review.html` without a provider, credentials or running server.
+Reading, local editing, option comparison and downloads remain available; chat
+and synchronization are disabled. Downloads are drafts until deliberately saved.
+
+Review prose is limited to 256 KiB UTF-8. Full browser edits must also fit a
+264 KiB serialized JSON request; heavy escaping can reach that limit first.
+Feedback/control requests fit 32 KiB; comments/selections fit 4,000 characters;
+feedback and decision lists each fit 200 entries. Runtime requests also stop at
+200; no automatic safe archival operation is provided. Split/archive explicitly
+without discarding unresolved evidence. Lower host limits take precedence.
+
+The current implementation still has a disclosed medium Pi aggregate-event
+memory concern and a low concern that maximum `/state` response history can
+approach 50 MiB. These remain follow-up work. This is an opt-in local companion,
+with live-host acceptance pending, not production certification. To roll back,
+stop only the owned companion/Pi process, preserve both runtime and review bundle,
+and return to Markdown/HTML plus conversation. Do not stop an unrelated OpenCode
+server or erase unknown delivery to restart work.
+
 ## Published installation check
 
-The following published checks describe **0.9.1**, not verification of 0.18.0.
+The following published checks describe **0.9.1**, not verification of 0.19.0.
 
 On 2026-09-20, all four GitHub installation routes above passed in isolated
 profiles: native Codex, native Claude, standalone Codex and standalone Claude.
@@ -207,6 +339,20 @@ local-source checks additionally verified source removal.
 Feature execution used explicitly synthetic readiness and gap-check inputs;
 actual human approval remains required for live Specs. The execution report
 records the exact evidence and remaining limits.
+
+Planning review has a separate acceptance boundary:
+
+| Surface | Review evidence and remaining acceptance |
+|---|---|
+| Native Claude artifact | Contract/allowlist and package checks; actual writer access, native interactions, feedback retrieval and reconciliation remain pending. |
+| Codex Space Page | Capability-discovered contract; live editable Page, anchored comments, separate Page chat write-back, embed and guarded checkpoint remain pending. |
+| OpenCode companion | Isolated synthetic transport fixtures; configured real-host passage chat, reconnect, checkpoint and export remain pending. |
+| Pi companion | Isolated synthetic RPC fixtures; real dedicated tool-free session, recovery, interaction and shutdown acceptance remain pending. |
+| Portable Markdown/HTML | Local fallback/export behavior has isolated test coverage; it does not certify native host behavior or model quality. |
+
+The [collaborative-planning verification report](reviews/2026-10-19-collaborative-planning-verification.md)
+records the current checks and their limits. Historical transport spikes remain
+labeled synthetic evidence; no synthetic responder is the production default.
 
 ## Operational differences
 
