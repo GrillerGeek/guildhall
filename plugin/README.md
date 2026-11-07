@@ -161,6 +161,32 @@ non-Claude hosts. It bundles its role references and uses host-native independen
 workers. The Claude command/agent/hook route documented above is preserved;
 standalone installation does not register those native Claude components.
 
+## Following a quest
+
+Every planned quest keeps a progress record beside its plan,
+`docs/guildhall/plans/<slug>/progress.json`, so you can see how far along it is
+and how much is left without reading the plan. Mordain seeds it with the
+quest's milestones, marks the ones that may repeat (and how many passes are
+planned), and lists every point where he expects to need you. He updates it as
+work moves, through the bundled `progress.py` helper only.
+
+Three ways to watch the same record:
+
+- **Claude Code:** the `guildhall-tavern` pane draws the journey, the current
+  milestone's card and your next checkpoint above the adventurer tree.
+- **Any terminal** (an AgentPanel or tmux split next to Codex, for example):
+
+  ```bash
+  python3 <plugin>/skills/guildhall-quest/scripts/progress.py --root . watch
+  ```
+
+- **A browser** (Codex desktop, Claude desktop or anything else):
+  `… progress.py --root . watch --web` prints a local `127.0.0.1` address.
+
+Colors carry one meaning each: green done, blue working, violet repeating,
+amber waiting on you. A quest whose helper is unavailable carries on without a
+record; the plan notes why.
+
 ## Collaborative planning review
 
 Mordain discovers review tools available in Cassian's actual worker context.
@@ -172,7 +198,7 @@ must be reported; no native feature or hook equivalence is inferred.
 Cassian's explicit **review-document** mode receives bounded approved inputs,
 named outputs, creation permission and the selected surface/authority. It owns
 those review documents and hosted output; its post-green mode stays separate.
-Mordain still writes only the plan. The helper is scoped bookkeeping/transport,
+Mordain still writes only the plan (and the progress record, through `progress.py`). The review helper is scoped bookkeeping/transport,
 not an adventurer or a way around that rule. Portable role scopes remain
 instructions unless the host actually enforces them.
 

@@ -447,5 +447,35 @@ class WatchTests(Project, unittest.TestCase):
         self.assertEqual(urllib.request.urlopen(local, timeout=10).status, 200)
 
 
+
+class InstructionTests(unittest.TestCase):
+    """Mordain on both hosts is told to seed and keep the record; the bundle ships the helper."""
+
+    def test_bundle_ships_helper(self):
+        bundled = ROOT / 'plugin/skills/guildhall-quest/scripts/progress.py'
+        self.assertEqual(bundled.read_bytes(), SCRIPT.read_bytes())
+
+    def test_quest_instructions_name_helper(self):
+        for rel in ('plugin/commands/quest.md', 'plugin/portable/references/quest.md'):
+            text = (ROOT / rel).read_text()
+            for needle in ('progress.py', 'progress.json', 'init', 'wait', 'loop', 'never blocks',
+                           'Plan → Reproduce → Root cause → Report', 'Plan → Spike → Show'):
+                self.assertIn(needle, text, f'{rel}: {needle}')
+
+    def test_write_scope_exception_is_narrow_and_consistent(self):
+        for rel in ('plugin/commands/quest.md', 'plugin/portable/SKILL.md',
+                    'plugin/portable/references/collaborative-planning.md'):
+            text = (ROOT / rel).read_text()
+            self.assertIn('progress.py', text, rel)
+            self.assertRegex(text, r'only (through|via) `?progress\.py`?', rel)
+
+    def test_versions_bumped_together(self):
+        versions = {json.loads((ROOT / rel).read_text())['version'] for rel in
+                    ('plugin/plugin.json', 'plugin/.codex-plugin/plugin.json', 'plugin/.claude-plugin/plugin.json')}
+        self.assertEqual(versions, {'0.20.0'})
+        tavern = json.loads((ROOT / 'mods/guildhall-tavern/.claude-plugin/plugin.json').read_text())
+        self.assertEqual(tavern['version'], '0.4.0')
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -42,6 +42,16 @@ host's capabilities instead of inferring them from this historical observation.
 
 `plugin/commands/quest.md` frontmatter lists `allowed-tools: Agent, Bash, Read, Write, Grep, Glob, TodoWrite, AskUserQuestion, WebFetch`. `Write` was added in v0.3.0 specifically so Mordain can create the quest's plan file at `docs/guildhall/plans/YYYY-MM-DD-<slug>.md`. The forcing function lives in prose AND, since v0.8.0, in a deterministic hook: `plugin/hooks/quest_write_guard.py` (PreToolUse on `Write`) denies main-agent Writes outside `docs/guildhall/plans/*.md` while a quest turn is in flight (flagged by `plugin/hooks/quest_flag.py` on `/quest` submission, cleared on the next non-quest prompt). Subagent Writes are exempt (the hook input's `agent_id` marks them) — adventurers are governed by their own tool lists. Commands cannot carry frontmatter hooks (only skills/agents can), which is why the guard ships as plugin-level hooks with its own quest-in-flight scoping. If you are editing `quest.md`, keep the narrow-scope wording — the prose is what steers Mordain before the hook ever fires, and it's the only guard on older sessions and on the `Bash` escape hatch.
 
+**The one exception (v0.20.0): the quest progress record.** Mordain also keeps
+`docs/guildhall/plans/<slug>/progress.json` — milestones, tasks, declared loops
+and user waypoints — but only through the bundled
+`plugin/portable/scripts/progress.py` (via `Bash`, so a prose rule, like all
+`Bash` use). The record holds no source or evidence, is never part of a worker
+brief, and its bookkeeping never blocks a quest or changes dispatch, reviewers or
+retries. The tavern pane, `progress.py watch` and `progress.py watch --web` read
+it. See `plugin/portable/references/progress.md` and the design at
+`docs/superpowers/specs/2026-11-07-quest-progress-design.md`.
+
 ### Dispatch is phased: sequential build, parallel reviews, sequential closer
 
 - **TDD build chain stays strictly sequential:** (optional `architecture-reviewer`) → `test-author` → `feature-implementer` → (optional `refactorer`). This preserves the **independence guardrail** — `test-author` must not see the implementation.

@@ -2,7 +2,7 @@
 <!-- Guildhall is a Claude Code plugin and portable Agent Skill: a coding workflow where Mordain plans and dispatches specialist agents for tests, implementation, reviews and a PR draft. -->
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Plugin](https://img.shields.io/badge/plugin-v0.19.0-green.svg)](plugin/README.md)
+[![Plugin](https://img.shields.io/badge/plugin-v0.20.0-green.svg)](plugin/README.md)
 
 **Give a coding task to a team of AI specialists that writes tests, implements the
 change, reviews it and prepares a PR draft.**
@@ -21,7 +21,8 @@ code, tests, review evidence and a PR draft. Publishing a PR is a separate actio
 ## Install
 
 The commands below install Guildhall from its published main branch. This branch
-prepares **0.19.0**, adding collaborative planning review to the existing quest;
+prepares **0.20.0**, adding quest progress tracking (a journey view in the tavern
+pane, any terminal and a local browser page) on top of collaborative planning review;
 those changes reach the main install route after merge. Removed model routing
 and its setup skill remain absent.
 Choose one route for your coding app. No repository clone, build or IDD
@@ -56,8 +57,11 @@ then `/plugin install guildhall@grillergeek-plugins`. Restart Claude Code after
 installing. To install a single project from this repository's own catalog
 instead, see the [installation guide](docs/installation.md#native-claude-code).
 
-Optional: `guildhall-tavern` draws a live pane of the guild during a quest
-(who is working, what they are doing, in character). It installs from the same
+Optional: `guildhall-tavern` draws a live pane of the guild during a quest:
+how far along the quest is, what is left and when it needs you, then who is
+working and what they are doing, in character. Codex and other hosts can follow
+the same progress with `progress.py watch` in a terminal split or `watch --web`
+in a browser (see [Following a quest](plugin/README.md#following-a-quest)). It installs from the same
 marketplace with `claude plugin install guildhall-tavern@grillergeek-plugins`;
 see [its README](mods/guildhall-tavern/README.md).
 

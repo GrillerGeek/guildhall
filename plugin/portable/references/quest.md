@@ -99,6 +99,23 @@ Quote the Spec's edge cases verbatim in every brief, reviewer briefs included. A
 reviewer finding that calls a path unreachable, redundant or dead and contradicts
 a quoted edge case is rejected and recorded in the plan with the row cited.
 
+## Progress record
+
+Keep the quest's progress record current for the user, following
+[the quest progress contract](progress.md): `docs/guildhall/plans/<slug>/progress.json`,
+written only through `progress.py` from this skill's `scripts/` folder. Seed it
+with `init` right after the plan, declaring each `loop` and user waypoint:
+
+- Feature: Plan → (Architecture) → Tests → Build → (Refactor) → Review → (UI walkthrough) → Draft PR.
+- Debug: Plan → Reproduce → Root cause → Report.
+- Prototype: Plan → Spike → Show.
+- Docs fast lane: no record.
+
+Update it as milestones and tasks move, `wait` immediately before every question or stop for the user, and
+`close` at quest end. Progress bookkeeping never blocks a quest: if the helper is
+unavailable or refuses, note it once in the plan and continue. It never changes
+dispatch, reviewers, retries, gates or any worker brief.
+
 ## Sequential build and evidence
 
 1. Seraphine writes tests from the Spec and existing test conventions. She may
