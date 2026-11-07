@@ -234,11 +234,190 @@ class CliTests(Project, unittest.TestCase):
         self.assertEqual(written, [PLAN])
         self.assertFalse((self.root.parent / 'outside').exists())
 
+    def test_symlinked_record_folder_refuses(self):
+        outside = self.root.parent / (self.root.name + '-outside')
+        outside.mkdir()
+        self.addCleanup(lambda: [p.unlink() for p in outside.iterdir()] and None or outside.rmdir())
+        (self.root / RECORD).parent.symlink_to(outside, target_is_directory=True)
+        result = self.run_cli('init', '--title', 't', '--skeleton-json', '-', stdin=json.dumps(SKELETON))
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertEqual(list(outside.iterdir()), [])
+
     def test_init_twice_refuses_without_force(self):
         self.init()
         result = self.run_cli('init', '--title', 'again', '--skeleton-json', '-', stdin=json.dumps(SKELETON))
         self.assertEqual(result.returncode, 2)
         self.assertEqual(self.record()['title'], 'MCP agent access')
+
+
+
+def width(line):
+    return len(line)
+
+
+class RenderTests(unittest.TestCase):
+    """The journey + focus card, as a terminal and a browser draw it."""
+
+    def setUp(self):
+        self.p = load_module()
+        r = self.p.init_record('MCP agent access', PLAN, SKELETON['milestones'], SKELETON['waypoints'],
+                               repo='camp-planner', branch='feature/mcp', now=0.0)
+        for op, args in (('start', {'milestone': 'plan'}), ('wait', {'waypoint': 'scope'}),
+                         ('resume', {'waypoint': 'scope'}), ('start', {'milestone': 'tests'}),
+                         ('start', {'milestone': 'build'})):
+            r = self.p.apply(r, op, args, 10.0)
+        names = ['Read consistency', 'Grocery tools', 'Provider cancellation', 'Photo replacement race',
+                 'Storage provenance', 'Shutdown errors surface', 'Full suite green']
+        for i, name in enumerate(names):
+            r = self.p.apply(r, 'task', {'milestone': 'build', 'task': f't{i}', 'name': name}, 20.0)
+        for i in range(3):
+            r = self.p.apply(r, 'finish-task', {'task': f't{i}'}, 30.0)
+        r = self.p.apply(r, 'work', {'task': 't3', 'who': 'Bruga'}, 40.0)
+        self.r = r
+
+    def render(self, record=None, cols=60):
+        return self.p.render_text(record or self.r, width=cols, color=False, now=760.0)
+
+    def test_render_working_state_snapshot(self):
+        out = self.render()
+        self.assertIn('MCP agent access', out)
+        self.assertIn('2 of 6', out)
+        self.assertIn('camp-planner · feature/mcp', out)
+        self.assertIn('NOW', out)
+        self.assertIn('Build', out)
+        self.assertIn('3 of 7', out)
+        self.assertIn('✓ Read consistency', out)
+        self.assertIn('Photo replacement race', out)
+        self.assertIn('Bruga 12m', out)
+        self.assertIn('○ 3 more', out)
+        self.assertIn('⚑', out)
+        self.assertIn("You're needed after PR", out)
+        self.assertIn('↻', out)
+        self.assertNotIn('PASS', out)
+        self.assertNotIn('\x1b[', out)
+
+    def test_render_loop_state_shows_pass_and_why(self):
+        r = self.p.apply(self.r, 'loop', {'milestone': 'build', 'why': 'security review found a stale read'}, 50.0)
+        out = self.render(r)
+        self.assertIn('NOW · PASS 2 OF BUILD', out)
+        self.assertIn('Why: security review found a stale read', out)
+        self.assertIn('Expected', out)
+        self.assertIn('↻2', out)
+        over = self.p.apply(r, 'loop', {'milestone': 'build', 'why': 'again'}, 60.0)
+        over = self.p.apply(over, 'loop', {'milestone': 'build', 'why': 'and again'}, 70.0)
+        self.assertIn('beyond the planned 2 passes', self.render(over))
+
+    def test_render_your_turn_takes_over_card(self):
+        r = self.p.apply(self.r, 'wait', {'need': 'Open the PR with hosted checks pending?'}, 400.0)
+        out = self.render(r)
+        self.assertIn('YOUR TURN', out)
+        self.assertIn('Open the PR with hosted checks pending?', out)
+        self.assertIn('Answer in the chat', out)
+        self.assertIn('waiting 6m · unplanned', out)
+        self.assertNotIn('Photo replacement race', out)
+
+    def test_render_color_uses_one_color_per_state(self):
+        out = self.p.render_text(self.r, width=60, color=True, now=760.0)
+        self.assertIn(self.p.COLORS['done'], out)
+        self.assertIn(self.p.COLORS['now'], out)
+        r = self.p.apply(self.r, 'wait', {'waypoint': 'accept'}, 400.0)
+        self.assertIn(self.p.COLORS['you'], self.p.render_text(r, width=60, color=True, now=760.0))
+
+    def test_render_narrow_width_box_aligned(self):
+        for cols in (30, 40, 60, 100):
+            lines = self.render(cols=cols).splitlines()
+            self.assertTrue(all(width(l) <= cols for l in lines), (cols, [l for l in lines if width(l) > cols]))
+            card = [l for l in lines if l and l[0] in '╭│╰']
+            self.assertGreaterEqual(len(card), 3)
+            self.assertEqual(len({width(l) for l in card}), 1, (cols, card))
+            self.assertTrue(all(l.endswith(('╮', '│', '╯')) for l in card), card)
+
+    def test_journey_spans_the_width_and_footer_wraps(self):
+        for cols in (46, 60, 90):
+            lines = self.render(cols=cols).splitlines()
+            path = next(l for l in lines if '◉' in l)
+            self.assertGreaterEqual(len(path), cols - 6, (cols, path))  # last label owns the tail
+            self.assertTrue(all(len(l) <= cols for l in lines))
+        out = self.render(cols=46)
+        self.assertIn('Muse/Dots acceptance', out)
+        self.assertNotIn('…', '\n'.join(l for l in out.splitlines() if l.startswith(('⚑', '↻', '  '))))
+
+    def test_render_completed_quest(self):
+        r = self.p.apply(self.r, 'close', {'status': 'completed'}, 900.0)
+        out = self.render(r)
+        self.assertIn('DONE', out)
+
+    def test_render_corrupt_record_is_calm(self):
+        for bad in ({}, {'schema_version': 1}, {'schema_version': 1, 'milestones': 'x'}, [], 'x'):
+            out = self.p.render_safe(bad, width=40, color=False, now=0.0)
+            self.assertIn('No progress', out)
+        self.assertIn('No progress', self.p.render_missing(40))
+
+    def test_html_has_timeline_tasks_and_waypoints(self):
+        page = self.p.render_html(self.r, now=760.0)
+        self.assertTrue(page.startswith('<!doctype html>'))
+        for text in ('MCP agent access', 'Milestones', 'Where you come in', 'Approve mode and scope',
+                     'Muse/Dots acceptance', 'Full suite green', 'Photo replacement race', '3 of 7'):
+            self.assertIn(text, page)
+        self.assertIn('prefers-color-scheme', page)
+
+    def test_html_loop_pass_is_violet_and_empty_task_list_reads_plainly(self):
+        r = self.p.apply(self.r, 'loop', {'milestone': 'build', 'why': 'review found a race'}, 50.0)
+        page = self.p.render_html(r, now=760.0)
+        self.assertIn('class="st current loop"', page)
+        self.assertIn('class="d current loop"', page)
+        self.assertIn('No tasks recorded yet', page)
+        self.assertNotIn('0 of 0 tasks', page)
+
+    def test_html_escapes_record_text(self):
+        r = self.p.apply(self.r, 'note', {'text': '<script>alert(1)</script>'}, 50.0)
+        r = self.p.apply(r, 'task', {'milestone': 'build', 'task': 'x', 'name': '<img src=x>'}, 50.0)
+        page = self.p.render_html(r, now=760.0)
+        self.assertNotIn('<script>alert', page)
+        self.assertNotIn('<img src=x>', page)
+
+
+class WatchTests(Project, unittest.TestCase):
+    def test_watch_once_prints_frame(self):
+        self.init()
+        self.run_cli('start', 'build')
+        result = self.run_cli('watch', '--once', '--width', '50')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('MCP agent access', result.stdout)
+        self.assertIn('NOW', result.stdout)
+
+    def test_watch_without_plan_finds_newest_active_quest(self):
+        self.init()
+        result = subprocess.run([sys.executable, str(SCRIPT), '--root', str(self.root), 'watch', '--once'],
+                                capture_output=True, text=True, timeout=30)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('MCP agent access', result.stdout)
+
+    def test_watch_once_missing_record_is_calm(self):
+        result = self.run_cli('watch', '--once')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('No progress', result.stdout)
+
+    def test_web_serves_page_and_fragment(self):
+        import threading
+        import urllib.request
+        self.init()
+        p = load_module()
+        server = p.make_server(self.root, PLAN, port=0)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        self.addCleanup(server.server_close)
+        self.addCleanup(server.shutdown)
+        base = f'http://127.0.0.1:{server.server_address[1]}'
+        page = urllib.request.urlopen(base + '/', timeout=10).read().decode()
+        fragment = urllib.request.urlopen(base + '/fragment', timeout=10).read().decode()
+        self.assertIn('MCP agent access', page)
+        self.assertIn('/fragment', page)
+        self.assertIn('MCP agent access', fragment)
+        self.assertNotIn('<html', fragment)
+        with self.assertRaises(urllib.error.HTTPError):
+            urllib.request.urlopen(base + '/../../etc/passwd', timeout=10)
+        self.assertEqual(server.server_address[0], '127.0.0.1')
 
 
 if __name__ == '__main__':

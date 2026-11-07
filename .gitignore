@@ -13,3 +13,4 @@ __pycache__/
 mods/*/.claude-plugin/types/
 mods/*/tsconfig.json
 .superpowers/
+.playwright-mcp/
