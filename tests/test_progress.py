@@ -110,9 +110,9 @@ class RecordTests(unittest.TestCase):
         self.assertEqual(self.r['milestones'][1]['pass'], 1)
         self.apply('done', milestone='tests')
         self.apply('start', milestone='build')
-        done_before = sum(s == 'done' for s in self.states().values())
+        done_before = self.p.counted(self.r)[0]
         self.apply('loop', milestone='tests', why='contract changed')
-        self.assertEqual(sum(s == 'done' for s in self.states().values()), done_before)
+        self.assertEqual(self.p.counted(self.r)[0], done_before)  # the count the user sees never drops
         self.assertEqual(list(self.states().values()).count('current'), 1)
         with self.assertRaises(self.p.Refusal):
             self.apply('start', milestone='plan')  # done milestones repeat only through loop
@@ -204,6 +204,15 @@ class CliTests(Project, unittest.TestCase):
     def test_update_without_record_refuses(self):
         result = self.run_cli('start', 'build')
         self.assertEqual(result.returncode, 2)
+        self.assertNotIn('Traceback', result.stderr)
+
+    def test_partial_record_refuses_update_without_traceback(self):
+        self.init()
+        record = self.record()
+        del record['milestones'][0]['pass']
+        (self.root / RECORD).write_text(json.dumps(record))
+        result = self.run_cli('start', 'plan')
+        self.assertEqual(result.returncode, 2, result.stderr)
         self.assertNotIn('Traceback', result.stderr)
 
     def test_corrupt_record_refuses_update_without_traceback(self):
@@ -390,6 +399,50 @@ class RenderTests(unittest.TestCase):
         with self.assertRaises(self.p.Refusal):
             self.p.apply(self.r, 'note', {'text': 'hi\x1b[2J'}, 1.0)
 
+    def partials(self):
+        def drop(path, key):
+            r = json.loads(json.dumps(self.r))
+            target = r
+            for part in path:
+                target = target[part]
+            del target[key]
+            return r
+        def setv(path, key, value):
+            r = json.loads(json.dumps(self.r))
+            target = r
+            for part in path:
+                target = target[part]
+            target[key] = value
+            return r
+        return [drop(['waypoints', 1], 'after'), drop(['milestones', 0], 'name'), drop(['waypoints', 0], 'need'),
+                setv(['milestones', 2], 'pass', 'two'), setv(['milestones', 2], 'started_at', 'noon'),
+                drop(['milestones', 0], 'pass'), drop([], 'status'), setv([], 'loops', [None]),
+                setv(['milestones', 2], 'goal', {'x': 1}), setv([], 'note', ['x'])]
+
+    def test_partial_records_are_calm_in_every_view(self):
+        for bad in self.partials():
+            self.assertIn('No progress', self.p.render_safe(bad, width=40, color=False, now=0.0))
+            self.assertIn('No progress', self.p.render_html(bad, now=0.0))
+            with self.assertRaises(self.p.Refusal):
+                self.p.validate(bad)
+
+    def test_close_resolves_waiting_and_status_wins(self):
+        r = self.p.apply(self.r, 'wait', {'waypoint': 'accept'}, 100.0)
+        closed = self.p.apply(r, 'close', {'status': 'completed'}, 200.0)
+        self.assertEqual(closed['waypoints'][1]['state'], 'done')
+        self.assertEqual(self.p.focus(closed, 300.0)['kind'], 'done')
+        hand_edited = json.loads(json.dumps(r))
+        hand_edited['status'] = 'abandoned'
+        self.assertEqual(self.p.focus(hand_edited, 300.0)['label'], 'ABANDONED')
+
+    def test_loop_back_leaves_the_interrupted_milestone_unfinished(self):
+        r = self.p.apply(self.r, 'start', {'milestone': 'review'}, 100.0)
+        r = self.p.apply(r, 'loop', {'milestone': 'build', 'why': 'blocking review finding'}, 200.0)
+        states = {m['id']: m['state'] for m in r['milestones']}
+        self.assertEqual((states['build'], states['review']), ('current', 'upcoming'))
+        r = self.p.apply(r, 'start', {'milestone': 'review'}, 300.0)
+        self.assertEqual({m['id']: m['state'] for m in r['milestones']}['build'], 'done')
+
     def test_html_escapes_record_text(self):
         r = self.p.apply(self.r, 'note', {'text': '<script>alert(1)</script>'}, 50.0)
         r = self.p.apply(r, 'task', {'milestone': 'build', 'task': 'x', 'name': '<img src=x>'}, 50.0)
@@ -418,6 +471,22 @@ class WatchTests(Project, unittest.TestCase):
         result = self.run_cli('watch', '--once')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn('No progress', result.stdout)
+
+    def test_web_serves_calm_page_for_partial_record(self):
+        import threading
+        import urllib.request
+        self.init()
+        record = self.record()
+        del record['waypoints'][0]['after']
+        (self.root / RECORD).write_text(json.dumps(record))
+        server = load_module().make_server(self.root, PLAN, port=0)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        self.addCleanup(server.server_close)
+        self.addCleanup(server.shutdown)
+        base = f'http://127.0.0.1:{server.server_address[1]}'
+        for path in ('/', '/fragment'):
+            body = urllib.request.urlopen(base + path, timeout=10).read().decode()
+            self.assertIn('No progress', body)
 
     def test_web_serves_page_and_fragment(self):
         import threading
@@ -458,7 +527,7 @@ class InstructionTests(unittest.TestCase):
     def test_quest_instructions_name_helper(self):
         for rel in ('plugin/commands/quest.md', 'plugin/portable/references/quest.md'):
             text = (ROOT / rel).read_text()
-            for needle in ('progress.py', 'progress.json', 'init', 'wait', 'loop', 'never blocks',
+            for needle in ('progress.py', 'progress.json', 'init', 'wait', 'loop', 'never blocks', 'keep updating',
                            'Plan → Reproduce → Root cause → Report', 'Plan → Spike → Show'):
                 self.assertIn(needle, text, f'{rel}: {needle}')
 

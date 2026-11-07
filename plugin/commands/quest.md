@@ -395,7 +395,8 @@ The tone is a Guildmaster's fireside account, not a machine's log. Keep it truth
 The user follows the quest through a progress record beside the plan,
 `docs/guildhall/plans/<slug>/progress.json`, drawn by the tavern pane, by
 `progress.py watch` in a terminal split and by `progress.py watch --web` in a
-browser. Follow [the quest progress contract](../skills/guildhall-quest/references/progress.md).
+browser. **`Read` [the quest progress contract](../skills/guildhall-quest/references/progress.md)
+before seeding** — it holds the `init` skeleton format and every command.
 The helper ships at `skills/guildhall-quest/scripts/progress.py` inside this
 plugin (`${CLAUDE_PLUGIN_ROOT}/skills/guildhall-quest/scripts/progress.py`; if
 that variable is unset, `Glob` for it once under the installed plugin).
@@ -404,10 +405,13 @@ that variable is unset, `Glob` for it once under the installed plugin).
   quest's progress record only through `progress.py` (via `Bash`), never with
   `Write` or shell redirection, and never use the helper for anything else.
 - **Never blocks:** progress bookkeeping never blocks a quest. If Python or the helper is unavailable or refuses, note
-  `progress unavailable: <reason>` once in the plan and carry on. Progress
-  never changes dispatch, reviewers, retries, gates or any brief.
+  `progress unavailable: <reason>` once in the plan and carry on. A single
+  refused command affects only that command: keep updating the record for
+  every later event. Progress never changes dispatch, reviewers, retries,
+  gates or any brief.
 - **Seed** right after Step 3.10: `init` with milestones, declared loops and
-  user waypoints. Feature: Plan → (Architecture) → Tests → Build → (Refactor)
+  user waypoints, then mark what is already behind you (the Step 1 mode
+  question came before the record, so `resume scope` rather than `wait`). Feature: Plan → (Architecture) → Tests → Build → (Refactor)
   → Review → (UI walkthrough) → Draft PR.
   Debug: Plan → Reproduce → Root cause → Report.
   Prototype: Plan → Spike → Show. Docs fast lane: no record.

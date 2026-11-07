@@ -49,6 +49,8 @@ export type ProgressMilestone = {
   pass: number
   started_at: number | null
   finished_at: number | null
+  /** Finished at least once: still counted done while a loop pass reruns it. */
+  completed?: boolean
 }
 
 export type ProgressTask = {

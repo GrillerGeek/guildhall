@@ -32,7 +32,15 @@ const scrub = (value: unknown): unknown =>
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
 
-/** The record, shape-checked; undefined for anything the pane should not trust. */
+const isNum = (v: unknown) => v === null || v === undefined || (typeof v === 'number' && Number.isFinite(v))
+const isCount = (v: unknown) => typeof v === 'number' && Number.isInteger(v) && v >= 0
+const isStr = (v: unknown, optional = false) => typeof v === 'string' || (optional && (v === null || v === undefined))
+const MILESTONE_STATES = new Set(['upcoming', 'current', 'done', 'skipped'])
+const TASK_STATES = new Set(['upcoming', 'working', 'done'])
+const WAYPOINT_STATES = new Set(['upcoming', 'waiting', 'done'])
+const STATUSES = new Set(['active', 'completed', 'abandoned'])
+
+/** The record, with every field the pane reads checked; undefined for anything it should not trust. */
 export function parseProgress(text: string): QuestProgress | undefined {
   let value: unknown
   try {
@@ -40,14 +48,25 @@ export function parseProgress(text: string): QuestProgress | undefined {
   } catch {
     return undefined
   }
-  if (!isObject(value) || value.schema_version !== 1 || typeof value.title !== 'string') return undefined
+  if (!isObject(value) || value.schema_version !== 1 || !isStr(value.title) || !STATUSES.has(value.status as string)) return undefined
+  if (!isStr(value.note, true) || !isStr(value.repo, true) || !isStr(value.branch, true) || !isNum(value.started_at)) return undefined
   for (const key of ['milestones', 'tasks', 'waypoints', 'loops']) if (!Array.isArray(value[key])) return undefined
   const ms = value.milestones as unknown[]
-  if (ms.length === 0 || !ms.every(m => isObject(m) && typeof m.id === 'string' && typeof m.name === 'string' && typeof m.state === 'string')) {
-    return undefined
-  }
-  if (!(value.tasks as unknown[]).every(t => isObject(t) && typeof t.name === 'string' && typeof t.state === 'string')) return undefined
-  if (!(value.waypoints as unknown[]).every(w => isObject(w) && typeof w.need === 'string' && typeof w.state === 'string')) return undefined
+  const okMilestone = (m: unknown) =>
+    isObject(m) && isStr(m.id) && isStr(m.name) && isStr(m.goal, true) && MILESTONE_STATES.has(m.state as string) &&
+    isCount(m.pass) && isNum(m.started_at) && isNum(m.finished_at) &&
+    (m.loop === null || m.loop === undefined || (isObject(m.loop) && isCount(m.loop.limit)))
+  if (ms.length === 0 || !ms.every(okMilestone)) return undefined
+  const ids = new Set(ms.map(m => (m as { id: string }).id))
+  const okTask = (t: unknown) =>
+    isObject(t) && isStr(t.name) && ids.has(t.milestone as string) && TASK_STATES.has(t.state as string) &&
+    isCount(t.pass) && isStr(t.who, true) && isNum(t.started_at)
+  const okWaypoint = (w: unknown) =>
+    isObject(w) && isStr(w.need) && ids.has(w.after as string) && WAYPOINT_STATES.has(w.state as string) &&
+    typeof w.planned === 'boolean' && isNum(w.waiting_since)
+  const okLoop = (l: unknown) => isObject(l) && ids.has(l.milestone as string) && isStr(l.why) && isCount(l.pass)
+  if (!(value.tasks as unknown[]).every(okTask) || !(value.waypoints as unknown[]).every(okWaypoint)) return undefined
+  if (!(value.loops as unknown[]).every(okLoop)) return undefined
   return scrub(value) as QuestProgress
 }
 
@@ -62,7 +81,7 @@ const since = (now: number, at: number | null | undefined) => elapsedShort(now -
 
 export function counted(p: QuestProgress): { done: number; total: number } {
   const live = p.milestones.filter(m => m.state !== 'skipped')
-  return { done: live.filter(m => m.state === 'done').length, total: live.length }
+  return { done: live.filter(m => m.state === 'done' || m.completed === true).length, total: live.length }
 }
 
 export type NodeTone = 'done' | 'now' | 'loop' | 'you' | 'dim'
@@ -102,7 +121,7 @@ const current = (p: QuestProgress): ProgressMilestone | undefined => p.milestone
 /** What the card says: your turn wins, then the current milestone (a loop pass says why), then next or done. */
 export function focusOf(p: QuestProgress, asking: Asking | null, now: number): Focus {
   const base = { goal: '', lines: [] as string[], tasks: [] as FocusTask[], done: 0, total: 0, meta: '' }
-  const waiting = p.waypoints.filter(w => w.state === 'waiting')
+  const waiting = p.status === 'active' ? p.waypoints.filter(w => w.state === 'waiting') : []
   if (asking !== null || waiting.length > 0) {
     const w = waiting.sort((a, b) => (b.waiting_since ?? 0) - (a.waiting_since ?? 0))[0]
     const need = asking?.need ?? w?.need ?? 'Mordain has a question'
@@ -174,7 +193,7 @@ export function footerRows(p: QuestProgress): { tone: NodeTone; text: string }[]
 /** The band's amber line when the quest waits on the person; undefined otherwise. */
 export function progressBand(p: QuestProgress | null, asking: Asking | null): string | undefined {
   if (asking !== null) return `⚑ Waiting on you: ${asking.need}`
-  const w = p?.waypoints.find(x => x.state === 'waiting')
+  const w = p?.status === 'active' ? p.waypoints.find(x => x.state === 'waiting') : undefined
   return w ? `⚑ Waiting on you: ${w.need}` : undefined
 }
 

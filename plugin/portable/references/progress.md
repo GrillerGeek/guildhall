@@ -15,9 +15,11 @@ quest's progress record only through `progress.py`. Never edit `progress.json` w
 a file-writing tool, shell redirection or `apply_patch`. Never use the helper to
 write anything else; it refuses paths outside `docs/guildhall/plans/`.
 
-Progress bookkeeping never blocks a quest. If Python or the helper is unavailable,
-or a command is refused, note `progress unavailable: <reason>` once in the plan and
-continue. It never changes dispatch, reviewers, retry budgets, gates, IDD ownership
+Progress bookkeeping never blocks a quest. If Python or the helper cannot run at
+all, note `progress unavailable: <reason>` once in the plan and continue without a
+record. A single refused command (a duplicate task id on a retry, an unknown id)
+affects only that command: correct it if the fix is obvious, otherwise skip it, and
+keep updating the record for every later event so it never goes stale. It never changes dispatch, reviewers, retry budgets, gates, IDD ownership
 or a worker handoff. Never put progress details in a test-author brief.
 
 ## Call form
@@ -34,7 +36,10 @@ I/O failure.
 
 ## Seed it with the plan
 
-Right after writing the plan, run `init` with a skeleton on stdin:
+Right after writing the plan, run `init` with a skeleton on stdin. Questions
+asked before the record exists (the mode question, for example) have nothing to
+mark; once `init` succeeds, `start` and `done` the milestones already behind you
+and `resume` any waypoint the user has already answered, such as `scope`.
 
 ```bash
 python3 <helper> --root <root> --plan <plan> init --title "<quest name>" \

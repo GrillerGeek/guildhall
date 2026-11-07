@@ -541,7 +541,13 @@ test('progress helpers read the record and the command that changed it', async (
   expect(progressPathFromCommand('python3 review.py --plan docs/guildhall/plans/x.md')).toBe(undefined)
   expect(progressPathFromCommand('python3 progress.py --plan ../../etc/x.md start a')).toBe(undefined)
   expect(parseProgress(JSON.stringify(RECORD))?.title).toBe('MCP agent access')
-  for (const bad of ['{not json', '{}', '[]', JSON.stringify({ ...RECORD, milestones: 'x' }), JSON.stringify({ ...RECORD, schema_version: 2 })]) {
+  const { status: _status, ...noStatus } = RECORD
+  const pass2 = RECORD.milestones.map(m => (m.id === 'build' ? { ...m, pass: 2 } : m))
+  for (const bad of ['{not json', '{}', '[]', JSON.stringify({ ...RECORD, milestones: 'x' }), JSON.stringify({ ...RECORD, schema_version: 2 }),
+    JSON.stringify(noStatus), JSON.stringify({ ...RECORD, milestones: pass2, loops: [null] }),
+    JSON.stringify({ ...RECORD, note: { x: 1 } }), JSON.stringify({ ...RECORD, milestones: RECORD.milestones.map(m => ({ ...m, goal: 7 })) }),
+    JSON.stringify({ ...RECORD, milestones: RECORD.milestones.map(m => ({ ...m, state: 'bogus' })) }),
+    JSON.stringify({ ...RECORD, milestones: RECORD.milestones.map(m => ({ ...m, pass: 'one' })) })]) {
     expect(parseProgress(bad)).toBe(undefined)
   }
   const hostile = parseProgress(JSON.stringify({ ...RECORD, title: 'Evil\u001b]0;pwned\u0007 title', note: 'x\u009b2J' }))!
@@ -554,6 +560,13 @@ test('progress helpers read the record and the command that changed it', async (
   expect(card.kind).toBe('now')
   expect([card.done, card.total]).toEqual([2, 4])
   expect(progressBand(p, null)).toBe(undefined)
+  const waitingThenClosed = {
+    ...p, status: 'completed' as const,
+    waypoints: p.waypoints.map(w => (w.id === 'accept' ? { ...w, state: 'waiting' as const, waiting_since: 0 } : w)),
+  }
+  expect(focusOf(waitingThenClosed, null, 60_000).kind).toBe('done')
+  expect(progressBand(waitingThenClosed, null)).toBe(undefined)
+  expect(progressBand(waitingThenClosed, { since: 0, need: 'Live question?' })).toBe('⚑ Waiting on you: Live question?')
 })
 
 const progressHooks = (on: any, files: Record<string, string>, toolCall?: (...a: any[]) => unknown) => {

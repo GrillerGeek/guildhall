@@ -113,7 +113,8 @@ with `init` right after the plan, declaring each `loop` and user waypoint:
 
 Update it as milestones and tasks move, `wait` immediately before every question or stop for the user, and
 `close` at quest end. Progress bookkeeping never blocks a quest: if the helper is
-unavailable or refuses, note it once in the plan and continue. It never changes
+unavailable, note it once in the plan and continue; after a single refused
+command, keep updating the record for every later event. It never changes
 dispatch, reviewers, retries, gates or any worker brief.
 
 ## Sequential build and evidence

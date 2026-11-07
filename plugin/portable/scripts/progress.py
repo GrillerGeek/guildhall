@@ -121,11 +121,13 @@ def _current(record):
     return next((m for m in record['milestones'] if m['state'] == 'current'), None)
 
 
-def _make_current(record, m, now):
+def _make_current(record, m, now, interrupted=False):
+    """Make m the one current milestone. Moving on finishes the old one; looping back interrupts it."""
     for other in record['milestones']:
         if other is not m and other['state'] == 'current':
-            other['state'] = 'done' if other['pass'] >= 1 else 'upcoming'
-            other['finished_at'] = now if other['state'] == 'done' else other['finished_at']
+            other['state'] = 'upcoming' if interrupted or other['pass'] < 1 else 'done'
+            if other['state'] == 'done':
+                other['finished_at'], other['completed'] = now, True
     m['state'] = 'current'
     m['pass'] = max(1, m['pass'])
     m['started_at'] = m['started_at'] or now
@@ -144,7 +146,7 @@ def apply(record: dict, op: str, args: dict, now: float) -> dict:
     elif op == 'done':
         m = _find(ms, get('milestone'), 'milestone')
         require(m['state'] != 'skipped', f"{m['id']} was skipped")
-        m['state'], m['pass'] = 'done', max(1, m['pass'])
+        m['state'], m['pass'], m['completed'] = 'done', max(1, m['pass']), True
         m['started_at'] = m['started_at'] or now
         m['finished_at'] = now
     elif op == 'skip':
@@ -161,7 +163,7 @@ def apply(record: dict, op: str, args: dict, now: float) -> dict:
     elif op == 'loop':
         m = _find(ms, get('milestone'), 'milestone')
         require(m['pass'] >= 1, f"{m['id']} has not started; start it instead of looping")
-        _make_current(r, m, now)
+        _make_current(r, m, now, interrupted=True)
         m['pass'] += 1
         limit = (m['loop'] or {}).get('limit')
         r['loops'].append({'milestone': m['id'], 'pass': m['pass'], 'why': text(get('why'), 'why'),
@@ -202,9 +204,12 @@ def apply(record: dict, op: str, args: dict, now: float) -> dict:
         status = get('status') or 'completed'
         require(status in STATUSES[1:], f'status must be completed or abandoned: {status}')
         r['status'] = status
+        for w in wps:
+            if w['state'] == 'waiting':
+                w['state'], w['done_at'] = 'done', now
         current = _current(r)
         if current and status == 'completed':
-            current['state'], current['finished_at'] = 'done', now
+            current['state'], current['finished_at'], current['completed'] = 'done', now, True
     else:
         raise Refusal(f'unknown operation: {op}')
     r['updated_at'] = now
@@ -222,18 +227,47 @@ def scrub(value):
     return value
 
 
+def _num(value):
+    return value is None or (isinstance(value, (int, float)) and not isinstance(value, bool))
+
+
+def _count(value):
+    return isinstance(value, int) and not isinstance(value, bool) and value >= 0
+
+
+def _str(value, optional=False):
+    return isinstance(value, str) or (optional and value is None)
+
+
 def validate(record) -> dict:
-    """Shape and vocabulary check for records read from disk; views treat failure as 'no record'."""
+    """Every field the views read, checked; views and commands treat failure as 'no record'."""
     require(isinstance(record, dict) and record.get('schema_version') == SCHEMA_VERSION, 'not a progress record')
     for key in ('milestones', 'tasks', 'waypoints', 'loops'):
         require(isinstance(record.get(key), list), f'progress record lacks {key}')
-    require(isinstance(record.get('title'), str) and record.get('status') in STATUSES, 'progress record lacks title/status')
-    for items, states, kind in ((record['milestones'], MILESTONE_STATES, 'milestone'),
-                                (record['tasks'], TASK_STATES, 'task'),
-                                (record['waypoints'], WAYPOINT_STATES, 'waypoint')):
-        require(all(isinstance(x, dict) and isinstance(x.get('id'), str) and x.get('state') in states for x in items),
-                f'progress record has a malformed {kind}')
+    require(_str(record.get('title')) and record.get('status') in STATUSES, 'progress record lacks title/status')
+    require(_str(record.get('note', ''), True) and _num(record.get('started_at', 0)), 'progress record has a malformed header')
     require(record['milestones'], 'progress record has no milestones')
+    ids = set()
+    for m in record['milestones']:
+        loop = m.get('loop') if isinstance(m, dict) else None
+        require(isinstance(m, dict) and _str(m.get('id')) and _str(m.get('name')) and _str(m.get('goal', ''), True)
+                and m.get('state') in MILESTONE_STATES and _count(m.get('pass'))
+                and _num(m.get('started_at')) and _num(m.get('finished_at')) and m.get('completed', False) in (True, False)
+                and (loop is None or (isinstance(loop, dict) and _count(loop.get('limit')) and _str(loop.get('reason'), True))),
+                'progress record has a malformed milestone')
+        ids.add(m['id'])
+    for t in record['tasks']:
+        require(isinstance(t, dict) and _str(t.get('id')) and _str(t.get('name')) and t.get('milestone') in ids
+                and t.get('state') in TASK_STATES and _count(t.get('pass')) and _str(t.get('who'), True)
+                and _str(t.get('added_because'), True) and _num(t.get('started_at')) and _num(t.get('finished_at')),
+                'progress record has a malformed task')
+    for w in record['waypoints']:
+        require(isinstance(w, dict) and _str(w.get('id')) and _str(w.get('need')) and w.get('after') in ids
+                and w.get('state') in WAYPOINT_STATES and isinstance(w.get('planned'), bool) and _num(w.get('waiting_since')),
+                'progress record has a malformed waypoint')
+    for loop in record['loops']:
+        require(isinstance(loop, dict) and loop.get('milestone') in ids and _str(loop.get('why')) and _count(loop.get('pass')),
+                'progress record has a malformed loop')
     return scrub(record)
 
 
@@ -295,6 +329,7 @@ COLORS = {'done': '\x1b[38;5;78m', 'now': '\x1b[38;5;75m', 'loop': '\x1b[38;5;14
           'you': '\x1b[38;5;214m', 'dim': '\x1b[38;5;244m', 'bold': '\x1b[1m', 'reset': '\x1b[0m'}
 SPINNER = '◐◓◑◒'
 MISSING = 'No progress record yet. It appears once a quest writes its plan.'
+UNREADABLE = 'No progress to show: the record could not be read.'
 
 
 def elapsed(seconds) -> str:
@@ -310,7 +345,7 @@ def elapsed(seconds) -> str:
 
 def counted(record):
     live = [m for m in record['milestones'] if m['state'] != 'skipped']
-    return sum(m['state'] == 'done' for m in live), len(live)
+    return sum(m['state'] == 'done' or m.get('completed') is True for m in live), len(live)
 
 
 def journey(record) -> list[dict]:
@@ -336,7 +371,7 @@ def journey(record) -> list[dict]:
 def focus(record, now) -> dict:
     """What the card says: your turn wins, then the current milestone (a loop pass says why), then next or done."""
     waiting = [w for w in record['waypoints'] if w['state'] == 'waiting']
-    if waiting:
+    if waiting and record.get('status') == 'active':
         w = max(waiting, key=lambda x: x.get('waiting_since') or 0)
         return {'kind': 'you', 'label': 'YOUR TURN', 'title': w['need'],
                 'lines': ['Mordain is waiting for your answer.'], 'cta': 'Answer in the chat',
@@ -506,7 +541,7 @@ def render_safe(record, width=60, color=False, now=None, frame=0) -> str:
     try:
         return render_text(validate(record), width, color, now, frame)
     except (Refusal, KeyError, TypeError, ValueError, AttributeError, IndexError):
-        return render_missing(width, 'No progress to show: the record could not be read.')
+        return render_missing(width, UNREADABLE)
 
 
 PAGE_CSS = """
@@ -565,10 +600,15 @@ def _e(value) -> str:
 
 def render_fragment(record, now=None) -> str:
     now = time.time() if now is None else now
-    try:
-        record = validate(record)
-    except Refusal:
+    if record is None:
         return f'<main><div class="win pad">{_e(MISSING)}</div></main>'
+    try:
+        return _fragment(validate(record), now)
+    except (Refusal, KeyError, TypeError, ValueError, AttributeError, IndexError):
+        return f'<main><div class="win pad">{_e(UNREADABLE)}</div></main>'
+
+
+def _fragment(record, now) -> str:
     done, total = counted(record)
     card = focus(record, now)
     kind = card['kind']
@@ -692,9 +732,9 @@ def make_server(root: Path, plan=None, port=0):
                 return
             record = read_any(find_record(root, plan))
             if self.path in ('/', '/index.html'):
-                body = render_html(record) if record is not None else render_html({}, None)
+                body = render_html(record)
             elif self.path == '/fragment':
-                body = render_fragment(record if record is not None else {})
+                body = render_fragment(record)
             else:
                 self.send_error(404)
                 return
