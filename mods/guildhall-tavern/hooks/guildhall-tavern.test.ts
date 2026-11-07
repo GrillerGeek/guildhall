@@ -544,6 +544,9 @@ test('progress helpers read the record and the command that changed it', async (
   for (const bad of ['{not json', '{}', '[]', JSON.stringify({ ...RECORD, milestones: 'x' }), JSON.stringify({ ...RECORD, schema_version: 2 })]) {
     expect(parseProgress(bad)).toBe(undefined)
   }
+  const hostile = parseProgress(JSON.stringify({ ...RECORD, title: 'Evil\u001b]0;pwned\u0007 title', note: 'x\u009b2J' }))!
+  expect(hostile.title).toBe('Evil]0;pwned title')
+  expect(hostile.note).toBe('x2J')
   const p = parseProgress(JSON.stringify(RECORD))!
   expect(journeyNodes(p).map(n => n.label)).toEqual(['Plan', 'Tests', 'Build', 'Review', 'PR', 'You'])
   expect(journeyNodes(p).map(n => n.badge)).toEqual(['', '', '↻', '↻', '', ''])

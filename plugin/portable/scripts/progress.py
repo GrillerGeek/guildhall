@@ -24,6 +24,10 @@ PLAN_DIR = ('docs', 'guildhall', 'plans')
 ID = re.compile(r'^[a-z0-9][a-z0-9_-]{0,47}$')
 TEXT_LIMIT = 300
 STATUSES = ('active', 'completed', 'abandoned')
+MILESTONE_STATES = {'upcoming', 'current', 'done', 'skipped'}
+TASK_STATES = {'upcoming', 'working', 'done'}
+WAYPOINT_STATES = {'upcoming', 'waiting', 'done'}
+CONTROL = re.compile(r'[\x00-\x1f\x7f-\x9f]')
 
 
 class Refusal(Exception):
@@ -37,6 +41,7 @@ def require(condition, message):
 
 def text(value, field, limit=TEXT_LIMIT, empty=False):
     require(isinstance(value, str), f'{field} must be text')
+    require(not CONTROL.search(value.replace('\n', ' ').replace('\t', ' ')), f'{field} must not contain control characters')
     value = ' '.join(value.split())
     require(empty or value, f'{field} must not be empty')
     return value[:limit]
@@ -206,14 +211,30 @@ def apply(record: dict, op: str, args: dict, now: float) -> dict:
     return r
 
 
+def scrub(value):
+    """A copy with control characters removed from every string: a record from disk is untrusted."""
+    if isinstance(value, str):
+        return CONTROL.sub('', value)
+    if isinstance(value, list):
+        return [scrub(v) for v in value]
+    if isinstance(value, dict):
+        return {k: scrub(v) for k, v in value.items()}
+    return value
+
+
 def validate(record) -> dict:
-    """Light shape check for records read from disk; views treat failure as 'no record'."""
+    """Shape and vocabulary check for records read from disk; views treat failure as 'no record'."""
     require(isinstance(record, dict) and record.get('schema_version') == SCHEMA_VERSION, 'not a progress record')
     for key in ('milestones', 'tasks', 'waypoints', 'loops'):
         require(isinstance(record.get(key), list), f'progress record lacks {key}')
-    require(record['milestones'] and all(isinstance(m, dict) and 'id' in m and 'state' in m for m in record['milestones']),
-            'progress record has malformed milestones')
-    return record
+    require(isinstance(record.get('title'), str) and record.get('status') in STATUSES, 'progress record lacks title/status')
+    for items, states, kind in ((record['milestones'], MILESTONE_STATES, 'milestone'),
+                                (record['tasks'], TASK_STATES, 'task'),
+                                (record['waypoints'], WAYPOINT_STATES, 'waypoint')):
+        require(all(isinstance(x, dict) and isinstance(x.get('id'), str) and x.get('state') in states for x in items),
+                f'progress record has a malformed {kind}')
+    require(record['milestones'], 'progress record has no milestones')
+    return scrub(record)
 
 
 # ---------------------------------------------------------------- storage
@@ -665,6 +686,10 @@ def make_server(root: Path, plan=None, port=0):
 
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self):
+            port = self.server.server_address[1]
+            if self.headers.get('Host') not in (f'127.0.0.1:{port}', f'localhost:{port}'):
+                self.send_error(421, 'Misdirected Request')  # DNS rebinding: only local names may read
+                return
             record = read_any(find_record(root, plan))
             if self.path in ('/', '/index.html'):
                 body = render_html(record) if record is not None else render_html({}, None)

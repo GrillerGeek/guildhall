@@ -20,6 +20,16 @@ export function progressPathFromCommand(command: string): string | undefined {
   return root !== undefined && !plan.startsWith('/') ? `${root.replace(/\/+$/, '')}/${record}` : record
 }
 
+// eslint-disable-next-line no-control-regex
+const CONTROL = /[\u0000-\u001f\u007f-\u009f]/g
+
+/** A copy with control characters stripped from every string: the record on disk is untrusted. */
+const scrub = (value: unknown): unknown =>
+  typeof value === 'string' ? value.replace(CONTROL, '')
+    : Array.isArray(value) ? value.map(scrub)
+      : typeof value === 'object' && value !== null ? Object.fromEntries(Object.entries(value).map(([k, v]) => [k, scrub(v)]))
+        : value
+
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
 
 /** The record, shape-checked; undefined for anything the pane should not trust. */
@@ -38,7 +48,7 @@ export function parseProgress(text: string): QuestProgress | undefined {
   }
   if (!(value.tasks as unknown[]).every(t => isObject(t) && typeof t.name === 'string' && typeof t.state === 'string')) return undefined
   if (!(value.waypoints as unknown[]).every(w => isObject(w) && typeof w.need === 'string' && typeof w.state === 'string')) return undefined
-  return value as unknown as QuestProgress
+  return scrub(value) as QuestProgress
 }
 
 export const elapsedShort = (ms: number) => {

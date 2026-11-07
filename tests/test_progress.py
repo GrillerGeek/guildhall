@@ -369,6 +369,27 @@ class RenderTests(unittest.TestCase):
         self.assertIn('No tasks recorded yet', page)
         self.assertNotIn('0 of 0 tasks', page)
 
+    def test_hostile_record_states_never_reach_html_attributes(self):
+        r = json.loads(json.dumps(self.r))
+        r['milestones'][0]['state'] = 'done" onmouseover="alert(1)'
+        r['waypoints'][0]['state'] = 'x"><script>alert(2)</script>'
+        page = self.p.render_html(r, now=760.0)
+        self.assertNotIn('onmouseover', page)
+        self.assertNotIn('<script>alert', page)
+
+    def test_control_characters_never_reach_the_terminal(self):
+        r = json.loads(json.dumps(self.r))
+        r['title'] = 'Evil\x1b]0;pwned\x07\x1b[2J title'
+        r['tasks'][3]['name'] = 'Task\x9b31m red'
+        r['note'] = 'bell\x07'
+        out = self.p.render_safe(r, width=60, color=True, now=760.0)
+        stripped = out
+        for code in self.p.COLORS.values():
+            stripped = stripped.replace(code, '')
+        self.assertFalse(any(ord(ch) < 32 and ch != '\n' or 0x7f <= ord(ch) < 0xa0 for ch in stripped), repr(stripped))
+        with self.assertRaises(self.p.Refusal):
+            self.p.apply(self.r, 'note', {'text': 'hi\x1b[2J'}, 1.0)
+
     def test_html_escapes_record_text(self):
         r = self.p.apply(self.r, 'note', {'text': '<script>alert(1)</script>'}, 50.0)
         r = self.p.apply(r, 'task', {'milestone': 'build', 'task': 'x', 'name': '<img src=x>'}, 50.0)
@@ -418,6 +439,12 @@ class WatchTests(Project, unittest.TestCase):
         with self.assertRaises(urllib.error.HTTPError):
             urllib.request.urlopen(base + '/../../etc/passwd', timeout=10)
         self.assertEqual(server.server_address[0], '127.0.0.1')
+        rebound = urllib.request.Request(base + '/', headers={'Host': 'attacker.example'})
+        with self.assertRaises(urllib.error.HTTPError) as caught:
+            urllib.request.urlopen(rebound, timeout=10)
+        self.assertEqual(caught.exception.code, 421)
+        local = urllib.request.Request(base + '/fragment', headers={'Host': f'localhost:{server.server_address[1]}'})
+        self.assertEqual(urllib.request.urlopen(local, timeout=10).status, 200)
 
 
 if __name__ == '__main__':
