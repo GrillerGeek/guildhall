@@ -20,11 +20,10 @@ code, tests, review evidence and a PR draft. Publishing a PR is a separate actio
 
 ## Install
 
-The commands below install Guildhall from its published main branch. This branch
-prepares **0.20.0**, adding quest progress tracking (a journey view in the tavern
-pane, any terminal and a local browser page) on top of collaborative planning review;
-those changes reach the main install route after merge. Removed model routing
-and its setup skill remain absent.
+The commands below install Guildhall from its published main branch. This release
+ships **0.20.0**, adding quest progress tracking (a journey view in the tavern
+pane, any terminal and a local browser page) on top of collaborative planning review.
+Removed model routing and its setup skill remain absent.
 Choose one route for your coding app. No repository clone, build or IDD
 installation is required.
 
