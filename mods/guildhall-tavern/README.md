@@ -8,6 +8,17 @@ time, a deed count, and one in-character line for what they are doing right
 now ("Bruga forges rate_limit.ts", "Oriana searches for unwatched gates:
 password"). A short chronicle under the tree records summons and returns.
 
+Above the guild, once Mordain has seeded the quest's progress record
+(`docs/guildhall/plans/<slug>/progress.json`, kept by the bundled `progress.py`),
+the pane draws the whole quest as a journey: done milestones in green, the
+current one in blue (violet on a repeat pass, with one line on why it looped),
+upcoming ones dotted, and an amber ⚑ wherever Mordain expects to need you. A
+card under the journey shows the current milestone's goal, a task bar
+("3 of 7 tasks") and its tasks; when Mordain asks you something it turns into
+an amber YOUR TURN card, and the band reads `⚑ Waiting on you: …`. The record
+is re-read after each `progress.py` call and every five seconds; a missing or
+malformed record leaves the pane as it was.
+
 When Mordain's turn ends with nobody left in the field, a recap appears: who
 answered and who fell, the wall-clock time each phase held the road, and the
 gating verdicts from the plan scroll's `## Reviewers selected` (the scroll is
@@ -70,6 +81,8 @@ tavern as text instead; run it again for a fresh look.
   hireling; `tests/test_tavern_roster.py` fails CI until it has one, and when
   a roster name drifts from its character sheet.
 - `hooks/register.tsx`: the hooks and the pane.
+- `hooks/progress.ts`: reading the progress record and shaping the journey,
+  card and band from it.
 - `types/index.d.ts`: the session state the pane draws from.
 
 ## Check it

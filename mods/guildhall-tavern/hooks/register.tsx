@@ -1,7 +1,9 @@
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register, RenderChildren } from 'claude-code'
 
-import type { ChronicleEntry, GuildMember, GuildQuest, Recap } from '../types'
+import type { Asking, ChronicleEntry, GuildMember, GuildQuest, QuestProgress, Recap } from '../types'
+import { counted, focusOf, footerRows, journeyNodes, journeyRows, parseProgress, progressBand, progressPathFromCommand } from './progress'
+import type { NodeTone } from './progress'
 import { isPlanScroll, phaseSpans, planStatus, reviewerVerdicts, rootPhase } from './recap'
 import { KEEPER, PHASES, characterOf, classify, flavor, guildRole, shorten } from './roster'
 import type { Character } from './roster'
@@ -22,6 +24,13 @@ const tick = atom({ plugin: 'guildhall-tavern', key: 'tick' } as const, 0)
 const recap = atom({ plugin: 'guildhall-tavern', key: 'recap' } as const, null as Recap | null)
 // Set once the person moves on from a settled quest: the band has said its piece.
 const bandQuiet = atom({ plugin: 'guildhall-tavern', key: 'bandQuiet' } as const, false)
+// The quest's own progress record, as progress.py last left it, and a question in flight.
+const progress = atom({ plugin: 'guildhall-tavern', key: 'progress' } as const, null as QuestProgress | null)
+const asking = atom({ plugin: 'guildhall-tavern', key: 'asking' } as const, null as Asking | null)
+const PROGRESS_REFRESH_MS = 5000
+const TONE_COLOR: Record<NodeTone, string | undefined> = {
+  done: 'success', now: 'suggestion', loop: 'merged', you: 'warning', dim: undefined,
+}
 
 // Which surfaces have asked this module to draw the pane since it loaded: diagnostics only.
 const drawnOn = new Set<string>()
@@ -65,6 +74,8 @@ async function beginQuest($: EngineInterface, title: string, planPath?: string) 
   await update($, chronicle, () => [])
   await update($, recap, () => null)
   await update($, bandQuiet, () => false)
+  await update($, progress, () => null)
+  await update($, asking, () => null)
   await record($, KEEPER.icon, `${KEEPER.name}: “${KEEPER.catchphrase}”`)
   // A surface that cannot seat the pane leaves the ledger kept; /guildhall-tavern opens it later.
   await $.ui.open({ id: PANE, title: TITLE }).catch(() => undefined)
@@ -90,6 +101,30 @@ async function ensureQuest($: EngineInterface, title: string) {
 async function setKeeper($: EngineInterface, line: string, isKeeperBusy = true) {
   await update($, quest, q => (q ? { ...q, keeperLine: line, isKeeperBusy } : q))
   await refreshStatus($)
+}
+
+/** Re-read the record; one that is missing or malformed leaves what the pane already shows. */
+async function loadProgress($: EngineInterface, path: string) {
+  let parsed: QuestProgress | undefined
+  try {
+    parsed = parseProgress(await $.fs.read(path))
+  } catch {
+    return
+  }
+  if (parsed === undefined) return
+  await update($, progress, () => parsed)
+  await update($, quest, q => (q ? { ...q, progressPath: path } : q))
+}
+
+/** The progress summary as plain text for surfaces that cannot draw the pane. */
+function progressText(p: QuestProgress | null, ask: Asking | null, now: number): string[] {
+  if (p === null) return []
+  const { done, total } = counted(p)
+  const card = focusOf(p, ask, now)
+  const lines = [`  Progress · ${done} of ${total} · ${card.label}: ${card.title}`]
+  if (card.total > 0) lines.push(`    ${card.done} of ${card.total} tasks`)
+  lines.push(...card.lines.map(l => `    ${l}`), ...footerRows(p).map(r => `  ${r.text}`))
+  return lines
 }
 
 type RecapRow = { text: string; tone: 'head' | 'ok' | 'skip' | 'warn' | 'dim' }
@@ -151,8 +186,18 @@ async function settle($: EngineInterface) {
  * The band's one line, for when the pane is out of view: the phases at work and
  * who is in them, else Mordain's own line, else a pointer to the recap.
  */
-function bandText(q: GuildQuest | null, list: GuildMember[], r: Recap | null, isQuiet: boolean): string | undefined {
-  if (q === null || isQuiet) return undefined
+function bandText(
+  q: GuildQuest | null,
+  list: GuildMember[],
+  r: Recap | null,
+  isQuiet: boolean,
+  p: QuestProgress | null = null,
+  ask: Asking | null = null,
+): string | undefined {
+  if (q === null) return undefined
+  const waiting = progressBand(p, ask)
+  if (waiting !== undefined) return waiting
+  if (isQuiet) return undefined
   const working = list.filter(m => m.status === 'working')
   if (working.length > 0) {
     const phases = PHASES.flatMap(p => {
@@ -179,11 +224,14 @@ function tavernText(
   r: Recap | null,
   now: number,
   past: string[] = [],
+  p: QuestProgress | null = null,
+  ask: Asking | null = null,
 ): string {
   if (q === null) return `${KEEPER.icon} The tavern is quiet. ${KEEPER.name} waits by the hearth.`
   const mark = (m: GuildMember) => (m.status === 'working' ? '▶' : m.status === 'done' ? '✓' : '✗')
   const lines = [
     `⚔ ${q.title} (${elapsed(now - q.startedAt)} on the road)`,
+    ...progressText(p, ask, now),
     `${q.isKeeperBusy ? '▶' : '·'} ${KEEPER.icon} ${KEEPER.name} ${KEEPER.title}: ${q.keeperLine}`,
   ]
   for (const p of PHASES) {
@@ -229,6 +277,13 @@ export const register: Register = on => {
         }
       })()
     })
+    // The record changes from other processes too (a Codex host, a terminal): look again now and then.
+    $.clock.every(PROGRESS_REFRESH_MS, () => {
+      void (async () => {
+        const path = (await read($, quest))?.progressPath
+        if (path !== undefined) await loadProgress($, path)
+      })().catch(() => undefined)
+    })
     return next(e)
   })
 
@@ -249,6 +304,8 @@ export const register: Register = on => {
       await read($, recap),
       Date.now(),
       (await read($, earlier)) ?? [],
+      await read($, progress),
+      await read($, asking),
     )
     return { text: `The pane cannot be drawn here (${why}). Run /guildhall-tavern again for a fresh look.\n\n${snapshot}` }
   })
@@ -306,6 +363,25 @@ export const register: Register = on => {
           await beginQuest($, shorten(typeof args === 'string' ? args : '', 80) || 'An unnamed quest')
         }
         return next(e)
+      }
+      if (e.tool === 'Bash') {
+        const command = (e as { command?: unknown }).command
+        const recordPath = typeof command === 'string' ? progressPathFromCommand(command) : undefined
+        if (recordPath === undefined) return next(e)
+        const ran = await next(e)
+        await loadProgress($, recordPath)
+        return ran
+      }
+      if (e.tool === 'AskUserQuestion') {
+        const questions = (e as { questions?: { question?: unknown }[] }).questions
+        const first = Array.isArray(questions) ? questions[0]?.question : undefined
+        await update($, asking, () => ({ since: Date.now(), need: shorten(typeof first === 'string' ? first : 'Mordain has a question', 120) }))
+        await update($, bandQuiet, () => false)
+        try {
+          return await next(e)
+        } finally {
+          await update($, asking, () => null)
+        }
       }
       const path = (e as { file_path?: unknown }).file_path
       if (deed !== 'write' || typeof path !== 'string' || !isPlanScroll(path)) return next(e)
@@ -397,12 +473,14 @@ export const register: Register = on => {
       (await read($, members)) ?? [],
       await read($, recap),
       (await read($, bandQuiet)) ?? false,
+      await read($, progress),
+      await read($, asking),
     )
     if (line === undefined || (await isPaneInView($))) return next(e)
     const { Box, Text, Button } = $.ui.resolve(e)
     return (
       <Box>
-        <Text wrap="truncate-end">{line} </Text>
+        <Text wrap="truncate-end" color={line.startsWith('⚑') ? 'warning' : undefined}>{line} </Text>
         <Button key="open-tavern" label="Tavern" onPress={() => $.ui.open({ id: PANE, title: TITLE })} />
       </Box>
     )
@@ -484,8 +562,89 @@ export const register: Register = on => {
     })
 
     const atWork = list.filter(m => m.status === 'working').length
+    const p = await read($, progress)
+    const ask = await read($, asking)
+    const columns = Math.max(24, ((e.props as { bodyColumns?: number }).bodyColumns ?? 60) - 2)
+    const journey: RenderChildren[] = []
+    if (p !== null) {
+      const { done, total } = counted(p)
+      const card = focusOf(p, ask, now)
+      const tone = card.kind === 'loop' ? 'loop' : card.kind === 'you' ? 'you' : card.kind === 'done' ? 'done' : card.kind === 'now' ? 'now' : 'dim'
+      const where = [p.repo, p.branch].filter(Boolean).join(' · ')
+      journey.push(
+        <Box justifyContent="space-between">
+          <Text bold wrap="truncate-end">{p.title}</Text>
+          <Text dimColor> {done} of {total}</Text>
+        </Box>,
+      )
+      if (where) journey.push(<Text dimColor wrap="truncate-end">{where}</Text>)
+      journey.push(<Text> </Text>)
+      for (const row of journeyRows(journeyNodes(p), columns).cells) {
+        journey.push(
+          <Text wrap="truncate-end">
+            {row.map(c => (
+              <Text color={TONE_COLOR[c.tone]} dimColor={c.tone === 'dim'}>{c.text}</Text>
+            ))}
+          </Text>,
+        )
+      }
+      const body: RenderChildren[] = [
+        <Text bold color={TONE_COLOR[tone]} wrap="truncate-end">{card.label}</Text>,
+        <Text wrap="truncate-end">
+          <Text bold>{card.title}</Text>
+          {card.goal ? <Text dimColor>  {card.goal}</Text> : null}
+        </Text>,
+        ...card.lines.map(l => (
+          <Text wrap="truncate-end" color={l.startsWith('Why') ? 'merged' : undefined} dimColor={!l.startsWith('Why')}>{l}</Text>
+        )),
+      ]
+      if (card.kind === 'you') {
+        body.push(<Text> </Text>, <Text color="warning">→ Answer in the chat</Text>, <Text dimColor>{card.meta}</Text>)
+      } else if (card.kind === 'now' || card.kind === 'loop') {
+        body.push(<Text> </Text>)
+        if (card.total === 0) {
+          body.push(<Text dimColor>No tasks recorded yet · {card.meta} so far</Text>)
+        } else {
+          const barWidth = Math.max(4, Math.min(20, columns - 20))
+          const filled = Math.round((barWidth * card.done) / card.total)
+          body.push(
+            <Text>
+              <Text color={TONE_COLOR[tone]}>{'▰'.repeat(filled)}</Text>
+              <Text dimColor>{'▱'.repeat(barWidth - filled)}</Text>
+              {`  ${card.done} of ${card.total} tasks`}
+            </Text>,
+          )
+          const shown = card.tasks.length <= 5 ? card.tasks : card.tasks.slice(0, 4)
+          for (const t of shown) {
+            body.push(
+              t.state === 'done' ? (
+                <Text wrap="truncate-end"><Text color="success">✓</Text> {t.name}</Text>
+              ) : t.state === 'working' ? (
+                <Box justifyContent="space-between">
+                  <Text wrap="truncate-end"><Text color={TONE_COLOR[tone]}>{frame}</Text> {t.name}</Text>
+                  <Text dimColor> {t.who}</Text>
+                </Box>
+              ) : (
+                <Text wrap="truncate-end" dimColor>○ {t.name}</Text>
+              ),
+            )
+          }
+          if (card.tasks.length > shown.length) body.push(<Text dimColor>○ {card.tasks.length - shown.length} more</Text>)
+        }
+      }
+      journey.push(
+        <Box flexDirection="column" borderStyle="round" borderColor={TONE_COLOR[tone] ?? 'subtle'} paddingX={1}>
+          {body}
+        </Box>,
+      )
+      for (const r of footerRows(p)) {
+        journey.push(<Text wrap="truncate-end" color={TONE_COLOR[r.tone]} dimColor={r.tone === 'dim'}>{r.text}</Text>)
+      }
+      journey.push(<Text> </Text>)
+    }
     return (
       <Box flexDirection="column">
+        {journey}
         <Text bold wrap="truncate-end">⚔ {q.title}</Text>
         <Text dimColor>
           {elapsed(now - q.startedAt)} on the road · {atWork} at work · {list.length} summoned

@@ -12,3 +12,5 @@ __pycache__/
 # Types Claude Code lays beside a hot-reloaded mod
 mods/*/.claude-plugin/types/
 mods/*/tsconfig.json
+.superpowers/
+.playwright-mcp/

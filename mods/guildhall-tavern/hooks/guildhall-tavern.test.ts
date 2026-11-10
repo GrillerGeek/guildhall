@@ -499,3 +499,151 @@ test('a quest started through the Skill tool, or a new plan scroll, clears the h
   answer = await $.command.run(tavernCommand)
   expect(answer.text).not.toContain('Second quest task')
 })
+
+// ---------------------------------------------------------------- quest progress journey
+
+import { focusOf, journeyNodes, parseProgress, progressBand, progressPathFromCommand } from './progress'
+
+const milestone = (id: string, name: string, state: string, extra: Record<string, unknown> = {}) => ({
+  id, name, goal: '', state, loop: null, pass: state === 'upcoming' ? 0 : 1,
+  started_at: 0, finished_at: null, added_because: null, skipped_why: null, ...extra,
+})
+const task = (id: string, name: string, state: string, extra: Record<string, unknown> = {}) => ({
+  id, milestone: 'build', pass: 1, name, state, who: null, added_because: null, started_at: 0, finished_at: null, ...extra,
+})
+const RECORD = {
+  schema_version: 1, title: 'MCP agent access', repo: 'camp-planner', branch: 'feature/mcp', host: 'claude',
+  plan_path: 'docs/guildhall/plans/2026-11-07-mcp.md', status: 'active', note: '', started_at: 0, updated_at: 0,
+  milestones: [
+    milestone('plan', 'Plan', 'done'),
+    milestone('tests', 'Tests', 'done'),
+    milestone('build', 'Build', 'current', { goal: 'Make the new tests pass', loop: { reason: 'reviews may block', limit: 2 } }),
+    milestone('review', 'Review', 'upcoming', { loop: { reason: 'fixes are re-reviewed', limit: 2 } }),
+    milestone('ui', 'UI', 'skipped'),
+    milestone('pr', 'PR', 'upcoming'),
+  ],
+  tasks: [
+    task('t0', 'Read consistency', 'done'), task('t1', 'Grocery tools', 'done'),
+    task('t2', 'Photo replacement race', 'working', { who: 'Bruga' }), task('t3', 'Full suite green', 'upcoming'),
+  ],
+  waypoints: [
+    { id: 'scope', need: 'Approve mode and scope', after: 'plan', state: 'done', planned: true, waiting_since: null, done_at: 0 },
+    { id: 'accept', need: 'Muse/Dots acceptance', after: 'pr', state: 'upcoming', planned: true, waiting_since: null, done_at: null },
+  ],
+  loops: [],
+}
+const RECORD_PATH = '/repo/docs/guildhall/plans/2026-11-07-mcp/progress.json'
+const PROGRESS_CMD = 'python3 /plugin/skills/guildhall-quest/scripts/progress.py --root /repo --plan docs/guildhall/plans/2026-11-07-mcp.md start build'
+
+test('progress helpers read the record and the command that changed it', async () => {
+  expect(progressPathFromCommand(PROGRESS_CMD)).toBe(RECORD_PATH)
+  expect(progressPathFromCommand("python3 progress.py --plan 'docs/guildhall/plans/x.md' note hi")).toBe('docs/guildhall/plans/x/progress.json')
+  expect(progressPathFromCommand('python3 review.py --plan docs/guildhall/plans/x.md')).toBe(undefined)
+  expect(progressPathFromCommand('python3 progress.py --plan ../../etc/x.md start a')).toBe(undefined)
+  expect(parseProgress(JSON.stringify(RECORD))?.title).toBe('MCP agent access')
+  const { status: _status, ...noStatus } = RECORD
+  const pass2 = RECORD.milestones.map(m => (m.id === 'build' ? { ...m, pass: 2 } : m))
+  for (const bad of ['{not json', '{}', '[]', JSON.stringify({ ...RECORD, milestones: 'x' }), JSON.stringify({ ...RECORD, schema_version: 2 }),
+    JSON.stringify(noStatus), JSON.stringify({ ...RECORD, milestones: pass2, loops: [null] }),
+    JSON.stringify({ ...RECORD, note: { x: 1 } }), JSON.stringify({ ...RECORD, milestones: RECORD.milestones.map(m => ({ ...m, goal: 7 })) }),
+    JSON.stringify({ ...RECORD, milestones: RECORD.milestones.map(m => ({ ...m, state: 'bogus' })) }),
+    JSON.stringify({ ...RECORD, milestones: RECORD.milestones.map(m => ({ ...m, pass: 'one' })) })]) {
+    expect(parseProgress(bad)).toBe(undefined)
+  }
+  const hostile = parseProgress(JSON.stringify({ ...RECORD, title: 'Evil\u001b]0;pwned\u0007 title', note: 'x\u009b2J' }))!
+  expect(hostile.title).toBe('Evil]0;pwned title')
+  expect(hostile.note).toBe('x2J')
+  const p = parseProgress(JSON.stringify(RECORD))!
+  expect(journeyNodes(p).map(n => n.label)).toEqual(['Plan', 'Tests', 'Build', 'Review', 'PR', 'You'])
+  expect(journeyNodes(p).map(n => n.badge)).toEqual(['', '', '↻', '↻', '', ''])
+  const card = focusOf(p, null, 60_000)
+  expect(card.kind).toBe('now')
+  expect([card.done, card.total]).toEqual([2, 4])
+  expect(progressBand(p, null)).toBe(undefined)
+  const waitingThenClosed = {
+    ...p, status: 'completed' as const,
+    waypoints: p.waypoints.map(w => (w.id === 'accept' ? { ...w, state: 'waiting' as const, waiting_since: 0 } : w)),
+  }
+  expect(focusOf(waitingThenClosed, null, 60_000).kind).toBe('done')
+  expect(progressBand(waitingThenClosed, null)).toBe(undefined)
+  expect(progressBand(waitingThenClosed, { since: 0, need: 'Live question?' })).toBe('⚑ Waiting on you: Live question?')
+})
+
+const progressHooks = (on: any, files: Record<string, string>, toolCall?: (...a: any[]) => unknown) => {
+  on('command.run', () => ({ text: '' }))
+  on('tool.call', toolCall ?? (() => ({ result: '', text: '' })))
+  on('turn.complete', ($: unknown, e: { answer: string }) => ({ text: e.answer }))
+  on('fs.read', ($: unknown, e: { path: string }) => {
+    if (!(e.path in files)) throw new Error('ENOENT')
+    return { value: files[e.path] }
+  })
+  on('ui.open', () => ({ value: { isPlaced: true } }))
+  on('ui.panes', () => ({ value: [] }))
+  on('session.surfaces', () => ({ value: [] }))
+  on('ui.status', () => ({ value: undefined }))
+}
+
+test('a progress record draws the journey and the NOW card above the guild, on every surface', async ($, on) => {
+  progressHooks(on, { [RECORD_PATH]: JSON.stringify(RECORD) })
+  await $.command.run(questCommand('MCP agent access'))
+  await $.tool.call({ tool: 'Bash', command: PROGRESS_CMD } as never)
+  for (const surface of SURFACES) {
+    const pane = await $.ui.mount({ plugin: 'guildhall-tavern', surface, component: 'Pane', requestId: 'guildhall', props: PANE })
+    expect(await pane.find({ text: /2 of 5/ })).toBeDefined()
+    expect(await pane.find({ text: /NOW/ })).toBeDefined()
+    expect(await pane.find({ text: /Make the new tests pass/ })).toBeDefined()
+    expect(await pane.find({ text: /2 of 4 tasks/ })).toBeDefined()
+    expect(await pane.find({ text: /Photo replacement race/ })).toBeDefined()
+    expect(await pane.find({ text: /You're needed after PR/ })).toBeDefined()
+    expect(await pane.find({ text: /Muse\/Dots acceptance/ })).toBeDefined()
+  }
+  const answer = await $.command.run(tavernCommand)
+  expect(answer.text).toContain('2 of 5')
+})
+
+test('a loop pass shows its pass number and why it repeated', async ($, on) => {
+  const looped = {
+    ...RECORD,
+    milestones: RECORD.milestones.map(m => (m.id === 'build' ? { ...m, pass: 2 } : m)),
+    tasks: [task('p1', 'Stale read fence', 'working', { pass: 2 })],
+    loops: [{ milestone: 'build', pass: 2, why: 'security review found a stale read', at: 0, within_limit: true }],
+  }
+  progressHooks(on, { [RECORD_PATH]: JSON.stringify(looped) })
+  await $.command.run(questCommand('MCP agent access'))
+  await $.tool.call({ tool: 'Bash', command: PROGRESS_CMD } as never)
+  const pane = await $.ui.mount({ plugin: 'guildhall-tavern', surface: 'terminal', component: 'Pane', requestId: 'guildhall', props: PANE })
+  expect(await pane.find({ text: /PASS 2 OF BUILD/ })).toBeDefined()
+  expect(await pane.find({ text: /Why: security review found a stale read/ })).toBeDefined()
+  expect(await pane.find({ text: /Expected — Build allows 2 passes/ })).toBeDefined()
+  expect(await pane.find({ text: /Read consistency/ })).toBe(undefined)
+})
+
+test('an AskUserQuestion from Mordain turns the card into YOUR TURN until it is answered', async ($, on) => {
+  let paneDuring: unknown
+  progressHooks(on, { [RECORD_PATH]: JSON.stringify(RECORD) }, async (_: unknown, e: any) => {
+    if (e.tool === 'AskUserQuestion') {
+      const pane = await $.ui.mount({ plugin: 'guildhall-tavern', surface: 'desktop', component: 'Pane', requestId: 'guildhall', props: PANE })
+      paneDuring = await pane.find({ text: /YOUR TURN/ })
+      const band = await $.ui.mount({ plugin: 'guildhall-tavern', surface: 'terminal', component: 'AbovePrompt', props: { hasSurvey: false } })
+      expect(await band.find({ text: /⚑ Waiting on you: Ship it with hosted checks pending\?/ })).toBeDefined()
+    }
+    return { result: '', text: '' }
+  })
+  await $.command.run(questCommand('MCP agent access'))
+  await $.tool.call({ tool: 'Bash', command: PROGRESS_CMD } as never)
+  await $.tool.call({ tool: 'AskUserQuestion', questions: [{ question: 'Ship it with hosted checks pending?' }] } as never)
+  expect(paneDuring).toBeDefined()
+  const pane = await $.ui.mount({ plugin: 'guildhall-tavern', surface: 'terminal', component: 'Pane', requestId: 'guildhall', props: PANE })
+  expect(await pane.find({ text: /YOUR TURN/ })).toBe(undefined)
+  expect(await pane.find({ text: /NOW/ })).toBeDefined()
+})
+
+test('a missing or corrupt record leaves the tavern as it was', async ($, on) => {
+  progressHooks(on, { [RECORD_PATH]: '{not json' })
+  await $.command.run(questCommand('MCP agent access'))
+  await $.tool.call({ tool: 'Bash', command: PROGRESS_CMD } as never)
+  await $.tool.call({ tool: 'Bash', command: PROGRESS_CMD.replace('2026-11-07-mcp', '2026-11-08-gone') } as never)
+  const pane = await $.ui.mount({ plugin: 'guildhall-tavern', surface: 'terminal', component: 'Pane', requestId: 'guildhall', props: PANE })
+  expect(await pane.find({ text: /MCP agent access/ })).toBeDefined()
+  expect(await pane.find({ text: /NOW/ })).toBe(undefined)
+})

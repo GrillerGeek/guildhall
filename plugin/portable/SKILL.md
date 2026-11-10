@@ -13,8 +13,9 @@ Before acting, read [host capabilities](references/hosts.md) and the
 [quest protocol](references/quest.md). Read only the role references needed for
 the chosen mode; [the roster](references/roster.md) lists them.
 
-During a quest, write only its plan under `docs/guildhall/plans/`; delegate
-implementation and other artifact edits. The host's permissions remain in force.
+During a quest, write only its plan under `docs/guildhall/plans/` and its
+[progress record](references/progress.md), the latter only through `progress.py`;
+delegate implementation and other artifact edits. The host's permissions remain in force.
 These instructions are not an OS sandbox or a portable implementation of
 Claude's hooks.
 
@@ -43,7 +44,8 @@ Space Page capabilities, then local OpenCode/Pi companion, then portable
 Markdown/HTML plus conversation. Report limitations. Cassian's explicit
 review-document mode owns named review documents and hosted outputs, including
 explicit creation permission; Mordain still writes only the quest plan and
-must not invoke a mutating helper to evade that scope. Native paths use supported
+must not invoke a mutating helper to evade that scope. The progress record is
+the one exception, updated only through `progress.py`. Native paths use supported
 file/host tools without Python. Local helper use is optional.
 
 Reuse one stable private-by-default review identity. Checkpoint on save/proceed,

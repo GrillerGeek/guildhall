@@ -11,6 +11,9 @@ Scope, deliberately narrow:
 - Fires only for the MAIN agent. A tool call inside a subagent carries
   `agent_id` in the hook input (per the hooks docs); adventurers' Writes are
   governed by their own tool lists, not by this guard.
+- The quest's progress record (docs/guildhall/plans/<slug>/progress.json) is
+  updated only through progress.py via Bash — a prose rule like any Bash use,
+  so this hook needs no exception for it.
 - Guards `Write` only. Mordain's Bash access stays a prose rule — quest.md
   already forbids `cat >` workarounds in its non-goals.
 
