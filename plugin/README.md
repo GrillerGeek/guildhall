@@ -183,6 +183,25 @@ Three ways to watch the same record:
 - **A browser** (Codex desktop, Claude desktop or anything else):
   `… progress.py --root . watch --web` prints a local `127.0.0.1` address.
 
+`watch` follows the newest active quest and waits when none is running, so one
+pane can stay open all day. The installed path carries the version number, so a
+shell shortcut that always picks the newest installed helper (Codex or Claude)
+saves retyping it after upgrades. Add to `~/.zshrc` (or `~/.bashrc`):
+
+```bash
+quest-watch() {
+  local helper
+  helper=$(ls -d ~/.codex/plugins/cache/*/guildhall/*/skills/guildhall-quest/scripts/progress.py \
+                 ~/.claude/plugins/cache/*/guildhall/*/skills/guildhall-quest/scripts/progress.py 2>/dev/null \
+           | awk -F/ '{for(i=1;i<=NF;i++) if($i=="guildhall"){print $(i+1)"\t"$0; break}}' \
+           | sort -t$'\t' -k1,1V | tail -1 | cut -f2)
+  [ -n "$helper" ] || { echo "quest-watch: no Guildhall progress helper found" >&2; return 1; }
+  python3 "$helper" --root "${QUEST_ROOT:-$PWD}" watch "$@"
+}
+```
+
+Then run `quest-watch` (or `quest-watch --web`) from the project root.
+
 Colors carry one meaning each: green done, blue working, violet repeating,
 amber waiting on you. A quest whose helper is unavailable carries on without a
 record; the plan notes why.
