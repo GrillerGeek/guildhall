@@ -99,6 +99,12 @@ def check_1_manifest() -> dict:
     version = manifest.get("version", "")
     if version and not re.fullmatch(r"\d+\.\d+\.\d+", version):
         error(f"check 1: plugin.json version '{version}' is not semver-ish")
+    description = manifest.get("description", "")
+    if len(description) > 500:
+        error(
+            f"check 1: plugin.json description is {len(description)} characters "
+            "(maximum 500)"
+        )
     return manifest
 
 

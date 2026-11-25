@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.20.1
+
+- Shorten the Claude plugin marketplace description to meet the 500-character limit.
+- Add a plugin validator check that rejects descriptions longer than 500 characters.
+
 ## 0.18.0 — Unreleased
 
 - Remove Jev-assisted model routing, its setup skill, policy/approval helpers, catalogs, qualification studies and bundled routing resources.

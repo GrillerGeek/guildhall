@@ -2,7 +2,7 @@
 <!-- Guildhall is a Claude Code plugin and portable Agent Skill: a coding workflow where Mordain plans and dispatches specialist agents for tests, implementation, reviews and a PR draft. -->
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Plugin](https://img.shields.io/badge/plugin-v0.20.0-green.svg)](plugin/README.md)
+[![Plugin](https://img.shields.io/badge/plugin-v0.20.1-green.svg)](plugin/README.md)
 
 **Give a coding task to a team of AI specialists that writes tests, implements the
 change, reviews it and prepares a PR draft.**
@@ -21,8 +21,9 @@ code, tests, review evidence and a PR draft. Publishing a PR is a separate actio
 ## Install
 
 The commands below install Guildhall from its published main branch. This release
-ships **0.20.0**, adding quest progress tracking (a journey view in the tavern
-pane, any terminal and a local browser page) on top of collaborative planning review.
+ships **0.20.1**, adding quest progress tracking (a journey view in the tavern
+pane, any terminal and a local browser page) on top of collaborative planning review,
+and limiting marketplace descriptions to 500 characters.
 Removed model routing and its setup skill remain absent.
 Choose one route for your coding app. No repository clone, build or IDD
 installation is required.

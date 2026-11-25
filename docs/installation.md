@@ -1,7 +1,7 @@
 # Guildhall installation and host support
 
-This release ships **0.20.0**, adding quest progress tracking to collaborative
-planning review. Removed model routing and its setup skill remain absent. The generated
+This release ships **0.20.1**, adding quest progress tracking to collaborative
+planning review and marketplace-safe plugin descriptions. Removed model routing and its setup skill remain absent. The generated
 `guildhall-quest` skill, Claude's `/guildhall:quest`, nineteen agent definitions
 and hooks remain available. Choose one route per quest to avoid duplicate entry
 points. Guildhall works independently; IDD is optional. See
