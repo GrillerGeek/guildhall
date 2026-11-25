@@ -541,7 +541,7 @@ class InstructionTests(unittest.TestCase):
     def test_versions_bumped_together(self):
         versions = {json.loads((ROOT / rel).read_text())['version'] for rel in
                     ('plugin/plugin.json', 'plugin/.codex-plugin/plugin.json', 'plugin/.claude-plugin/plugin.json')}
-        self.assertEqual(versions, {'0.20.0'})
+        self.assertEqual(versions, {'0.20.1'})
         tavern = json.loads((ROOT / 'mods/guildhall-tavern/.claude-plugin/plugin.json').read_text())
         self.assertEqual(tavern['version'], '0.4.0')
 
